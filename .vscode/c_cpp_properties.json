@@ -1,0 +1,26 @@
+{
+    "configurations": [
+        {
+            "name": "MDK",
+            "includePath": [
+                "C:/Keil_v5/ARM/ARMCC/include/",
+                "${workspaceFolder}/SeggerRTT",
+                "${workspaceFolder}/CSL/CMSIS/CoreSupport",
+                "${workspaceFolder}/CSL/CMSIS/DeviceSupport",
+                "${workspaceFolder}/CSL/SWM341_StdPeriph_Driver",
+                "${workspaceFolder}/lv_porting",
+                "${workspaceFolder}/components/**",
+                "${workspaceFolder}/app",
+                "${workspaceFolder}/**"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE",
+                "__STATIC_INLINE",
+                "LV_LVGL_H_INCLUDE_SIMPLE",
+            ]
+        }
+    ],
+    "version": 4
+}
