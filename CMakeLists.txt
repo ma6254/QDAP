@@ -38,14 +38,20 @@ if(ANDROID)
   )
 else()
   add_executable(QDAP
-    main.cpp
-    mainwindow.cpp
-    mainwindow.h
-    mainwindow.ui
+    libusb_hid_api/include/hidapi.h
+    libusb_hid_api/include/hidapi_winapi.h
+    src/main.cpp
+    src/mainwindow.cpp
+    src/mainwindow.h
+    src/mainwindow.ui
     ${TS_FILES}
   )
 endif()
 
-target_link_libraries(QDAP PRIVATE Qt5::Widgets)
+target_link_libraries(
+  QDAP
+  PRIVATE Qt5::Widgets
+  ${CMAKE_SOURCE_DIR}/libusb_hid_api/x64/hidapi.lib
+)
 
 qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
