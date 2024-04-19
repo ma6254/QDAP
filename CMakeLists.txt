@@ -28,6 +28,8 @@ find_package(Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
 
 set(TS_FILES QDAP_zh_CN.ts)
 
+include_directories(libusb_hid_api/include)
+
 if(ANDROID)
   add_library(QDAP SHARED
     main.cpp
@@ -44,6 +46,8 @@ else()
     src/mainwindow.cpp
     src/mainwindow.h
     src/mainwindow.ui
+    src/dap_hid.cpp
+    src/dap_hid.h
     ${TS_FILES}
   )
 endif()

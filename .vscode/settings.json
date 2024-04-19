@@ -10,5 +10,11 @@
         "out": true,
         "Objects": true,
         "Listings": true
+    },
+    "files.associations": {
+        "*.A51": "a51",
+        "hidapi.h": "c",
+        "hidapi_winapi.h": "c",
+        "new": "cpp"
     }
 }

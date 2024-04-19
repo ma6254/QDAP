@@ -69,8 +69,8 @@ CMakeLists.txt.user
 
 # Binaries
 # --------
-*.dll
-*.exe
+# *.dll
+# *.exe
 
 # libusb
 # /libusb_hid_api/x86

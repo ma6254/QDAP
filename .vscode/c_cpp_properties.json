@@ -1,17 +1,13 @@
 {
     "configurations": [
         {
-            "name": "MDK",
+            "name": "QT",
             "includePath": [
-                "C:/Keil_v5/ARM/ARMCC/include/",
-                "${workspaceFolder}/SeggerRTT",
-                "${workspaceFolder}/CSL/CMSIS/CoreSupport",
-                "${workspaceFolder}/CSL/CMSIS/DeviceSupport",
-                "${workspaceFolder}/CSL/SWM341_StdPeriph_Driver",
-                "${workspaceFolder}/lv_porting",
-                "${workspaceFolder}/components/**",
-                "${workspaceFolder}/app",
-                "${workspaceFolder}/**"
+                "D:\\Qt\\Qt5.14.2\\5.14.2\\mingw73_64\\include\\",
+                "D:\\Qt\\Qt5.14.2\\5.14.2\\mingw73_64\\include\\*\\**",
+                "${workspaceFolder}/src",
+                "${workspaceFolder}/libusb_hid_api/include",
+                "${workspaceFolder}/../build-QDAP-Desktop_Qt_5_14_2_MinGW_64_bit-Debug/QDAP_autogen/include",
             ],
             "defines": [
                 "_DEBUG",

@@ -4,7 +4,7 @@
 
 ## Reference
 
-- <https://github.com/libusb/hidap>
+- <https://github.com/libusb/hidapi>
 - <https://github.com/openocd-org/openocd>
 - <https://arm-software.github.io/CMSIS_5/DAP/html/index.html>
 - <https://github.com/x893/CMSIS-DAP>
