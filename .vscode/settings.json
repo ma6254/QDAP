@@ -12,9 +12,11 @@
         "Listings": true
     },
     "files.associations": {
+        "*.H": "c",
+        "*.ts": "xml",
         "*.A51": "a51",
         "hidapi.h": "c",
         "hidapi_winapi.h": "c",
-        "new": "cpp"
+        "dap_hid.h": "cpp"
     }
 }

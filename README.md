@@ -8,5 +8,6 @@
 - <https://github.com/openocd-org/openocd>
 - <https://arm-software.github.io/CMSIS_5/DAP/html/index.html>
 - <https://github.com/x893/CMSIS-DAP>
-- <https://gitee.com/synwit-co-ltd/DAPLink>
+- <https://gitee.com/synwit-co-ltd/SWMProg>
 - <https://gitee.com/synwit-co-ltd/DAPProg>
+- <https://github.com/tthe207/DP-SW>

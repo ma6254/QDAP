@@ -1,4 +1,5 @@
-#include "dap_hid.h"
+﻿#include "dap_hid.h"
+#include "debug_cm.h"
 #include <QtGlobal>
 
 const char *dap_state_to_string(uint8_t state)
@@ -9,6 +10,40 @@ const char *dap_state_to_string(uint8_t state)
         return "DAP_ERROR";
     else
         return "???";
+}
+
+QString parse_dap_hid_info_resp(uint16_t data)
+{
+    QStringList impl_list;
+
+    if (data & 0x01)
+        impl_list.append(QString("SWD"));
+
+    if (data & 0x02)
+        impl_list.append(QString("JTAG"));
+
+    if (data & 0x04)
+        impl_list.append(QString("SWO_UART"));
+
+    if (data & 0x08)
+        impl_list.append(QString("SWO_Manchester"));
+
+    if (data & 0x10)
+        impl_list.append(QString("Atomic_Commands"));
+
+    if (data & 0x20)
+        impl_list.append(QString("Test Domain Timer"));
+
+    if (data & 0x40)
+        impl_list.append(QString("SWO Streaming_Trace"));
+
+    if (data & 0x80)
+        impl_list.append(QString("UART_Communication_Port"));
+
+    if (data & 0x0100)
+        impl_list.append(QString("USB_COM_Port"));
+
+    return impl_list.join(" ");
 }
 
 void hexdump(const uint8_t *buf, uint32_t len)
@@ -49,6 +84,7 @@ DAP_HID::DAP_HID(QString usb_path, QWidget *parent)
 {
     this->usb_path = usb_path;
     int32_t err;
+
     uint32_t idcode;
 
     err = open_device();
@@ -58,12 +94,23 @@ DAP_HID::DAP_HID(QString usb_path, QWidget *parent)
         return;
     }
 
-    // qDebug("    vendor_name: %s", qPrintable(dap_get_info_vendor_name()));
-    // qDebug("    product_name: %s", qPrintable(dap_get_info_product_name()));
-    // qDebug("    serial_number: %s", qPrintable(dap_get_info_serial_number()));
-    // qDebug("    protocol_version: %s", qPrintable(dap_get_info_cmsis_dap_protocol_version()));
-    // qDebug("    caps: 0x%X", dap_get_info_caps());
-    // qDebug("    freq: %d", dap_get_info_freq());
+    qDebug("    vendor_name: %s", qPrintable(dap_get_info_vendor_name()));
+    qDebug("    product_name: %s", qPrintable(dap_get_info_product_name()));
+    qDebug("    serial_number: %s", qPrintable(dap_get_info_serial_number()));
+    qDebug("    protocol_version: %s", qPrintable(dap_get_info_cmsis_dap_protocol_version()));
+
+    err = dap_get_info_caps();
+    if (err < 0)
+    {
+        qDebug("    caps: Unspupport");
+    }
+    else
+    {
+        int16_t caps = err;
+        qDebug("    caps: 0x%X %s", caps, qPrintable(parse_dap_hid_info_resp(caps)));
+    }
+
+    qDebug("    freq: %d", dap_get_info_freq());
 
     err = dap_connect(1);
     if (err < 0)
@@ -122,6 +169,20 @@ DAP_HID::DAP_HID(QString usb_path, QWidget *parent)
     else
     {
         qDebug("[enum_device] dap_swd_read_idcode 0x%08X", idcode);
+    }
+
+    err = swd_init_debug();
+    if (err < 0)
+    {
+        qDebug("[enum_device] swd_init_debug fail");
+        return;
+    }
+
+    err = dap_set_target_state_hw(DAP_TARGET_RESET_PROGRAM);
+    if (err < 0)
+    {
+        qDebug("[enum_device] dap_set_target_state_hw RESET_PROGRAM fail");
+        return;
     }
 }
 
@@ -201,70 +262,109 @@ int32_t DAP_HID::close_device()
     return 0;
 }
 
+int32_t DAP_HID::dap_hid_request(uint8_t *tx_data, uint8_t *rx_data)
+{
+    int32_t err;
+    uint8_t tx_buf[65] = {0};
+
+    tx_buf[0] = 0x00;
+    memcpy(tx_buf + 1, tx_data, 64);
+
+    err = hid_write(dev, tx_buf, 65);
+    if (err < 0)
+    {
+        QString err_info = QString::fromWCharArray(hid_error(dev));
+        qDebug("[DAP_HID] dap_hid_requst fail: %s", qPrintable(err_info));
+        return err;
+    }
+
+    err = hid_read_timeout(dev, rx_data, 64, 100);
+    if (err < 0)
+    {
+        QString err_info = QString::fromWCharArray(hid_error(dev));
+        qDebug("[DAP_HID] dap_hid_request fail: %s", qPrintable(err_info));
+        return err;
+    }
+
+    // 首字节一定与发送相等
+    if (rx_data[0] != tx_data[0])
+        return -1;
+
+    return 0;
+}
+
+int32_t DAP_HID::dap_hid_resp_status_return(uint8_t *rx_data)
+{
+    uint8_t status = rx_data[1];
+
+    if (status == DAP_OK)
+        return 1;
+    else if (status == DAP_ERROR)
+        return 0;
+    else
+        return -1;
+}
+
+/*******************************************************************************
+ * @brief 0x01 = Get the Vendor Name (string).
+ * @ref https://arm-software.github.io/CMSIS_5/DAP/html/group__DAP__Info.html
+ * @param None
+ * @return None
+ ******************************************************************************/
 QString DAP_HID::dap_get_info_vendor_name()
 {
-    uint8_t tx_buf[65] = {0};
+    uint8_t tx_buf[64] = {0};
     uint8_t rx_buf[64] = {0};
     int32_t err;
 
-    // 报告编号
     tx_buf[0] = 0x00;
-    tx_buf[1] = 0x00;
-    tx_buf[2] = 0x01;
+    tx_buf[1] = 0x01;
 
-    err = hid_write(dev, tx_buf, 3);
+    err = dap_hid_request(tx_buf, rx_buf);
     if (err < 0)
     {
-        QString err_info = QString::fromWCharArray(hid_error(dev));
-        qDebug("[DAP_HID] hid_write fail: %s", qPrintable(err_info));
-        return "";
-    }
-
-    err = hid_read_timeout(dev, rx_buf, 64, 100);
-    if (err < 0)
-    {
-        QString err_info = QString::fromWCharArray(hid_error(dev));
-        qDebug("[DAP_HID] hid_write fail: %s", qPrintable(err_info));
         return "";
     }
 
     uint8_t len = rx_buf[1];
+
+    if (len == 0)
+        return "";
+
     if (len > 62)
         len = 62;
 
+    // qDebug("[DAP_HID] dap_get_info_vendor_name resp:");
     // hexdump(rx_buf, 64);
-    // qDebug("[dap_get_info_vendor_name] ok");
+
     return QString(QLatin1String((char *)rx_buf + 2, len));
 }
 
+/*******************************************************************************
+ * @brief 0x02 = Get the Product Name (string).
+ * @param None
+ * @return None
+ ******************************************************************************/
 QString DAP_HID::dap_get_info_product_name()
 {
-    uint8_t tx_buf[65] = {0};
+    uint8_t tx_buf[64] = {0};
     uint8_t rx_buf[64] = {0};
     int32_t err;
 
-    // 报告编号
     tx_buf[0] = 0x00;
-    tx_buf[1] = 0x00;
-    tx_buf[2] = 0x02;
+    tx_buf[1] = 0x02;
 
-    err = hid_write(dev, tx_buf, 3);
+    err = dap_hid_request(tx_buf, rx_buf);
     if (err < 0)
     {
-        QString err_info = QString::fromWCharArray(hid_error(dev));
-        qDebug("[DAP_HID] hid_write fail: %s", qPrintable(err_info));
-        return "";
-    }
-
-    err = hid_read_timeout(dev, rx_buf, 64, 100);
-    if (err < 0)
-    {
-        QString err_info = QString::fromWCharArray(hid_error(dev));
-        qDebug("[DAP_HID] hid_write fail: %s", qPrintable(err_info));
         return "";
     }
 
     uint8_t len = rx_buf[1];
+
+    if (len == 0)
+        return "";
+
     if (len > 62)
         len = 62;
 
@@ -280,32 +380,24 @@ QString DAP_HID::dap_get_info_product_name()
  ******************************************************************************/
 QString DAP_HID::dap_get_info_serial_number()
 {
-    uint8_t tx_buf[65] = {0};
+    uint8_t tx_buf[64] = {0};
     uint8_t rx_buf[64] = {0};
     int32_t err;
 
-    // 报告编号
     tx_buf[0] = 0x00;
-    tx_buf[1] = 0x00;
-    tx_buf[2] = 0x03;
+    tx_buf[1] = 0x03;
 
-    err = hid_write(dev, tx_buf, 3);
+    err = dap_hid_request(tx_buf, rx_buf);
     if (err < 0)
     {
-        QString err_info = QString::fromWCharArray(hid_error(dev));
-        qDebug("[DAP_HID] hid_write fail: %s", qPrintable(err_info));
-        return "";
-    }
-
-    err = hid_read_timeout(dev, rx_buf, 64, 100);
-    if (err < 0)
-    {
-        QString err_info = QString::fromWCharArray(hid_error(dev));
-        qDebug("[DAP_HID] hid_write fail: %s", qPrintable(err_info));
         return "";
     }
 
     uint8_t len = rx_buf[1];
+
+    if (len == 0)
+        return "";
+
     if (len > 62)
         len = 62;
 
@@ -321,32 +413,22 @@ QString DAP_HID::dap_get_info_serial_number()
  ******************************************************************************/
 QString DAP_HID::dap_get_info_cmsis_dap_protocol_version()
 {
-    uint8_t tx_buf[65] = {0};
+    uint8_t tx_buf[64] = {0};
     uint8_t rx_buf[64] = {0};
     int32_t err;
 
-    // 报告编号
     tx_buf[0] = 0x00;
-    tx_buf[1] = 0x00;
-    tx_buf[2] = 0x04;
+    tx_buf[1] = 0x04;
 
-    err = hid_write(dev, tx_buf, 3);
+    err = dap_hid_request(tx_buf, rx_buf);
     if (err < 0)
-    {
-        QString err_info = QString::fromWCharArray(hid_error(dev));
-        qDebug("[DAP_HID] hid_write fail: %s", qPrintable(err_info));
         return "";
-    }
-
-    err = hid_read_timeout(dev, rx_buf, 64, 100);
-    if (err < 0)
-    {
-        QString err_info = QString::fromWCharArray(hid_error(dev));
-        qDebug("[DAP_HID] hid_write fail: %s", qPrintable(err_info));
-        return "";
-    }
 
     uint8_t len = rx_buf[1];
+
+    if (len == 0)
+        return "";
+
     if (len > 62)
         len = 62;
 
@@ -355,82 +437,54 @@ QString DAP_HID::dap_get_info_cmsis_dap_protocol_version()
     return QString(QLatin1String((char *)rx_buf + 2, len));
 }
 
+/*******************************************************************************
+ * @brief 0xF0 = Get information about the Capabilities (BYTE) of the Debug Unit (see below for details).
+ * @param None
+ * @return None
+ ******************************************************************************/
 int32_t DAP_HID::dap_get_info_caps()
 {
-    uint8_t tx_buf[65] = {0};
+    uint8_t tx_buf[64] = {0};
     uint8_t rx_buf[64] = {0};
     int32_t err;
 
-    // 报告编号
     tx_buf[0] = 0x00;
-    tx_buf[1] = 0x00;
-    tx_buf[2] = 0xF0;
+    tx_buf[1] = 0xF0;
 
-    err = hid_write(dev, tx_buf, 3);
+    err = dap_hid_request(tx_buf, rx_buf);
     if (err < 0)
-    {
-        QString err_info = QString::fromWCharArray(hid_error(dev));
-        qDebug("[DAP_HID] hid_write fail: %s", qPrintable(err_info));
-        return -1;
-    }
+        return err;
 
-    err = hid_read_timeout(dev, rx_buf, 64, 100);
-    if (err < 0)
-    {
-        QString err_info = QString::fromWCharArray(hid_error(dev));
-        qDebug("[DAP_HID] hid_write fail: %s", qPrintable(err_info));
-        return -1;
-    }
-
+    // qDebug("[DAP_HID] dap_get_info_caps resp:");
     // hexdump(rx_buf, 64);
 
     uint8_t len = rx_buf[1];
 
     if (len == 1)
-    {
         return rx_buf[2];
-    }
     else if (len == 2)
-    {
         return ((uint16_t)rx_buf[2]) << 8 | ((uint16_t)rx_buf[3]);
-    }
     else
-    {
         return -1;
-    }
 }
 
 /*******************************************************************************
- * @brief Get the CMSIS-DAP Protocol Version (string).
+ * @brief Get the Test Domain Timer parameter information (see below for details).
  * @param None
  * @return None
  ******************************************************************************/
 int32_t DAP_HID::dap_get_info_freq()
 {
-    uint8_t tx_buf[65] = {0};
+    uint8_t tx_buf[64] = {0};
     uint8_t rx_buf[64] = {0};
     int32_t err;
 
-    // 报告编号
     tx_buf[0] = 0x00;
-    tx_buf[1] = 0x00;
-    tx_buf[2] = 0xF1;
+    tx_buf[1] = 0xF1;
 
-    err = hid_write(dev, tx_buf, 3);
+    err = dap_hid_request(tx_buf, rx_buf);
     if (err < 0)
-    {
-        QString err_info = QString::fromWCharArray(hid_error(dev));
-        qDebug("[DAP_HID] hid_write fail: %s", qPrintable(err_info));
-        return -1;
-    }
-
-    err = hid_read_timeout(dev, rx_buf, 64, 100);
-    if (err < 0)
-    {
-        QString err_info = QString::fromWCharArray(hid_error(dev));
-        qDebug("[DAP_HID] hid_write fail: %s", qPrintable(err_info));
-        return -1;
-    }
+        return err;
 
     if (rx_buf[1] != 0x08)
         return -1;
@@ -443,127 +497,85 @@ int32_t DAP_HID::dap_get_info_freq()
 }
 
 /*******************************************************************************
- * @brief Get the CMSIS-DAP Protocol Version (string).
+ * @brief Connect to Device and selected DAP mode.
+ * @ref https://arm-software.github.io/CMSIS_5/DAP/html/group__DAP__Connect.html
  * @param None
  * @return None
  ******************************************************************************/
 int32_t DAP_HID::dap_connect(uint8_t port)
 {
-    uint8_t tx_buf[65] = {0};
+    uint8_t tx_buf[64] = {0};
     uint8_t rx_buf[64] = {0};
+    uint8_t rx_port;
     int32_t err;
 
-    // 报告编号
-    tx_buf[0] = 0x00;
-    tx_buf[1] = DAP_CMD_CONNECT;
-    tx_buf[2] = port;
+    tx_buf[0] = DAP_CMD_CONNECT;
+    tx_buf[1] = port;
 
-    err = hid_write(dev, tx_buf, 3);
+    err = dap_hid_request(tx_buf, rx_buf);
     if (err < 0)
     {
-        QString err_info = QString::fromWCharArray(hid_error(dev));
-        qDebug("[DAP_HID] hid_write fail: %s", qPrintable(err_info));
-        return -1;
+        return err;
     }
 
-    err = hid_read_timeout(dev, rx_buf, 64, 100);
-    if (err < 0)
-    {
-        QString err_info = QString::fromWCharArray(hid_error(dev));
-        qDebug("[DAP_HID] hid_write fail: %s", qPrintable(err_info));
-        return -1;
-    }
+    rx_port = rx_buf[1];
 
-    // 首字节一定与发送相等
-    if (rx_buf[0] != DAP_CMD_CONNECT)
+    if (rx_port == 0)
         return -1;
 
-    if (rx_buf[1] == 0)
+    if (rx_port != port)
         return -1;
-
-    if (rx_buf[1] != port)
-        return -1;
-
-    // hexdump(rx_buf, 64);
 
     return 0;
 }
 
+/*******************************************************************************
+ * @brief Get the CMSIS-DAP Protocol Version (string).
+ * @ref https://arm-software.github.io/CMSIS_5/DAP/html/group__DAP__Disconnect.html
+ * @param None
+ * @return None
+ ******************************************************************************/
 int32_t DAP_HID::dap_disconnect()
 {
-    uint8_t tx_buf[65] = {0};
+    uint8_t tx_buf[64] = {0};
     uint8_t rx_buf[64] = {0};
     int32_t err;
 
-    // 报告编号
-    tx_buf[0] = 0x00;
-    tx_buf[1] = DAP_CMD_DISCONNECT;
+    tx_buf[0] = DAP_CMD_DISCONNECT;
 
-    err = hid_write(dev, tx_buf, 2);
+    err = dap_hid_request(tx_buf, rx_buf);
     if (err < 0)
-    {
-        QString err_info = QString::fromWCharArray(hid_error(dev));
-        qDebug("[DAP_HID] hid_write fail: %s", qPrintable(err_info));
-        return -1;
-    }
+        return err;
 
-    err = hid_read_timeout(dev, rx_buf, 64, 100);
-    if (err < 0)
-    {
-        QString err_info = QString::fromWCharArray(hid_error(dev));
-        qDebug("[DAP_HID] hid_write fail: %s", qPrintable(err_info));
-        return -1;
-    }
-
-    // 首字节一定与发送相等
-    if (rx_buf[0] != DAP_CMD_DISCONNECT)
-        return -1;
-
-    uint8_t status = rx_buf[1];
-
-    if (status == DAP_OK)
-        return 1;
-    else if (status == DAP_ERROR)
-        return 0;
-    else
-        return -1;
+    return dap_hid_resp_status_return(rx_buf);
 }
 
+/*******************************************************************************
+ * @brief The DAP_ResetTarget Command requests a target reset with a device
+ *        specific command sequence. This command calls the user configurable
+ *        function RESET_TARGET.
+ * @ref https://arm-software.github.io/CMSIS_5/DAP/html/group__DAP__ResetTarget.html
+ * @param None
+ * @return None
+ ******************************************************************************/
 int32_t DAP_HID::dap_reset_target()
 {
-    uint8_t tx_buf[65] = {0};
+    uint8_t tx_buf[64] = {0};
     uint8_t rx_buf[64] = {0};
     int32_t err;
 
     // 报告编号
-    tx_buf[0] = 0x00;
-    tx_buf[1] = DAP_CMD_RESET_TARGET;
+    tx_buf[0] = DAP_CMD_RESET_TARGET;
 
-    err = hid_write(dev, tx_buf, 2);
+    err = dap_hid_request(tx_buf, rx_buf);
     if (err < 0)
-    {
-        QString err_info = QString::fromWCharArray(hid_error(dev));
-        qDebug("[DAP_HID] hid_write fail: %s", qPrintable(err_info));
-        return -1;
-    }
-
-    err = hid_read_timeout(dev, rx_buf, 64, 100);
-    if (err < 0)
-    {
-        QString err_info = QString::fromWCharArray(hid_error(dev));
-        qDebug("[DAP_HID] hid_write fail: %s", qPrintable(err_info));
-        return -1;
-    }
+        return err;
 
     // qDebug("[DAP_HID] dap_reset_target resp:");
     // hexdump(rx_buf, 64);
 
-    // 首字节一定与发送相等
-    if (rx_buf[0] != DAP_CMD_RESET_TARGET)
-        return -1;
-
     uint8_t status = rx_buf[1];
-    uint8_t execute = rx_buf[2];
+    // uint8_t execute = rx_buf[2];
 
     if (status == DAP_OK)
         return 1;
@@ -573,53 +585,39 @@ int32_t DAP_HID::dap_reset_target()
         return -1;
 }
 
+/*******************************************************************************
+ * @brief The DAP_SWJ_Sequence Command can be used to generate required SWJ
+ *        sequences for SWD/JTAG Reset, SWD<->JTAG switch and Dormant operation.
+ * @ref https://arm-software.github.io/CMSIS_5/DAP/html/group__DAP__SWJ__Sequence.html
+ * @param None
+ * @return None
+ ******************************************************************************/
 int32_t DAP_HID::dap_swj_sequence(uint8_t bit_count, uint8_t *data)
 {
-    uint8_t tx_buf[65] = {0};
+    uint8_t tx_buf[64] = {0};
     uint8_t rx_buf[64] = {0};
     int32_t err;
     uint8_t count_byte;
 
-    tx_buf[0] = 0x00; // 报告编号
-    tx_buf[1] = 0x12;
-    tx_buf[2] = bit_count; // Sequence Count
+    tx_buf[0] = 0x12;
+    tx_buf[1] = bit_count; // Sequence Count
     // tx_buf[3] = tx_data; // SWDIO Data
 
     count_byte = bit_count / 8;
     if (bit_count % 8)
         count_byte += 1;
+    memcpy(tx_buf + 2, data, count_byte);
 
-    memcpy(tx_buf + 3, data, count_byte);
-
-    err = hid_write(dev, tx_buf, count_byte + 3);
+    err = dap_hid_request(tx_buf, rx_buf);
     if (err < 0)
-    {
-        QString err_info = QString::fromWCharArray(hid_error(dev));
-        qDebug("[DAP_HID] dap_swj_sequence fail: %s", qPrintable(err_info));
-        return -1;
-    }
-
-    err = hid_read_timeout(dev, rx_buf, 64, 100);
-    if (err < 0)
-    {
-        QString err_info = QString::fromWCharArray(hid_error(dev));
-        qDebug("[DAP_HID] dap_swj_sequence fail: %s", qPrintable(err_info));
-        return -1;
-    }
+        return err;
 
     // qDebug("[DAP_HID] dap_swd_sequence_write resp:");
     // hexdump(rx_buf, 64);
 
-    // 首字节一定与发送相等
-    if (rx_buf[0] != 0x12)
-        return -1;
-
     uint8_t status = rx_buf[1];
 
-    if (status == DAP_OK)
-        return 0;
-    else
-        return -1;
+    return (status == DAP_OK) ? 0 : -1;
 }
 
 int32_t DAP_HID::dap_swd_config(uint8_t cfg)
@@ -703,7 +701,7 @@ int32_t DAP_HID::dap_swd_sequence_write(uint8_t count, uint8_t *tx_data)
         return -1;
 
     uint8_t status = rx_buf[1];
-    uint8_t rx_data = rx_buf[2];
+    // uint8_t rx_data = rx_buf[2];
 
     if (status == DAP_OK)
         return 0;
@@ -753,46 +751,32 @@ int32_t DAP_HID::dap_transfer_config(uint8_t idle_cyless, uint16_t wait_retry, u
         return -1;
 }
 
-int32_t DAP_HID::dap_swd_transfer(uint8_t req, uint32_t tx_data, uint8_t *resp, uint32_t *timestamp, uint32_t *rx_data)
+/*******************************************************************************
+ * @brief Read/write single and multiple registers.
+ * @ref https://arm-software.github.io/CMSIS_5/DAP/html/group__DAP__Transfer.html
+ * @param None
+ * @return None
+ ******************************************************************************/
+int32_t DAP_HID::dap_swd_transfer(uint8_t req, uint32_t tx_data, uint8_t *resp, uint32_t *rx_data)
 {
     uint8_t tx_buf[65] = {0};
     uint8_t rx_buf[64] = {0};
     int32_t err;
 
-    // 报告编号
-    tx_buf[0] = 0x00;
-    tx_buf[1] = 0x05;
-    tx_buf[2] = 0;                   // DAP_Index
-    tx_buf[3] = 1;                   // Transfer Count
-    tx_buf[4] = req;                 // Transfer Request
-    memcpy(tx_buf + 5, &tx_data, 4); // Transfer Data
+    tx_buf[0] = 0x05;                // cmd
+    tx_buf[1] = 0;                   // DAP_Index
+    tx_buf[2] = 1;                   // Transfer Count
+    tx_buf[3] = req;                 // Transfer Request
+    memcpy(tx_buf + 4, &tx_data, 4); // Transfer Data
 
-    err = hid_write(dev, tx_buf, 9);
+    err = dap_hid_request(tx_buf, rx_buf);
     if (err < 0)
-    {
-        QString err_info = QString::fromWCharArray(hid_error(dev));
-        qDebug("[DAP_HID] dap_swd_transfer fail: %s", qPrintable(err_info));
-        return -1;
-    }
+        return err;
 
-    err = hid_read_timeout(dev, rx_buf, 64, 100);
-    if (err < 0)
-    {
-        QString err_info = QString::fromWCharArray(hid_error(dev));
-        qDebug("[DAP_HID] dap_swd_transfer fail: %s", qPrintable(err_info));
-        return -1;
-    }
-
-    // 首字节一定与发送相等
-    if (rx_buf[0] != 0x05)
-        return -1;
-
-    qDebug("[DAP_HID] dap_swd_transfer resp:");
-    hexdump(rx_buf, 64);
+    // qDebug("[DAP_HID] dap_swd_transfer resp:");
+    // hexdump(rx_buf, 64);
 
     *(resp) = rx_buf[2];
-    // memcpy(timestamp, rx_buf + 3, 4);
-    // memcpy(rx_data, rx_buf + 7, 4);
     memcpy(rx_data, rx_buf + 3, 4);
 
     return 0;
@@ -870,20 +854,151 @@ int32_t DAP_HID::dap_swd_read_dp(uint8_t addr, uint32_t *val)
     int32_t err;
     uint8_t req;
     uint8_t resp = 0;
-    uint32_t timestamp;
 
     req = DAP_TRANS_DP | DAP_TRANS_READ_REG | DAP_TRANS_REG_ADDR(addr);
 
     for (uint8_t i = 0; i < 10; i++)
     {
-        err = dap_swd_transfer(req, 0, &resp, &timestamp, val);
+        err = dap_swd_transfer(req, 0, &resp, val);
         if (err < 0)
         {
             return -1;
         }
 
         if ((resp != DAP_TRANSFER_WAIT))
-            return 0;
+            break;
+    }
+
+    if (resp != DAP_TRANSFER_OK)
+        return -1;
+
+    return 0;
+}
+
+int32_t DAP_HID::dap_swd_write_dp(uint8_t addr, uint32_t val)
+{
+    uint8_t req;
+    uint8_t data[4];
+    int32_t err;
+
+    uint8_t resp = 0;
+    uint32_t rx_data;
+
+    switch (addr)
+    {
+    case DP_SELECT:
+        if (dap_state.select == val)
+        {
+            return 1;
+        }
+
+        dap_state.select = val;
+        break;
+
+    default:
+        break;
+    }
+
+    req = DAP_TRANS_DP | DAP_TRANS_WRITE_REG | DAP_TRANS_REG_ADDR(addr);
+
+    for (uint8_t i = 0; i < 10; i++)
+    {
+        err = dap_swd_transfer(req, val, &resp, &rx_data);
+        if (err < 0)
+            return -1;
+
+        if ((resp != DAP_TRANSFER_WAIT))
+            break;
+    }
+
+    if (resp != DAP_TRANSFER_OK)
+        return -1;
+
+    return 0;
+}
+
+int32_t DAP_HID::dap_swd_read_ap(uint8_t addr, uint32_t *val)
+{
+    int32_t err;
+    uint8_t req;
+    uint8_t resp = 0;
+
+    uint32_t apsel = addr & 0xff000000;
+    uint32_t bank_sel = addr & APBANKSEL;
+
+    err = dap_swd_write_dp(DP_SELECT, apsel | bank_sel);
+    if (err < 0)
+        return 0;
+
+    req = DAP_TRANS_AP | DAP_TRANS_READ_REG | DAP_TRANS_REG_ADDR(addr);
+
+    for (uint8_t i = 0; i < 10; i++)
+    {
+        err = dap_swd_transfer(req, 0, &resp, val);
+        if (err < 0)
+            return -1;
+
+        if ((resp != DAP_TRANSFER_WAIT))
+            break;
+    }
+
+    if (resp != DAP_TRANSFER_OK)
+        return -1;
+
+    return 0;
+}
+
+int32_t DAP_HID::dap_swd_write_ap(uint8_t addr, uint32_t val)
+{
+    uint32_t apsel = addr & 0xff000000;
+    uint32_t bank_sel = addr & APBANKSEL;
+    int32_t err;
+    uint8_t req;
+    uint8_t resp;
+    uint32_t rx_data;
+
+    err = dap_swd_write_dp(DP_SELECT, apsel | bank_sel);
+    if (err < 0)
+        return 0;
+
+    switch (addr)
+    {
+    case AP_CSW:
+        if (dap_state.csw == val)
+        {
+            return 1;
+        }
+
+        dap_state.csw = val;
+        break;
+
+    default:
+        break;
+    }
+
+    req = DAP_TRANS_AP | DAP_TRANS_WRITE_REG | DAP_TRANS_REG_ADDR(addr);
+    for (uint8_t i = 0; i < 10; i++)
+    {
+        err = dap_swd_transfer(req, val, &resp, &rx_data);
+        if (err < 0)
+            return -1;
+
+        if ((resp != DAP_TRANSFER_WAIT))
+            break;
+    }
+
+    if (resp != DAP_TRANSFER_OK)
+        return -1;
+
+    req = DAP_TRANS_DP | DAP_TRANS_READ_REG | DAP_TRANS_REG_ADDR(DP_RDBUFF);
+    for (uint8_t i = 0; i < 10; i++)
+    {
+        err = dap_swd_transfer(req, val, &resp, &rx_data);
+        if (err < 0)
+            return -1;
+
+        if ((resp != DAP_TRANSFER_WAIT))
+            break;
     }
 
     if (resp != DAP_TRANSFER_OK)
@@ -903,5 +1018,359 @@ int32_t DAP_HID::dap_swd_read_idcode(uint32_t *idcode)
     if (err < 0)
         return -1;
 
-    return dap_swd_read_dp(0x00, idcode);
+    return dap_swd_read_dp(DP_IDCODE, idcode);
+}
+
+int32_t DAP_HID::dap_read_data(uint32_t addr, uint32_t *data)
+{
+    int32_t err;
+    uint8_t req;
+    uint8_t resp;
+    uint32_t rx_data;
+
+    //  put addr in TAR register
+    req = DAP_TRANS_AP | DAP_TRANS_WRITE_REG | (1 << 2);
+    for (uint8_t i = 0; i < 10; i++)
+    {
+        err = dap_swd_transfer(req, addr, &resp, &rx_data);
+        if (err < 0)
+            return -1;
+
+        if ((resp != DAP_TRANSFER_WAIT))
+            break;
+    }
+
+    if (resp != DAP_TRANSFER_OK)
+        return -1;
+
+    // read data
+    req = DAP_TRANS_AP | DAP_TRANS_READ_REG | (3 << 2);
+    for (uint8_t i = 0; i < 10; i++)
+    {
+        err = dap_swd_transfer(req, 0, &resp, data);
+        if (err < 0)
+            return -1;
+
+        if ((resp != DAP_TRANSFER_WAIT))
+            break;
+    }
+
+    if (resp != DAP_TRANSFER_OK)
+        return -1;
+
+    // qDebug("[swd_init_debug] read_data 0x%08X", rx_data);
+
+    // dummy read
+    req = DAP_TRANS_DP | DAP_TRANS_READ_REG | DAP_TRANS_REG_ADDR(DP_RDBUFF);
+    for (uint8_t i = 0; i < 10; i++)
+    {
+        err = dap_swd_transfer(req, 0, &resp, &rx_data);
+        if (err < 0)
+            return -1;
+
+        if ((resp != DAP_TRANSFER_WAIT))
+            break;
+    }
+
+    if (resp != DAP_TRANSFER_OK)
+        return -1;
+
+    // qDebug("[swd_init_debug] read_data 0x%08X", data);
+
+    return 0;
+}
+
+int32_t DAP_HID::dap_write_data(uint32_t addr, uint32_t data)
+{
+    int32_t err;
+    uint8_t req;
+    uint8_t resp;
+    uint32_t rx_data;
+
+    //  put addr in TAR register
+    req = DAP_TRANS_AP | DAP_TRANS_WRITE_REG | (1 << 2);
+    for (uint8_t i = 0; i < 10; i++)
+    {
+        err = dap_swd_transfer(req, addr, &resp, &rx_data);
+        if (err < 0)
+            return -1;
+
+        if ((resp != DAP_TRANSFER_WAIT))
+            break;
+    }
+
+    if (resp != DAP_TRANSFER_OK)
+        return -1;
+
+    //  write data
+    req = DAP_TRANS_AP | DAP_TRANS_WRITE_REG | (3 << 2);
+    for (uint8_t i = 0; i < 10; i++)
+    {
+        err = dap_swd_transfer(req, data, &resp, &rx_data);
+        if (err < 0)
+            return -1;
+
+        if ((resp != DAP_TRANSFER_WAIT))
+            break;
+    }
+
+    if (resp != DAP_TRANSFER_OK)
+        return -1;
+
+    // dummy read
+    req = DAP_TRANS_DP | DAP_TRANS_READ_REG | DAP_TRANS_REG_ADDR(DP_RDBUFF);
+    for (uint8_t i = 0; i < 10; i++)
+    {
+        err = dap_swd_transfer(req, 0, &resp, &rx_data);
+        if (err < 0)
+            return -1;
+
+        if ((resp != DAP_TRANSFER_WAIT))
+            break;
+    }
+
+    if (resp != DAP_TRANSFER_OK)
+        return -1;
+
+    return 0;
+}
+
+int32_t DAP_HID::dap_read_word(uint32_t addr, uint32_t *val)
+{
+    int32_t err;
+
+    err = dap_swd_write_ap(AP_CSW, CSW_VALUE | CSW_SIZE32);
+    if (err < 0)
+        return err;
+
+    err = dap_read_data(addr, val);
+    if (err < 0)
+        return err;
+
+    return 0;
+}
+
+int32_t DAP_HID::dap_write_word(uint32_t addr, uint32_t val)
+{
+    int32_t err;
+
+    err = dap_swd_write_ap(AP_CSW, CSW_VALUE | CSW_SIZE32);
+    if (err < 0)
+        return err;
+
+    err = dap_write_data(addr, val);
+    if (err < 0)
+        return err;
+
+    return 0;
+}
+
+int32_t DAP_HID::dap_jtag_2_swd()
+{
+    int32_t err;
+    uint32_t idcode;
+
+    err = dap_swd_reset();
+    if (err < 0)
+        return err;
+
+    err = dap_swd_switch(0xE79E);
+    if (err < 0)
+        return err;
+
+    err = dap_swd_reset();
+    if (err < 0)
+        return err;
+
+    err = dap_swd_read_idcode(&idcode);
+    if (err < 0)
+        return err;
+
+    return 0;
+}
+
+int32_t DAP_HID::swd_init_debug()
+{
+    int32_t err;
+    uint32_t tmp = 0;
+    int timeout = 100;
+    uint8_t i = 0;
+
+    err = dap_jtag_2_swd();
+    if (err < 0)
+        return err;
+
+    err = dap_swd_write_dp(DP_ABORT, STKCMPCLR | STKERRCLR | WDERRCLR | ORUNERRCLR);
+    if (err < 0)
+    {
+        qDebug("[swd_init_debug] dap_swd_write_dp DP_ABORT fail");
+        return err;
+    }
+
+    // Ensure CTRL/STAT register selected in DPBANKSEL
+    err = dap_swd_write_dp(DP_SELECT, 0);
+    if (err < 0)
+    {
+        qDebug("[swd_init_debug] dap_swd_write_dp DP_SELECT fail");
+        return err;
+    }
+
+    // Power up
+    err = dap_swd_write_dp(DP_CTRL_STAT, CSYSPWRUPREQ | CDBGPWRUPREQ);
+    if (err < 0)
+    {
+        qDebug("[swd_init_debug] Power up fail");
+        return err;
+    }
+
+    for (i = 0; i < timeout; i++)
+    {
+        err = dap_swd_read_dp(DP_CTRL_STAT, &tmp);
+        if (err < 0)
+            return err;
+
+        if ((tmp & (CDBGPWRUPACK | CSYSPWRUPACK)) == (CDBGPWRUPACK | CSYSPWRUPACK))
+        {
+            // Break from loop if powerup is complete
+            break;
+        }
+    }
+
+    if (i == timeout)
+    {
+        return -1;
+    }
+
+    err = dap_swd_write_dp(DP_CTRL_STAT, CSYSPWRUPREQ | CDBGPWRUPREQ | TRNNORMAL | MASKLANE);
+    if (err < 0)
+        return err;
+
+    // call a target dependant function:
+    // some target can enter in a lock state, this function can unlock these targets
+    // target_unlock_sequence();
+
+    err = dap_swd_write_dp(DP_SELECT, 0);
+    if (err < 0)
+        return err;
+
+    return 0;
+}
+
+#define SCS_BASE (0xE000E000UL)
+#define SCB_BASE (SCS_BASE + 0x0D00UL)
+
+#define SCB_AIRCR_VECTKEY_Pos 16U                                    /*!< SCB AIRCR: VECTKEY Position */
+#define SCB_AIRCR_VECTKEY_Msk (0xFFFFUL << SCB_AIRCR_VECTKEY_Pos)    /*!< SCB AIRCR: VECTKEY Mask */
+#define SCB_AIRCR_PRIGROUP_Pos 8U                                    /*!< SCB AIRCR: PRIGROUP Position */
+#define SCB_AIRCR_PRIGROUP_Msk (7UL << SCB_AIRCR_PRIGROUP_Pos)       /*!< SCB AIRCR: PRIGROUP Mask */
+#define SCB_AIRCR_SYSRESETREQ_Pos 2U                                 /*!< SCB AIRCR: SYSRESETREQ Position */
+#define SCB_AIRCR_SYSRESETREQ_Msk (1UL << SCB_AIRCR_SYSRESETREQ_Pos) /*!< SCB AIRCR: SYSRESETREQ Mask */
+
+#define SCB_AIRCR 0xE000ED0C
+
+int32_t DAP_HID::dap_set_target_reset(uint8_t asserted)
+{
+    int32_t err;
+    uint32_t val_scb_aircr;
+
+    if (asserted == 0)
+    {
+        err = dap_read_word((uint32_t)SCB_AIRCR, &val_scb_aircr);
+        if (err < 0)
+            return err;
+
+        qDebug("[swd_init_debug] set_target_reset SCB_AIRCR: 0x%08X", val_scb_aircr);
+
+        err = dap_write_word(
+            (uint32_t)SCB_AIRCR,
+            ((0x5FA << SCB_AIRCR_VECTKEY_Pos) | (0 & SCB_AIRCR_PRIGROUP_Msk) | SCB_AIRCR_SYSRESETREQ_Msk));
+        if (err < 0)
+            return err;
+    }
+
+    return 0;
+}
+
+int32_t DAP_HID::dap_set_target_state_hw(dap_target_reset_state_t state)
+{
+    uint32_t err;
+    uint32_t val;
+    int8_t ap_retries = 2;
+
+    switch (state)
+    {
+    case DAP_TARGET_RESET_HOLD:
+        err = dap_set_target_reset(1);
+        if (err < 0)
+            return err;
+        return 0;
+
+    case DAP_TARGET_RESET_RUN:
+        err = dap_set_target_reset(1);
+        if (err < 0)
+            return err;
+        QThread::msleep(20);
+        err = dap_set_target_reset(0);
+        if (err < 0)
+            return err;
+        QThread::msleep(20);
+        return 0;
+
+    case DAP_TARGET_RESET_PROGRAM:
+
+        err = swd_init_debug();
+        if (err < 0)
+            return err;
+
+        // Enable debug
+        while (1)
+        {
+            err = dap_write_word(DBG_HCSR, DBGKEY | C_DEBUGEN);
+            if (err < 0)
+            {
+                ap_retries--;
+                if (ap_retries == 0)
+                    return -1;
+            }
+            else
+            {
+                break;
+            }
+
+            err = dap_set_target_reset(1);
+            if (err < 0)
+                return err;
+            QThread::msleep(20);
+            err = dap_set_target_reset(0);
+            if (err < 0)
+                return err;
+            QThread::msleep(20);
+        }
+
+        // Enable halt on reset
+        err = dap_write_word(DBG_EMCR, VC_CORERESET);
+        if (err < 0)
+            return err;
+
+        // Reset again
+        err = dap_set_target_reset(1);
+        if (err < 0)
+            return err;
+        QThread::msleep(20);
+        err = dap_set_target_reset(0);
+        if (err < 0)
+            return err;
+        QThread::msleep(20);
+
+        do
+        {
+            err = dap_read_word(DBG_HCSR, &val);
+            if (err < 0)
+                return err;
+        } while ((val & S_HALT) == 0);
+
+        return 0;
+    default:
+        return -1;
+    }
 }

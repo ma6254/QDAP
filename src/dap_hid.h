@@ -71,7 +71,45 @@ typedef enum
 #define DAP_TRANSFER_ERROR (1U << 3)
 #define DAP_TRANSFER_MISMATCH (1U << 4)
 
+// Debug Port Register Addresses
+#define DP_IDCODE 0x00U    // IDCODE Register (SW Read only)
+#define DP_ABORT 0x00U     // Abort Register (SW Write only)
+#define DP_CTRL_STAT 0x04U // Control & Status
+#define DP_WCR 0x04U       // Wire Control Register (SW Only)
+#define DP_SELECT 0x08U    // Select Register (JTAG R/W & SW W)
+#define DP_RESEND 0x08U    // Resend (SW Read Only)
+#define DP_RDBUFF 0x0CU    // Read Buffer (Read Only)
+
+// AP CSW register, base value
+#define CSW_VALUE (CSW_RESERVED | CSW_MSTRDBG | CSW_HPROT | CSW_DBGSTAT | CSW_SADDRINC)
+
+#define NVIC_Addr (0xe000e000)
+#define DBG_Addr (0xe000edf0)
+
+typedef enum
+{
+    DAP_TARGET_RESET_HOLD,    // Hold target in reset
+    DAP_TARGET_RESET_PROGRAM, // Reset target and setup for flash programming.
+    DAP_TARGET_RESET_RUN,     // Reset target and run normally
+    DAP_TARGET_NO_DEBUG,      // Disable debug on running target
+    DAP_TARGET_DEBUG,         // Enable debug on running target
+    DAP_TARGET_HALT,          // Halt the target without resetting it
+    DAP_TARGET_RUN            // Resume the target without resetting it
+} dap_target_reset_state_t;
+
 const char *dap_state_to_string(uint8_t state);
+
+typedef struct
+{
+    uint32_t select;
+    uint32_t csw;
+} dap_state_t;
+
+typedef struct
+{
+    uint32_t r[16];
+    uint32_t xpsr;
+} debug_state_t;
 
 /*******************************************************************************
  * @brief HID设备
@@ -87,6 +125,10 @@ public:
 
     int32_t open_device();
     int32_t close_device();
+
+    int32_t dap_hid_request(uint8_t *tx_data, uint8_t *rx_data);
+    int32_t dap_hid_resp_status_return(uint8_t *rx_data);
+
     QString dap_get_info_vendor_name();
     QString dap_get_info_product_name();
     QString dap_get_info_serial_number();
@@ -103,22 +145,33 @@ public:
     int32_t dap_swd_sequence_write(uint8_t count, uint8_t *tx_data);
 
     int32_t dap_transfer_config(uint8_t idle_cyless, uint16_t wait_retry, uint16_t match_retry);
-    int32_t dap_swd_transfer(uint8_t req, uint32_t tx_data, uint8_t *resp, uint32_t *timestamp, uint32_t *rx_data);
+    int32_t dap_swd_transfer(uint8_t req, uint32_t tx_data, uint8_t *resp, uint32_t *rx_data);
     int32_t dap_swd_transfer_block(uint8_t req, uint32_t tx_data, uint8_t *resp, uint32_t *timestamp, uint32_t *rx_data);
 
     int32_t dap_swd_reset();
     int32_t dap_swd_switch(uint16_t val);
 
-    int32_t dap_swd_read_dp(uint8_t addr, uint32_t *_VA_LIST);
-    int32_t dap_swd_write_dp();
-    int32_t dap_swd_read_ap();
-    int32_t dap_swd_write_ap();
+    int32_t dap_swd_read_dp(uint8_t addr, uint32_t *val);
+    int32_t dap_swd_write_dp(uint8_t addr, uint32_t val);
+    int32_t dap_swd_read_ap(uint8_t addr, uint32_t *val);
+    int32_t dap_swd_write_ap(uint8_t addr, uint32_t val);
+
+    int32_t dap_read_data(uint32_t addr, uint32_t *data);
+    int32_t dap_write_data(uint32_t addr, uint32_t data);
+    int32_t dap_read_word(uint32_t addr, uint32_t *val);
+    int32_t dap_write_word(uint32_t addr, uint32_t val);
 
     int32_t dap_swd_read_idcode(uint32_t *idcode);
+    int32_t dap_jtag_2_swd();
+    int32_t swd_init_debug();
+    int32_t dap_set_target_reset(uint8_t asserted);
+    int32_t dap_set_target_state_hw(dap_target_reset_state_t state);
 
 private:
     hid_device *dev;
     QString usb_path; //
+
+    dap_state_t dap_state;
 };
 
 #endif // DAP_HID_H
