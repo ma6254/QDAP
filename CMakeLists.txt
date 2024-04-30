@@ -51,6 +51,9 @@ else()
     src/mainwindow.cpp
     src/mainwindow.h
     src/mainwindow.ui
+    src/enum_writer_list.cpp
+    src/enum_writer_list.h
+    src/enum_writer_list.ui
     src/dap_hid.cpp
     src/dap_hid.h
     ${TS_FILES}

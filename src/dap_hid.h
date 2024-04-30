@@ -121,10 +121,14 @@ class DAP_HID : public QObject
 public:
     DAP_HID(QString usb_path, QWidget *parent = nullptr);
     ~DAP_HID();
-    static int32_t enum_device(void);
+    static int32_t enum_device(QList<DAP_HID *> *dev_list);
 
     int32_t open_device();
     int32_t close_device();
+
+    QString dap_hid_get_manufacturer_string();
+    QString dap_hid_get_product_string();
+    void dap_hid_get_info();
 
     int32_t dap_hid_request(uint8_t *tx_data, uint8_t *rx_data);
     int32_t dap_hid_resp_status_return(uint8_t *rx_data);
@@ -170,8 +174,10 @@ public:
 private:
     hid_device *dev;
     QString usb_path; //
-
     dap_state_t dap_state;
+
+    QString hid_manufacturer;
+    QString hid_product;
 };
 
 #endif // DAP_HID_H

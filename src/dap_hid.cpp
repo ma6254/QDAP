@@ -94,37 +94,39 @@ DAP_HID::DAP_HID(QString usb_path, QWidget *parent)
         return;
     }
 
-    qDebug("    vendor_name: %s", qPrintable(dap_get_info_vendor_name()));
-    qDebug("    product_name: %s", qPrintable(dap_get_info_product_name()));
-    qDebug("    serial_number: %s", qPrintable(dap_get_info_serial_number()));
-    qDebug("    protocol_version: %s", qPrintable(dap_get_info_cmsis_dap_protocol_version()));
+    dap_hid_get_info();
 
-    err = dap_get_info_caps();
-    if (err < 0)
-    {
-        qDebug("    caps: Unspupport");
-    }
-    else
-    {
-        int16_t caps = err;
-        qDebug("    caps: 0x%X %s", caps, qPrintable(parse_dap_hid_info_resp(caps)));
-    }
+    // qDebug("    vendor_name: %s", qPrintable(dap_get_info_vendor_name()));
+    // qDebug("    product_name: %s", qPrintable(dap_get_info_product_name()));
+    // qDebug("    serial_number: %s", qPrintable(dap_get_info_serial_number()));
+    // qDebug("    protocol_version: %s", qPrintable(dap_get_info_cmsis_dap_protocol_version()));
 
-    qDebug("    freq: %d", dap_get_info_freq());
+    // err = dap_get_info_caps();
+    // if (err < 0)
+    // {
+    //     qDebug("    caps: Unspupport");
+    // }
+    // else
+    // {
+    //     int16_t caps = err;
+    //     qDebug("    caps: 0x%X %s", caps, qPrintable(parse_dap_hid_info_resp(caps)));
+    // }
 
-    err = dap_connect(1);
-    if (err < 0)
-    {
-        qDebug("[enum_device] dap_connect fail");
-        return;
-    }
+    // qDebug("    freq: %d", dap_get_info_freq());
 
-    err = dap_reset_target();
-    if (err < 0)
-    {
-        qDebug("[enum_device] dap_reset_target fail");
-        return;
-    }
+    // err = dap_connect(1);
+    // if (err < 0)
+    // {
+    //     qDebug("[enum_device] dap_connect fail");
+    //     return;
+    // }
+
+    // err = dap_reset_target();
+    // if (err < 0)
+    // {
+    //     qDebug("[enum_device] dap_reset_target fail");
+    //     return;
+    // }
 
     // err = dap_swd_config(0x02);
     // if (err < 0)
@@ -140,50 +142,50 @@ DAP_HID::DAP_HID(QString usb_path, QWidget *parent)
     //     return;
     // }
 
-    err = dap_swd_reset();
-    if (err < 0)
-    {
-        qDebug("[enum_device] dap_swd_reset fail");
-        return;
-    }
+    // err = dap_swd_reset();
+    // if (err < 0)
+    // {
+    //     qDebug("[enum_device] dap_swd_reset fail");
+    //     return;
+    // }
 
-    err = dap_swd_switch(0xE79E);
-    if (err < 0)
-    {
-        qDebug("[enum_device] dap_swd_reset fail");
-        return;
-    }
+    // err = dap_swd_switch(0xE79E);
+    // if (err < 0)
+    // {
+    //     qDebug("[enum_device] dap_swd_reset fail");
+    //     return;
+    // }
 
-    err = dap_swd_reset();
-    if (err < 0)
-    {
-        qDebug("[enum_device] dap_swd_reset fail");
-        return;
-    }
+    // err = dap_swd_reset();
+    // if (err < 0)
+    // {
+    //     qDebug("[enum_device] dap_swd_reset fail");
+    //     return;
+    // }
 
-    err = dap_swd_read_idcode(&idcode);
-    if (err < 0)
-    {
-        qDebug("[enum_device] dap_swd_read_idcode fail");
-    }
-    else
-    {
-        qDebug("[enum_device] dap_swd_read_idcode 0x%08X", idcode);
-    }
+    // err = dap_swd_read_idcode(&idcode);
+    // if (err < 0)
+    // {
+    //     qDebug("[enum_device] dap_swd_read_idcode fail");
+    // }
+    // else
+    // {
+    //     qDebug("[enum_device] dap_swd_read_idcode 0x%08X", idcode);
+    // }
 
-    err = swd_init_debug();
-    if (err < 0)
-    {
-        qDebug("[enum_device] swd_init_debug fail");
-        return;
-    }
+    // err = swd_init_debug();
+    // if (err < 0)
+    // {
+    //     qDebug("[enum_device] swd_init_debug fail");
+    //     return;
+    // }
 
-    err = dap_set_target_state_hw(DAP_TARGET_RESET_PROGRAM);
-    if (err < 0)
-    {
-        qDebug("[enum_device] dap_set_target_state_hw RESET_PROGRAM fail");
-        return;
-    }
+    // err = dap_set_target_state_hw(DAP_TARGET_RESET_PROGRAM);
+    // if (err < 0)
+    // {
+    //     qDebug("[enum_device] dap_set_target_state_hw RESET_PROGRAM fail");
+    //     return;
+    // }
 }
 
 DAP_HID::~DAP_HID()
@@ -204,26 +206,38 @@ DAP_HID::~DAP_HID()
  * @param None
  * @return None
  ******************************************************************************/
-int32_t DAP_HID::enum_device()
+int32_t DAP_HID::enum_device(QList<DAP_HID *> *dev_list)
 {
+    uint32_t i = 0;
     hid_device_info *device_info = hid_enumerate(DAP_HID_VID, DAP_HID_PID);
     if (device_info == NULL)
     {
-        qDebug("[enum_device] is empty");
+        // qDebug("[enum_device] is empty");
 
         hid_free_enumeration(device_info);
         return 0;
     }
 
-    uint32_t i = 0;
+    dev_list->clear();
+    // for (i = 0; i < dev_list->count(); i++)
+    // {
+    //     DAP_HID tmp_dev = dev_list->first();
+    //     dev_list->pop_front();
+    //     delete tmp_dev;
+    // }
+
+    i = 0;
     while (1)
     {
 
         DAP_HID *tmp_dev = new DAP_HID(device_info->path);
-        qDebug("[enum_device] #%d. ser:%d %ls %ls", i,
-               device_info->interface_number,
-               device_info->manufacturer_string,
-               device_info->product_string);
+
+        // qDebug("[enum_device] #%d. ser:%d %ls %ls", i,
+        //        device_info->interface_number,
+        //        device_info->manufacturer_string,
+        //        device_info->product_string);
+
+        dev_list->push_back(tmp_dev);
 
         i++;
         if (device_info->next == NULL)
@@ -231,6 +245,8 @@ int32_t DAP_HID::enum_device()
 
         device_info = device_info->next;
     }
+
+    // qDebug("[enum_device] count %d", dev_list->count());
 
     hid_free_enumeration(device_info);
 
@@ -303,6 +319,38 @@ int32_t DAP_HID::dap_hid_resp_status_return(uint8_t *rx_data)
         return 0;
     else
         return -1;
+}
+
+QString DAP_HID::dap_hid_get_manufacturer_string()
+{
+    return hid_manufacturer;
+}
+
+QString DAP_HID::dap_hid_get_product_string()
+{
+    return hid_product;
+}
+
+void DAP_HID::dap_hid_get_info()
+{
+    if (dev == NULL)
+    {
+        return;
+    }
+
+    hid_device_info *info = hid_get_device_info(dev);
+    if (info == NULL)
+    {
+        qDebug("[dap_hid] hid_get_device_info fail");
+        return;
+    }
+
+    hid_manufacturer = QString::fromWCharArray(info->manufacturer_string);
+    hid_product = QString::fromWCharArray(info->product_string);
+
+    // qDebug("[dap_hid] hid_get_device_info ok");
+    // qDebug("[dap_hid] manufacturer_string: %s", qPrintable(manufacturer));
+    // qDebug("[dap_hid] product_string: %s", qPrintable(product));
 }
 
 /*******************************************************************************

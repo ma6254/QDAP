@@ -13,10 +13,24 @@
     },
     "files.associations": {
         "*.H": "c",
+        "Caddyfile": "caddyfile",
+        "*.j2": "jinja",
         "*.ts": "xml",
         "*.A51": "a51",
         "hidapi.h": "c",
         "hidapi_winapi.h": "c",
-        "dap_hid.h": "cpp"
+        "dap_hid.h": "cpp",
+        "enum_writer_list.h": "cpp",
+        "atomic": "cpp",
+        "ios": "cpp",
+        "list": "cpp",
+        "system_error": "cpp",
+        "vector": "cpp",
+        "xhash": "cpp",
+        "xiosbase": "cpp",
+        "xstring": "cpp",
+        "xtree": "cpp",
+        "xutility": "cpp",
+        "chrono": "cpp"
     }
 }
