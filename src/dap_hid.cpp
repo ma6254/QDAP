@@ -94,7 +94,10 @@ DAP_HID::DAP_HID(QString usb_path, QWidget *parent)
         return;
     }
 
+    // qDebug("[DAP_HID] init");
+
     dap_hid_get_info();
+    close_device();
 
     // qDebug("    vendor_name: %s", qPrintable(dap_get_info_vendor_name()));
     // qDebug("    product_name: %s", qPrintable(dap_get_info_product_name()));
@@ -186,19 +189,144 @@ DAP_HID::DAP_HID(QString usb_path, QWidget *parent)
     //     qDebug("[enum_device] dap_set_target_state_hw RESET_PROGRAM fail");
     //     return;
     // }
+
+    // dap_disconnect();
+    // close_device();
 }
 
 DAP_HID::~DAP_HID()
 {
-    int32_t err;
+    dap_disconnect();
+    close_device();
 
-    err = dap_disconnect();
+    qDebug("[enum_device] destroy");
+}
+
+int32_t DAP_HID::connect()
+{
+    int32_t err;
+    uint32_t idcode;
+
+    err = open_device();
     if (err < 0)
     {
-        qDebug("[enum_device] dap_disconnect fail");
-        return;
+        qDebug("[DAP_HID] connect open fail");
+        return err;
     }
+
+    err = dap_connect(1);
+    if (err < 0)
+    {
+        qDebug("[DAP_HID] connect dap_connect fail");
+        return err;
+    }
+
+    err = dap_reset_target();
+    if (err < 0)
+    {
+        qDebug("[DAP_HID] connect dap_reset_target fail");
+        return err;
+    }
+
+    // err = dap_swd_config(0x02);
+    // if (err < 0)
+    // {
+    //     qDebug("[enum_device] dap_swd_config fail");
+    //     return err;
+    // }
+
+    // err = dap_transfer_config(10, 10, 0);
+    // if (err < 0)
+    // {
+    //     qDebug("[enum_device] dap_swd_config fail");
+    //     return err;
+    // }
+
+    err = dap_swd_reset();
+    if (err < 0)
+    {
+        qDebug("[DAP_HID] connect dap_swd_reset fail");
+        return err;
+    }
+
+    // JTAG-to-SWD
+    err = dap_swd_switch(0xE79E);
+    if (err < 0)
+    {
+        qDebug("[DAP_HID] connect dap_swd_switch fail");
+        return err;
+    }
+
+    err = dap_swd_reset();
+    if (err < 0)
+    {
+        qDebug("[DAP_HID] connect dap_swd_reset fail");
+        return err;
+    }
+
+    err = dap_swd_read_idcode(&idcode);
+    if (err < 0)
+    {
+        qDebug("[DAP_HID] connect dap_swd_read_idcode fail idcode:0x%08X", idcode);
+    }
+    else
+    {
+        qDebug("[DAP_HID] connect dap_swd_read_idcode 0x%08X", idcode);
+    }
+
+    err = swd_init_debug();
+    if (err < 0)
+    {
+        qDebug("[DAP_HID] connect swd_init_debug fail");
+        return err;
+    }
+
+    err = dap_set_target_state_hw(DAP_TARGET_RESET_PROGRAM);
+    if (err < 0)
+    {
+        qDebug("[DAP_HID] connect dap_set_target_state_hw RESET_PROGRAM fail");
+        return err;
+    }
+
+    dap_disconnect();
     close_device();
+
+    return 0;
+}
+
+int32_t DAP_HID::run()
+{
+
+    int32_t err;
+    uint32_t idcode;
+
+    err = open_device();
+    if (err < 0)
+    {
+        qDebug("[DAP_HID] run open fail");
+        return err;
+    }
+
+    err = dap_connect(1);
+    if (err < 0)
+    {
+        qDebug("[DAP_HID] run dap_connect fail");
+        return err;
+    }
+
+    // err = dap_set_target_state_hw(DAP_TARGET_RESET_RUN);
+    err = dap_set_target_state_hw(DAP_TARGET_RUN);
+    if (err < 0)
+    {
+        qDebug("[DAP_HID] run dap_set_target_state_hw DAP_TARGET_RESET_RUN fail");
+        return err;
+    }
+
+    qDebug("[DAP_HID] run");
+
+    dap_disconnect();
+    close_device();
+    return 0;
 }
 
 /*******************************************************************************
@@ -221,7 +349,7 @@ int32_t DAP_HID::enum_device(QList<DAP_HID *> *dev_list)
     dev_list->clear();
     // for (i = 0; i < dev_list->count(); i++)
     // {
-    //     DAP_HID tmp_dev = dev_list->first();
+    //     DAP_HID *tmp_dev = dev_list->first();
     //     dev_list->pop_front();
     //     delete tmp_dev;
     // }
@@ -272,7 +400,6 @@ int32_t DAP_HID::open_device()
 int32_t DAP_HID::close_device()
 {
     // qDebug("[DAP_HID] close device %s", qPrintable(usb_path));
-
     hid_close(dev);
     dev = NULL;
     return 0;
@@ -304,7 +431,11 @@ int32_t DAP_HID::dap_hid_request(uint8_t *tx_data, uint8_t *rx_data)
 
     // 首字节一定与发送相等
     if (rx_data[0] != tx_data[0])
+    {
+        // qDebug("[DAP_HID] dap_hid_request fail cmd not requls tx:0x%02X rx:0x%02X", tx_data[0], rx_data[0]);
+        // hexdump(rx_data, 64);
         return -1;
+    }
 
     return 0;
 }
@@ -660,12 +791,17 @@ int32_t DAP_HID::dap_swj_sequence(uint8_t bit_count, uint8_t *data)
     if (err < 0)
         return err;
 
-    // qDebug("[DAP_HID] dap_swd_sequence_write resp:");
-    // hexdump(rx_buf, 64);
-
     uint8_t status = rx_buf[1];
 
-    return (status == DAP_OK) ? 0 : -1;
+    err = (status == DAP_OK) ? 0 : -1;
+
+    if (err < 0)
+    {
+        qDebug("[DAP_HID] dap_swj_sequence_write resp:");
+        hexdump(rx_buf, 64);
+    }
+
+    return err;
 }
 
 int32_t DAP_HID::dap_swd_config(uint8_t cfg)
@@ -807,7 +943,7 @@ int32_t DAP_HID::dap_transfer_config(uint8_t idle_cyless, uint16_t wait_retry, u
  ******************************************************************************/
 int32_t DAP_HID::dap_swd_transfer(uint8_t req, uint32_t tx_data, uint8_t *resp, uint32_t *rx_data)
 {
-    uint8_t tx_buf[65] = {0};
+    uint8_t tx_buf[64] = {0};
     uint8_t rx_buf[64] = {0};
     int32_t err;
 
@@ -1064,7 +1200,7 @@ int32_t DAP_HID::dap_swd_read_idcode(uint32_t *idcode)
 
     err = dap_swj_sequence(8, tmp_in);
     if (err < 0)
-        return -1;
+        return err;
 
     return dap_swd_read_dp(DP_IDCODE, idcode);
 }
@@ -1417,8 +1553,68 @@ int32_t DAP_HID::dap_set_target_state_hw(dap_target_reset_state_t state)
                 return err;
         } while ((val & S_HALT) == 0);
 
+        // Disable halt on reset
+        err = dap_write_word(DBG_EMCR, 0);
+        if (err < 0)
+            return err;
+
         return 0;
+
+    case DAP_TARGET_RUN:
+    {
+        int32_t err;
+        uint32_t idcode;
+
+        err = dap_swd_reset();
+        if (err < 0)
+        {
+            qDebug("[DAP_HID] connect dap_swd_reset fail");
+            return err;
+        }
+
+        // JTAG-to-SWD
+        err = dap_swd_switch(0xE79E);
+        if (err < 0)
+        {
+            qDebug("[DAP_HID] connect dap_swd_switch fail");
+            return err;
+        }
+
+        err = dap_swd_reset();
+        if (err < 0)
+        {
+            qDebug("[DAP_HID] connect dap_swd_reset fail");
+            return err;
+        }
+
+        err = dap_swd_read_idcode(&idcode);
+        if (err < 0)
+        {
+            qDebug("[DAP_HID] connect dap_swd_read_idcode fail idcode:0x%08X", idcode);
+        }
+        else
+        {
+            qDebug("[DAP_HID] connect dap_swd_read_idcode 0x%08X", idcode);
+        }
+
+        err = swd_init_debug();
+        if (err < 0)
+        {
+            qDebug("[DAP_HID] connect swd_init_debug fail");
+            return err;
+        }
+
+        err = dap_write_word(DBG_HCSR, DBGKEY);
+        if (err < 0)
+        {
+            return err;
+        }
+        break;
+    }
+
     default:
         return -1;
     }
+
+    return 0;
 }

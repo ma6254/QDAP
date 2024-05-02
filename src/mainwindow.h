@@ -20,6 +20,12 @@ public:
     ~MainWindow();
 
 private slots:
+    void cb_action_open_firmware_file(void);
+    void cb_action_save_firmware_file(void);
+
+    void cb_action_connect(void);
+    void cb_action_reset_run(void);
+
     void cb_action_enum_device_list(void);
     void cb_tick_enum_device(void);
 
@@ -31,6 +37,11 @@ private:
     QTimer *timer_enum_device;
     QList<DAP_HID *> dap_hid_device_list_prev;
     QList<DAP_HID *> dap_hid_device_list;
+
+    int current_device;
+
+    QByteArray firmware_buf;
+    QString firmware_file_path;
 
     bool force_update_device_list;
 

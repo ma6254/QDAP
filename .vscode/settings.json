@@ -31,6 +31,11 @@
         "xstring": "cpp",
         "xtree": "cpp",
         "xutility": "cpp",
-        "chrono": "cpp"
+        "chrono": "cpp",
+        "qfiledialog": "cpp",
+        "initializer_list": "cpp",
+        "type_traits": "cpp",
+        "xlocale": "cpp",
+        "qtimer": "cpp"
     }
 }

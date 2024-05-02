@@ -5,6 +5,8 @@ enum_writer_list::enum_writer_list(QWidget *parent) : QDialog(parent),
                                                       ui(new Ui::enum_writer_list)
 {
     ui->setupUi(this);
+
+    connect(ui->btn_ok, SIGNAL(clicked()), this, SLOT(cb_btn_ok()));
 }
 
 enum_writer_list::~enum_writer_list()
@@ -35,6 +37,15 @@ void enum_writer_list::cb_device_changed(QList<DAP_HID *> dev_list)
         // tmp_btn->setText(str);
         // ui->gbox_cmsis_dap->layout()->addWidget(tmp_btn);
     }
+
+    ui->comboBox_daplink->setCurrentIndex(current_device);
+}
+
+void enum_writer_list::cb_btn_ok(void)
+{
+    emit finished(ui->comboBox_daplink->currentIndex());
+
+    accept();
 }
 
 void enum_writer_list::dap_hid_list_clear(void)
@@ -50,8 +61,19 @@ void enum_writer_list::dap_hid_list_clear(void)
         delete tmp_item->widget();
     }
 
-    while(combobox->count() > 1)
+    while (combobox->count() > 1)
     {
         combobox->removeItem(1);
     }
+}
+
+int enum_writer_list::currentIndex(void)
+{
+    return ui->comboBox_daplink->currentIndex();
+}
+
+void enum_writer_list::setCurrentIndex(int n)
+{
+    current_device = n;
+    ui->comboBox_daplink->setCurrentIndex(n);
 }

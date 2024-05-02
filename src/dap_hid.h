@@ -126,6 +126,9 @@ public:
     int32_t open_device();
     int32_t close_device();
 
+    int32_t connect();
+    int32_t run();
+
     QString dap_hid_get_manufacturer_string();
     QString dap_hid_get_product_string();
     void dap_hid_get_info();

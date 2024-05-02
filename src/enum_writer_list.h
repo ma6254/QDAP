@@ -18,12 +18,17 @@ public:
     ~enum_writer_list();
 
     void dap_hid_list_clear(void);
+    int currentIndex(void);
+    void setCurrentIndex(int n);
 
 public slots:
     void cb_device_changed(QList<DAP_HID *> dev_list);
+    void cb_btn_ok(void);
 
 private:
     Ui::enum_writer_list *ui;
+
+    int current_device;
 };
 
 #endif // ENUM_WRITER_LIST_H
