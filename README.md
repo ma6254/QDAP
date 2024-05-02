@@ -2,6 +2,12 @@
 
 [DAP-Link](https://github.com/ARM-software/CMSIS-DAP) upper by [Qt](http://qt.io)
 
+## UI Preview
+
+![enum_device_list-Link](./doc/assets/menu_target_chip.png)!
+
+![enum_device_list-Link](./doc/assets/enum_device_list.png)!
+
 ## Reference
 
 - <https://github.com/libusb/hidapi>
