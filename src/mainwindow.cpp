@@ -3,7 +3,9 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 #include "enum_writer_list.h"
+#include "chip_selecter.h"
 #include "dap_hid.h"
+#include "utils.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
@@ -11,7 +13,10 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     connect(ui->action_file_open, SIGNAL(triggered()), this, SLOT(cb_action_open_firmware_file(void)));
     connect(ui->action_file_save, SIGNAL(triggered()), this, SLOT(cb_action_save_firmware_file(void)));
+    connect(ui->action_chip_select, SIGNAL(triggered()), this, SLOT(cb_action_chip_select(void)));
     connect(ui->action_target_connect, SIGNAL(triggered()), this, SLOT(cb_action_connect(void)));
+    connect(ui->action_target_read_chip, SIGNAL(triggered()), this, SLOT(cb_action_read_chip(void)));
+    connect(ui->action_target_program, SIGNAL(triggered()), this, SLOT(cb_action_write(void)));
     connect(ui->action_target_run, SIGNAL(triggered()), this, SLOT(cb_action_reset_run(void)));
     connect(ui->action_enum_device_list, SIGNAL(triggered()), this, SLOT(cb_action_enum_device_list(void)));
 
@@ -163,6 +168,15 @@ bool MainWindow::dap_hid_device_list_compare(QList<DAP_HID *> a_list, QList<DAP_
     return 0;
 }
 
+void MainWindow::cb_action_chip_select(void)
+{
+    ChipSelecter *d = new ChipSelecter(this);
+
+    d->exec();
+
+    delete d;
+}
+
 void MainWindow::cb_action_connect(void)
 {
     DAP_HID *tmp_dev;
@@ -180,6 +194,101 @@ void MainWindow::cb_action_connect(void)
     }
 
     tmp_dev->connect();
+}
+
+void MainWindow::cb_action_read_chip(void)
+{
+    int err;
+    // uint8_t read_buf[32 * 1024];
+
+    firmware_buf.clear();
+    firmware_buf.fill(0x00, 32 * 1024);
+
+    qDebug("[main] read chip");
+
+    DAP_HID *tmp_dev;
+
+    if (dap_hid_device_list.count() == 0)
+        return;
+
+    if (current_device == 0)
+    {
+        tmp_dev = dap_hid_device_list.at(0);
+    }
+    else
+    {
+        tmp_dev = dap_hid_device_list.at(current_device - 1);
+    }
+    err = tmp_dev->dap_read_memory(0x8000000, (uint8_t *)firmware_buf.data(), firmware_buf.count());
+    if (err < 0)
+    {
+        qDebug("[main] read chip fail");
+        return;
+    }
+
+    qDebug("[main] read chip ok");
+}
+
+void MainWindow::cb_action_write(void)
+{
+    int err;
+    DAP_HID *tmp_dev;
+    uint8_t w_buf[16];
+    uint8_t r_buf[sizeof(w_buf)];
+
+    memset(r_buf, 0, sizeof(r_buf));
+    for (uint8_t i = 0; i < sizeof(w_buf); i++)
+    {
+        if (i % 2)
+        {
+            w_buf[i] = 0xA0 + i;
+        }
+        else
+        {
+            w_buf[i] = 0x50 + i;
+        }
+    }
+
+    if (dap_hid_device_list.count() == 0)
+        return;
+
+    if (current_device == 0)
+    {
+        tmp_dev = dap_hid_device_list.at(0);
+    }
+    else
+    {
+        tmp_dev = dap_hid_device_list.at(current_device - 1);
+    }
+
+    qDebug("[main] write");
+
+    err = tmp_dev->dap_write_memory(0x20000000, w_buf, sizeof(w_buf));
+    if (err < 0)
+    {
+        qDebug("[main] dap_write_memory fail");
+        return;
+    }
+
+    err = tmp_dev->dap_read_memory(0x20000000, r_buf, sizeof(w_buf));
+    // err = tmp_dev->dap_read_memory(0x8001000, r_buf, 16);
+    if (err < 0)
+    {
+        qDebug("[main] dap_read_memory fail");
+        return;
+    }
+
+    qDebug("[main] r_buf:");
+    hexdump(r_buf, sizeof(r_buf));
+
+    if (memcmp(w_buf, r_buf, sizeof(w_buf)) == 0)
+    {
+        qDebug("[main] ramcheck ok");
+    }
+    else
+    {
+        qDebug("[main] ramcheck fail");
+    }
 }
 
 void MainWindow::cb_action_reset_run(void)

@@ -23,7 +23,10 @@ private slots:
     void cb_action_open_firmware_file(void);
     void cb_action_save_firmware_file(void);
 
+    void cb_action_chip_select(void);
     void cb_action_connect(void);
+    void cb_action_read_chip(void);
+    void cb_action_write(void);
     void cb_action_reset_run(void);
 
     void cb_action_enum_device_list(void);

@@ -1,7 +1,9 @@
 ﻿#include "dap_hid.h"
 #include "debug_cm.h"
+#include "utils.h"
 #include <QtGlobal>
 
+uint32_t Flash_Page_Size = 4096;
 const char *dap_state_to_string(uint8_t state)
 {
     if (state == DAP_OK)
@@ -46,46 +48,11 @@ QString parse_dap_hid_info_resp(uint16_t data)
     return impl_list.join(" ");
 }
 
-void hexdump(const uint8_t *buf, uint32_t len)
-{
-    uint32_t i = 0;
-    uint32_t line_i = 0;
-
-    QString res("");
-
-    res.append("[hexdump] ====================================================\r\n");
-    res.append("[hexdump]       0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F\r\n");
-
-    for (i = 0; i < len; i += 0x10)
-    {
-        res.append(QString("[hexdump]"));
-        res.append(QString(" %1").arg((int)(i / 16), 4, 16, QChar('0')).toUpper());
-
-        for (line_i = 0; line_i < 0x10; line_i++)
-        {
-            if ((i + line_i) >= len)
-            {
-                res.append("   ");
-                continue;
-            }
-
-            res.append(QString(" %1").arg(*(buf + i + line_i), 2, 16, QChar('0')).toUpper());
-        }
-
-        res.append("\r\n");
-    }
-
-    res.append("[hexdump] ====================================================\r\n");
-
-    qDebug("%s", qPrintable(res));
-}
-
-DAP_HID::DAP_HID(QString usb_path, QWidget *parent)
+DAP_HID::DAP_HID(QString usb_path)
 {
     this->usb_path = usb_path;
     int32_t err;
-
-    uint32_t idcode;
+    // uint32_t idcode;
 
     err = open_device();
     if (err < 0)
@@ -97,7 +64,7 @@ DAP_HID::DAP_HID(QString usb_path, QWidget *parent)
     // qDebug("[DAP_HID] init");
 
     dap_hid_get_info();
-    close_device();
+    // close_device();
 
     // qDebug("    vendor_name: %s", qPrintable(dap_get_info_vendor_name()));
     // qDebug("    product_name: %s", qPrintable(dap_get_info_product_name()));
@@ -288,8 +255,8 @@ int32_t DAP_HID::connect()
         return err;
     }
 
-    dap_disconnect();
-    close_device();
+    // dap_disconnect();
+    // close_device();
 
     return 0;
 }
@@ -412,6 +379,12 @@ int32_t DAP_HID::dap_hid_request(uint8_t *tx_data, uint8_t *rx_data)
 
     tx_buf[0] = 0x00;
     memcpy(tx_buf + 1, tx_data, 64);
+
+    if (dev == NULL)
+    {
+        qDebug("[DAP_HID] dev is NULL");
+        return -1;
+    }
 
     err = hid_write(dev, tx_buf, 65);
     if (err < 0)
@@ -961,7 +934,34 @@ int32_t DAP_HID::dap_swd_transfer(uint8_t req, uint32_t tx_data, uint8_t *resp, 
     // hexdump(rx_buf, 64);
 
     *(resp) = rx_buf[2];
-    memcpy(rx_data, rx_buf + 3, 4);
+
+    if (rx_data)
+        memcpy(rx_data, rx_buf + 3, 4);
+
+    return 0;
+}
+
+int32_t DAP_HID::dap_swd_transfer_retry(uint8_t req, uint32_t tx_data, uint8_t *resp, uint32_t *rx_data)
+{
+    int32_t err;
+
+    for (uint8_t retry_i = 0; retry_i < 10; retry_i++)
+    {
+        err = dap_swd_transfer(req, tx_data, resp, rx_data);
+        if (err < 0)
+            return -1;
+
+        if (rx_data)
+        {
+            qDebug("[DAP_HID] dap_swd_transfer_retry i:%d resp: 0x%08X", retry_i, *rx_data);
+        }
+
+        if (*resp != DAP_TRANSFER_WAIT)
+            break;
+    }
+
+    if (*resp != DAP_TRANSFER_OK)
+        return -1;
 
     return 0;
 }
@@ -1614,6 +1614,253 @@ int32_t DAP_HID::dap_set_target_state_hw(dap_target_reset_state_t state)
 
     default:
         return -1;
+    }
+
+    return 0;
+}
+
+int32_t DAP_HID::dap_read_byte(uint32_t addr, uint8_t *val)
+{
+    int32_t err;
+    uint32_t tmp;
+
+    err = dap_swd_write_ap(AP_CSW, CSW_VALUE | CSW_SIZE8);
+    if (err < 0)
+        return err;
+
+    err = dap_read_data(addr, &tmp);
+    if (err < 0)
+        return err;
+
+    *val = (uint8_t)(tmp >> ((addr & 0x03) << 3));
+
+    qDebug("[DAP_HID] dap_read_byte addr:0x%X val:%08X", addr, *val);
+
+    return 0;
+}
+
+int32_t DAP_HID::dap_write_byte(uint32_t addr, uint8_t val)
+{
+    int32_t err;
+    uint32_t tmp;
+
+    err = dap_swd_write_ap(AP_CSW, CSW_VALUE | CSW_SIZE8);
+    if (err < 0)
+        return err;
+
+    tmp = val << ((addr & 0x03) << 3);
+
+    err = dap_write_data(addr, tmp);
+    if (err < 0)
+        return err;
+
+    return 0;
+}
+
+int32_t DAP_HID::dap_read_block(uint32_t addr, uint8_t *data, uint32_t size)
+{
+    int32_t err;
+    uint8_t req, resp;
+    uint32_t size_in_words;
+    uint32_t i;
+
+    uint8_t *prev_data = data;
+
+    if (size == 0)
+        return 0;
+
+    size_in_words = size / 4;
+    err = dap_swd_write_ap(AP_CSW, CSW_VALUE | CSW_SIZE32);
+    if (err < 0)
+        return err;
+
+    // TAR write
+    req = DAP_TRANS_AP | DAP_TRANS_WRITE_REG | AP_TAR;
+    err = dap_swd_transfer_retry(req, addr, &resp, NULL);
+    if (err < 0)
+        return err;
+
+    // read data
+    req = DAP_TRANS_AP | DAP_TRANS_READ_REG | AP_DRW;
+
+    // TODO:为什么有的芯片需要加这个dummy而有的不用
+    // initiate first read, data comes back in next read
+    // err = dap_swd_transfer_retry(req, 0, &resp, NULL);
+    // if (err < 0)
+    //     return err;
+
+    for (i = 0; i < (size_in_words); i++)
+    {
+        err = dap_swd_transfer_retry(req, 0, &resp, (uint32_t *)data);
+        if (err < 0)
+            return err;
+
+        data += 4;
+    }
+
+    // read last word
+    // req = DAP_TRANS_DP | DAP_TRANS_READ_REG | DAP_TRANS_REG_ADDR(DP_RDBUFF);
+    // err = dap_swd_transfer_retry(req, 0, &resp, (uint32_t *)data);
+    // if (err < 0)
+    //     return err;
+    req = DAP_TRANS_DP | DAP_TRANS_READ_REG | DAP_TRANS_REG_ADDR(DP_RDBUFF);
+    err = dap_swd_transfer_retry(req, 0, &resp, NULL);
+    if (err < 0)
+        return err;
+
+    // qDebug("[DAP_HID] read_block addr:0x%X size:0x%X", addr, size);
+    // hexdump(prev_data, size);
+
+    return 0;
+}
+
+int32_t DAP_HID::dap_write_block(uint32_t addr, uint8_t *data, uint32_t size)
+{
+    int32_t err;
+    uint8_t req, resp;
+    uint32_t size_in_words;
+    uint32_t i;
+
+    if (size == 0)
+    {
+        return 0;
+    }
+
+    size_in_words = size / 4;
+    err = dap_swd_write_ap(AP_CSW, CSW_VALUE | CSW_SIZE32);
+    if (err < 0)
+        return err;
+
+    // TAR write
+    req = DAP_TRANS_AP | DAP_TRANS_WRITE_REG | AP_TAR;
+    err = dap_swd_transfer_retry(req, addr, &resp, NULL);
+    if (err < 0)
+        return err;
+
+    // DRW write
+    req = DAP_TRANS_AP | DAP_TRANS_WRITE_REG | AP_DRW;
+
+    for (i = 0; i < size_in_words; i++)
+    {
+        err = dap_swd_transfer_retry(req, *((uint32_t *)data), &resp, NULL);
+        if (err < 0)
+            return err;
+
+        data += 4;
+    }
+
+    // dummy read
+    req = DAP_TRANS_DP | DAP_TRANS_READ_REG | DAP_TRANS_REG_ADDR(DP_RDBUFF);
+    err = dap_swd_transfer_retry(req, 0, &resp, NULL);
+    if (err < 0)
+        return err;
+
+    return 0;
+}
+
+int32_t DAP_HID::dap_read_memory(uint32_t addr, uint8_t *data, uint32_t size)
+{
+    int32_t err;
+    uint32_t n;
+
+    // Read bytes until word aligned
+    while ((size > 0) && (addr & 0x3))
+    {
+        err = dap_read_byte(addr, data);
+        if (err < 0)
+        {
+            return err;
+        }
+
+        addr++;
+        data++;
+        size--;
+    }
+
+    // Read word aligned blocks
+    while (size > 3)
+    {
+        // Limit to auto increment page size
+        n = Flash_Page_Size - (addr & (Flash_Page_Size - 1));
+
+        if (size < n)
+        {
+            n = size & 0xFFFFFFFC; // Only count complete words remaining
+        }
+
+        err = dap_read_block(addr, data, n);
+        if (err < 0)
+        {
+            return err;
+        }
+
+        addr += n;
+        data += n;
+        size -= n;
+    }
+
+    // Read remaining bytes
+    while (size > 0)
+    {
+        err = dap_read_byte(addr, data);
+        if (err < 0)
+            return err;
+
+        addr++;
+        data++;
+        size--;
+    }
+
+    return 0;
+}
+
+int32_t DAP_HID::dap_write_memory(uint32_t addr, uint8_t *data, uint32_t size)
+{
+    int32_t err;
+    uint32_t n = 0;
+
+    // Write bytes until word aligned
+    while ((size > 0) && (addr & 0x3))
+    {
+        err = dap_write_byte(addr, *data);
+        if (err < 0)
+            return err;
+
+        addr++;
+        data++;
+        size--;
+    }
+
+    // Write word aligned blocks
+    while (size > 3)
+    {
+        // Limit to auto increment page size
+        n = Flash_Page_Size - (addr & (Flash_Page_Size - 1));
+
+        if (size < n)
+        {
+            n = size & 0xFFFFFFFC; // Only count complete words remaining
+        }
+
+        err = dap_write_block(addr, data, n);
+        if (err < 0)
+            return err;
+
+        addr += n;
+        data += n;
+        size -= n;
+    }
+
+    // Write remaining bytes
+    while (size > 0)
+    {
+        err = dap_write_byte(addr, *data);
+        if (err < 0)
+            return err;
+
+        addr++;
+        data++;
+        size--;
     }
 
     return 0;

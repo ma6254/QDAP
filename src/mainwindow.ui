@@ -39,14 +39,14 @@
     <property name="title">
      <string>目标芯片</string>
     </property>
-    <addaction name="action"/>
+    <addaction name="action_chip_select"/>
     <addaction name="separator"/>
     <addaction name="action_target_connect"/>
     <addaction name="action_target_disconnect"/>
     <addaction name="separator"/>
     <addaction name="action_target_auto"/>
     <addaction name="separator"/>
-    <addaction name="action_target_read"/>
+    <addaction name="action_target_read_chip"/>
     <addaction name="action_target_erase"/>
     <addaction name="action_target_program"/>
     <addaction name="action_target_program_verify"/>
@@ -121,7 +121,7 @@
     <string>校验</string>
    </property>
   </action>
-  <action name="action_target_read">
+  <action name="action_target_read_chip">
    <property name="text">
     <string>读取全片</string>
    </property>
@@ -166,7 +166,7 @@
     <string>检测更新自动载入固件</string>
    </property>
   </action>
-  <action name="action">
+  <action name="action_chip_select">
    <property name="text">
     <string>芯片型号选择</string>
    </property>

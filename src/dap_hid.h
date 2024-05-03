@@ -119,7 +119,7 @@ class DAP_HID : public QObject
     Q_OBJECT
 
 public:
-    DAP_HID(QString usb_path, QWidget *parent = nullptr);
+    DAP_HID(QString usb_path);
     ~DAP_HID();
     static int32_t enum_device(QList<DAP_HID *> *dev_list);
 
@@ -153,6 +153,7 @@ public:
 
     int32_t dap_transfer_config(uint8_t idle_cyless, uint16_t wait_retry, uint16_t match_retry);
     int32_t dap_swd_transfer(uint8_t req, uint32_t tx_data, uint8_t *resp, uint32_t *rx_data);
+    int32_t dap_swd_transfer_retry(uint8_t req, uint32_t tx_data, uint8_t *resp, uint32_t *rx_data);
     int32_t dap_swd_transfer_block(uint8_t req, uint32_t tx_data, uint8_t *resp, uint32_t *timestamp, uint32_t *rx_data);
 
     int32_t dap_swd_reset();
@@ -173,6 +174,15 @@ public:
     int32_t swd_init_debug();
     int32_t dap_set_target_reset(uint8_t asserted);
     int32_t dap_set_target_state_hw(dap_target_reset_state_t state);
+
+    int32_t dap_read_byte(uint32_t addr, uint8_t *val);
+    int32_t dap_write_byte(uint32_t addr, uint8_t val);
+
+    int32_t dap_read_block(uint32_t addr, uint8_t *data, uint32_t size);
+    int32_t dap_write_block(uint32_t addr, uint8_t *data, uint32_t size);
+
+    int32_t dap_read_memory(uint32_t addr, uint8_t *data, uint32_t size);
+    int32_t dap_write_memory(uint32_t addr, uint8_t *data, uint32_t size);
 
 private:
     hid_device *dev;

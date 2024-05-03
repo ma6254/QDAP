@@ -36,6 +36,16 @@
         "initializer_list": "cpp",
         "type_traits": "cpp",
         "xlocale": "cpp",
-        "qtimer": "cpp"
+        "qtimer": "cpp",
+        "chip_selecter.h": "cpp",
+        "ui_chip_selecter.h": "cpp",
+        "resumable": "cpp",
+        "xmemory": "cpp",
+        "utils.h": "cpp",
+        "array": "cpp",
+        "deque": "cpp",
+        "queue": "cpp",
+        "stack": "cpp",
+        "valarray": "cpp"
     }
 }

@@ -28,6 +28,8 @@ find_package(Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
 
 set(TS_FILES QDAP_zh_CN.ts)
 
+add_subdirectory("yaml-cpp")
+
 include_directories(
   libusb_hid_api/include
   src/DAP
@@ -51,9 +53,14 @@ else()
     src/mainwindow.cpp
     src/mainwindow.h
     src/mainwindow.ui
+    src/utils.cpp
+    src/utils.h
     src/enum_writer_list.cpp
     src/enum_writer_list.h
     src/enum_writer_list.ui
+    src/chip_selecter.cpp
+    src/chip_selecter.h
+    src/chip_selecter.ui
     src/dap_hid.cpp
     src/dap_hid.h
     ${TS_FILES}

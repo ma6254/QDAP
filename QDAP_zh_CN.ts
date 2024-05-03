@@ -2,149 +2,187 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="zh_CN">
 <context>
-    <name>MainWindow</name>
+    <name>ChipSelecter</name>
     <message>
-        <location filename="src/mainwindow.ui" line="14"/>
-        <source>MainWindow</source>
+        <location filename="src/chip_selecter.ui" line="14"/>
+        <source>请选择想要烧录的芯片型号</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.ui" line="28"/>
-        <source>烧录器</source>
+        <location filename="src/chip_selecter.ui" line="25"/>
+        <source>厂商</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/chip_selecter.ui" line="32"/>
+        <source>系列/家族</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/chip_selecter.ui" line="43"/>
+        <source>ST(意法半导体)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/chip_selecter.ui" line="48"/>
+        <source>Puya(普冉)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/chip_selecter.ui" line="56"/>
+        <source>型号</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>MainWindow</name>
+    <message>
+        <location filename="src/mainwindow.ui" line="20"/>
+        <source>QDAP</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="src/mainwindow.ui" line="34"/>
+        <source>烧录器</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/mainwindow.ui" line="40"/>
         <source>目标芯片</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.ui" line="51"/>
+        <location filename="src/mainwindow.ui" line="59"/>
         <source>帮助</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.ui" line="57"/>
+        <location filename="src/mainwindow.ui" line="65"/>
         <source>文件</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.ui" line="77"/>
+        <location filename="src/mainwindow.ui" line="85"/>
         <source>连接</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.ui" line="82"/>
+        <location filename="src/mainwindow.ui" line="90"/>
         <source>断开连接</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.ui" line="87"/>
+        <location filename="src/mainwindow.ui" line="95"/>
         <source>自动</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.ui" line="90"/>
+        <location filename="src/mainwindow.ui" line="98"/>
         <source>F8</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.ui" line="95"/>
+        <location filename="src/mainwindow.ui" line="103"/>
         <source>全片擦除</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.ui" line="98"/>
+        <location filename="src/mainwindow.ui" line="106"/>
         <source>F4</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.ui" line="103"/>
+        <location filename="src/mainwindow.ui" line="111"/>
         <source>写入</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.ui" line="108"/>
+        <location filename="src/mainwindow.ui" line="116"/>
         <source>写入+校验</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.ui" line="113"/>
+        <location filename="src/mainwindow.ui" line="121"/>
         <source>校验</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.ui" line="118"/>
+        <location filename="src/mainwindow.ui" line="126"/>
         <source>读取全片</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.ui" line="121"/>
+        <location filename="src/mainwindow.ui" line="129"/>
         <source>F10</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.ui" line="126"/>
+        <location filename="src/mainwindow.ui" line="134"/>
         <source>复位运行</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.ui" line="129"/>
+        <location filename="src/mainwindow.ui" line="137"/>
         <source>F9</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.ui" line="134"/>
+        <location filename="src/mainwindow.ui" line="142"/>
         <source>关于</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.ui" line="139"/>
+        <location filename="src/mainwindow.ui" line="147"/>
         <source>打开烧录文件</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.ui" line="142"/>
+        <location filename="src/mainwindow.ui" line="150"/>
         <source>Ctrl+O</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.ui" line="147"/>
+        <location filename="src/mainwindow.ui" line="155"/>
         <source>保存烧录文件</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.ui" line="150"/>
+        <location filename="src/mainwindow.ui" line="158"/>
         <source>Ctrl+S</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.ui" line="158"/>
+        <location filename="src/mainwindow.ui" line="166"/>
         <source>检测更新自动载入固件</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.ui" line="72"/>
+        <location filename="src/mainwindow.ui" line="171"/>
+        <source>芯片型号选择</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/mainwindow.ui" line="80"/>
         <source>列出设备</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.cpp" line="37"/>
+        <location filename="src/mainwindow.cpp" line="44"/>
         <source>请选择一个烧录文件</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.cpp" line="39"/>
+        <location filename="src/mainwindow.cpp" line="46"/>
         <source>Firmware (*.hex *.bin)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.cpp" line="68"/>
+        <location filename="src/mainwindow.cpp" line="75"/>
         <source>请选择烧录文件保存路径</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.cpp" line="70"/>
+        <location filename="src/mainwindow.cpp" line="77"/>
         <source>Binary file (*.bin);;Intel HEX file (*.hex)</source>
         <translation type="unfinished"></translation>
     </message>
