@@ -49,5 +49,6 @@ private:
     bool force_update_device_list;
 
     bool dap_hid_device_list_compare(QList<DAP_HID *> a_list, QList<DAP_HID *> b_list);
+    int32_t load_flash_algo(QString file_path);
 };
 #endif // MAINWINDOW_H

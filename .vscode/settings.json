@@ -46,6 +46,13 @@
         "deque": "cpp",
         "queue": "cpp",
         "stack": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "elf.h": "cpp",
+        "qdialog": "cpp",
+        "qstring": "c",
+        "flash_algo.h": "cpp",
+        "glibc_elf.h": "cpp",
+        "flashos.h": "cpp",
+        "xlocmon": "cpp"
     }
 }

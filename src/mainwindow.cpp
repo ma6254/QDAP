@@ -6,6 +6,7 @@
 #include "chip_selecter.h"
 #include "dap_hid.h"
 #include "utils.h"
+#include "flash_algo.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
@@ -24,11 +25,25 @@ MainWindow::MainWindow(QWidget *parent)
     connect(timer_enum_device, SIGNAL(timeout()), this, SLOT(cb_tick_enum_device()));
     timer_enum_device->setInterval(500);
     timer_enum_device->start();
+
+    load_flash_algo("devices/AIR001/Air001.FLM");
+    load_flash_algo("devices/AIR001/AIR001xx_32.FLM");
+    load_flash_algo("devices/STM/STM32F4xx/STM32F4xx_256.FLM");
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+int32_t MainWindow::load_flash_algo(QString file_path)
+{
+    int32_t err;
+    FlashAlgo *algo = new FlashAlgo();
+
+    err = algo->load(file_path);
+
+    return 0;
 }
 
 void MainWindow::cb_action_open_firmware_file(void)

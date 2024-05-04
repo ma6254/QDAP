@@ -4,9 +4,9 @@
 
 ## UI Preview
 
-![enum_device_list-Link](./doc/assets/menu_target_chip.png)!
+![enum_device_list-Link](./doc/assets/menu_target_chip.png)
 
-![enum_device_list-Link](./doc/assets/enum_device_list.png)!
+![enum_device_list-Link](./doc/assets/enum_device_list.png)
 
 ## Reference
 
@@ -18,3 +18,8 @@
 - <https://gitee.com/synwit-co-ltd/DAPProg>
 - <https://github.com/tthe207/DP-SW>
 - <https://www.keil.arm.com/devices/>
+- <https://en.wikipedia.org/wiki/Executable_and_Linkable_Format>
+
+[glic_elf.h](./src/glibc_elf.h) from <https://github.com/lattera/glibc/blob/master/elf/elf.h>
+
+[FlashOS.h](./src/FlashOS.h) from <https://github.com/ARM-software/CMSIS_4/blob/master/Device/_Template_Flash/FlashOS.h>

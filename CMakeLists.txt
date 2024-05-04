@@ -63,6 +63,8 @@ else()
     src/chip_selecter.ui
     src/dap_hid.cpp
     src/dap_hid.h
+    src/flash_algo.cpp
+    src/flash_algo.h
     ${TS_FILES}
   )
 endif()
