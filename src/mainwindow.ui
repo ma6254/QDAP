@@ -47,7 +47,7 @@
     <addaction name="action_target_auto"/>
     <addaction name="separator"/>
     <addaction name="action_target_read_chip"/>
-    <addaction name="action_target_erase"/>
+    <addaction name="action_target_erase_chip"/>
     <addaction name="action_target_program"/>
     <addaction name="action_target_program_verify"/>
     <addaction name="action_target_verify"/>
@@ -98,7 +98,7 @@
     <string>F8</string>
    </property>
   </action>
-  <action name="action_target_erase">
+  <action name="action_target_erase_chip">
    <property name="text">
     <string>全片擦除</string>
    </property>

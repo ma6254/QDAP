@@ -1,18 +1,18 @@
 #include "flash_algo.h"
 #include <QFile>
+#include "utils.h"
 
-flash_func_def_t func_symbol_list[FUNC_SYMBOL_COUNT] = {
-    {
-        .name = "Init",
-        .must = 1,
-    },
-    {.name = "UnInit", .must = 1},
-    {.name = "BlankCheck", .must = 0},
-    {.name = "EraseChip", .must = 1},
-    {.name = "EraseSector", .must = 1},
-    {.name = "ProgramPage", .must = 1},
+flash_func_def_t func_symbol_list[FLASH_FUNC_COUNT] = {
+    {"Init", 1},
+    {"UnInit", 1},
+    {"BlankCheck", 0},
+    {"EraseChip", 1},
+    {"EraseSector", 1},
+    {"ProgramPage", 1},
     // "Verify",
 };
+
+const uint32_t BLOB_HEADER = 0xE7FDBE00;
 
 FlashAlgo::FlashAlgo()
 {
@@ -22,9 +22,11 @@ FlashAlgo::~FlashAlgo(void)
 {
 }
 
-int32_t FlashAlgo::load(QString file_path)
+int32_t FlashAlgo::load(QString file_path, uint32_t ram_start)
 {
     qDebug("[FlashAlgo] Load ===================================================");
+
+    this->ram_start = ram_start;
 
     QFile elf_file(file_path);
     if (!elf_file.open(QIODevice::ReadOnly))
@@ -62,6 +64,9 @@ int32_t FlashAlgo::load(QString file_path)
     bool is_find_sym_section = false;
     bool is_find_str_section = false;
     bool is_find_PrgCode_section = false;
+    bool is_find_PrgData_section = false;
+
+    // qDebug("[main] Section =====================================================");
 
     for (int i = 0; i < elf_header.e_shnum; i++)
     {
@@ -85,18 +90,24 @@ int32_t FlashAlgo::load(QString file_path)
             PrgCode_section = shdrs;
             is_find_PrgCode_section = true;
         }
+        else if (section_name == "PrgData")
+        {
+            PrgData_section = shdrs;
+            is_find_PrgData_section = true;
+        }
 
         // qDebug("[main] ==== %d Section =========================================", i);
         // qDebug("    sh_name: 0x%08X %s", shdrs.sh_name, file_buf.data() + str_shdrs.sh_offset + shdrs.sh_name);
         // qDebug("    sh_offset: 0x%08X", shdrs.sh_offset);
         // qDebug("    sh_type: 0x%08X %s", shdrs.sh_type, section_type_to_str(shdrs.sh_type));
 
-        // qDebug("    %d %s %s %s addr:0x%08X",
+        // qDebug("    %2d %16s %16s addr:0x%08X size:0x%08X %s",
         //        i,
         //        qPrintable(section_name),
         //        qPrintable(section_type_to_str(shdrs.sh_type)),
-        //        qPrintable(section_flags_to_str(shdrs.sh_flags)),
-        //        shdrs.sh_offset);
+        //        shdrs.sh_offset,
+        //        shdrs.sh_size,
+        //        qPrintable(section_flags_to_str(shdrs.sh_flags)));
     }
 
     if (is_find_sym_section == false)
@@ -117,10 +128,16 @@ int32_t FlashAlgo::load(QString file_path)
         return -1;
     }
 
-    bool is_find_FlashDevice_symbol = false;
-    bool is_find_Init_symbol[FUNC_SYMBOL_COUNT];
+    if (is_find_PrgData_section == false)
+    {
+        qDebug("[FlashAlgo] not found PrgData_section");
+        return -1;
+    }
 
-    memset(is_find_Init_symbol, false, sizeof(is_find_Init_symbol));
+    bool is_find_FlashDevice_symbol = false;
+    bool is_find_flash_func_symbol[FLASH_FUNC_COUNT];
+
+    memset(is_find_flash_func_symbol, false, sizeof(is_find_flash_func_symbol));
 
     // qDebug("[main] Symbol ======================================================");
 
@@ -137,12 +154,12 @@ int32_t FlashAlgo::load(QString file_path)
             is_find_FlashDevice_symbol = true;
         }
 
-        for (uint32_t i = 0; i < FUNC_SYMBOL_COUNT; i++)
+        for (uint32_t i = 0; i < FLASH_FUNC_COUNT; i++)
         {
             if (symbol_name == func_symbol_list[i].name)
             {
                 flash_func_symbol_list[i] = symbol;
-                is_find_Init_symbol[i] = true;
+                is_find_flash_func_symbol[i] = true;
             }
         }
 
@@ -152,8 +169,9 @@ int32_t FlashAlgo::load(QString file_path)
 
         // qDebug("    st_name: 0x%08X %s", symbol.st_name, file_buf.data() + str_shdrs.sh_offset + symbol.st_name);
 
-        // qDebug("    %d %s",
+        // qDebug("    %dvsize:0x%08X %s ",
         //        start_addr,
+        //        symbol.st_size,
         //        qPrintable(symbol_name));
     }
 
@@ -179,34 +197,36 @@ int32_t FlashAlgo::load(QString file_path)
     qDebug("[FlashAlgo] DevType: %s", qPrintable(FlashDevice_type_to_str(flash_device_info.DevType)));
     qDebug("[FlashAlgo] DevAdr: 0x%08X", flash_device_info.DevAdr);
     qDebug("[FlashAlgo] szDev: 0x%08X", flash_device_info.szDev);
+    qDebug("[FlashAlgo] szPage: 0x%08X", flash_device_info.szPage);
 
-    qDebug("[FlashAlgo] FuncSymbol:");
+    if (FLASH_DRV_VERS != flash_device_info.Vers)
+    {
+        qDebug("[FlashAlgo] Unsupport verison");
+        return -1;
+    }
+
+    // qDebug("[FlashAlgo] FuncSymbol:");
 
     bool is_func_symbol_all_done = true;
+    flash_code.clear();
+    flash_code.append((char *)&BLOB_HEADER, sizeof(BLOB_HEADER));
+    flash_code.append(file_buf.data() + PrgCode_section.sh_offset, PrgCode_section.sh_size);
 
-    for (uint32_t i = 0; i < FUNC_SYMBOL_COUNT; i++)
+    for (uint32_t i = 0; i < FLASH_FUNC_COUNT; i++)
     {
-        flash_func_code_list[i].clear();
 
-        if (is_find_Init_symbol[i])
-        {
-            char *pbuf = file_buf.data() + PrgCode_section.sh_offset + flash_func_symbol_list[i].st_value;
-
-            flash_func_code_list[i].append(pbuf, flash_func_symbol_list[i].st_size);
-        }
-
-        if ((is_find_Init_symbol[i] == false) && (func_symbol_list[i].must == true))
+        if ((is_find_flash_func_symbol[i] == false) && (func_symbol_list[i].must == true))
         {
             is_func_symbol_all_done = false;
         }
 
-        qDebug("[FlashAlgo] %d %16s 0x%08X 0x%08X %10s | %s",
-               i,
-               func_symbol_list[i].name,
-               flash_func_symbol_list[i].st_value,
-               flash_func_symbol_list[i].st_size,
-               (func_symbol_list[i].must) ? "must" : "optional",
-               (is_find_Init_symbol[i] == false) ? "fail" : "ok");
+        // qDebug("    %d %16s 0x%08X 0x%08X %10s | %s",
+        //        i,
+        //        func_symbol_list[i].name,
+        //        flash_func_symbol_list[i].st_value,
+        //        flash_func_symbol_list[i].st_size,
+        //        (func_symbol_list[i].must) ? "must" : "optional",
+        //        (is_find_flash_func_symbol[i] == false) ? "fail" : "ok");
     }
 
     if (is_func_symbol_all_done == false)
@@ -215,7 +235,32 @@ int32_t FlashAlgo::load(QString file_path)
         return -1;
     }
 
+    qDebug("[FlashAlgo] falsh_code:");
+    for (uint32_t i = 0; i < FLASH_FUNC_COUNT; i++)
+    {
+        qDebug("    %d %12s : 0x%08X", i, func_symbol_list[i].name, flash_func_symbol_list[i].st_value);
+    }
+
     qDebug("[FlashAlgo] FuncSymbol check all ok");
+    // qDebug("[FlashAlgo] flash_code size:%d", flash_code.length());
+    if ((flash_code.length() % 4) != 0)
+    {
+        qDebug("[FlashAlgo] flash_code size:%d wrong, should be 4-byte aligned",
+               flash_code.length());
+        return -1;
+    }
+
+    sys_call_s.breakpoint = ram_start + 1;
+    sys_call_s.static_base = ram_start + sizeof(BLOB_HEADER) + PrgCode_section.sh_size + PrgData_section.sh_size;
+    sys_call_s.stack_pointer = sys_call_s.static_base + flash_device_info.szPage * 2;
+
+    qDebug("[FlashAlgo] sys_call_s:");
+    qDebug("       breakpoint: %08X", sys_call_s.breakpoint);
+    qDebug("      static_base: %08X", sys_call_s.static_base);
+    qDebug("    stack_pointer: %08X", sys_call_s.stack_pointer);
+
+    // hexdump((uint8_t *)flash_code.data(), flash_code.length());
+    // dump_flash_code((uint32_t *)flash_code.data(), flash_code.length() / 4);
 
     return 0;
 }
@@ -407,8 +452,39 @@ bool FlashAlgo::is_flash_func_impl(flash_func_t f)
     if (f >= FLASH_FUNC_MAX)
         return false;
 
-    if (flash_func_code_list[f].count() == 0)
+    if (flash_func_symbol_list[f].st_size == 0)
         return false;
 
     return true;
+}
+
+FlashDevice FlashAlgo::get_flash_device_info(void)
+{
+    return flash_device_info;
+}
+
+QByteArray FlashAlgo::get_flash_code(void)
+{
+    return flash_code;
+}
+
+uint32_t FlashAlgo::get_flash_func_offset(flash_func_t f)
+{
+    if (f >= FLASH_FUNC_MAX)
+        return UINT32_MAX;
+
+    if (flash_func_symbol_list[f].st_size == 0)
+        return UINT32_MAX;
+
+    return ram_start + sizeof(BLOB_HEADER) + flash_func_symbol_list[f].st_value;
+}
+
+uint32_t FlashAlgo::get_flash_start(void)
+{
+    return flash_device_info.DevAdr;
+}
+
+program_syscall_t FlashAlgo::get_sys_call_s(void)
+{
+    return sys_call_s;
 }

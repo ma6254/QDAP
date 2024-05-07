@@ -1,6 +1,26 @@
 #include "utils.h"
 #include <QString>
 
+void dump_flash_code(const uint32_t *buf, uint32_t len)
+{
+    uint8_t i;
+
+    QString res("");
+
+    for (i = 0; i < len; i++)
+    {
+
+        res.append(QString("0x%1, ").arg(*(buf + i), 8, 16));
+
+        if (((i + 1) % 8) == 0)
+        {
+            res.append("\r\n");
+        }
+    }
+
+    qDebug("%s", qPrintable(res));
+}
+
 void hexdump(const uint8_t *buf, uint32_t len)
 {
     uint32_t i = 0;

@@ -6,7 +6,6 @@
 #include "chip_selecter.h"
 #include "dap_hid.h"
 #include "utils.h"
-#include "flash_algo.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
@@ -17,6 +16,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->action_chip_select, SIGNAL(triggered()), this, SLOT(cb_action_chip_select(void)));
     connect(ui->action_target_connect, SIGNAL(triggered()), this, SLOT(cb_action_connect(void)));
     connect(ui->action_target_read_chip, SIGNAL(triggered()), this, SLOT(cb_action_read_chip(void)));
+    connect(ui->action_target_erase_chip, SIGNAL(triggered()), this, SLOT(cb_action_erase_chip(void)));
     connect(ui->action_target_program, SIGNAL(triggered()), this, SLOT(cb_action_write(void)));
     connect(ui->action_target_run, SIGNAL(triggered()), this, SLOT(cb_action_reset_run(void)));
     connect(ui->action_enum_device_list, SIGNAL(triggered()), this, SLOT(cb_action_enum_device_list(void)));
@@ -26,9 +26,12 @@ MainWindow::MainWindow(QWidget *parent)
     timer_enum_device->setInterval(500);
     timer_enum_device->start();
 
-    load_flash_algo("devices/AIR001/Air001.FLM");
-    load_flash_algo("devices/AIR001/AIR001xx_32.FLM");
-    load_flash_algo("devices/STM/STM32F4xx/STM32F4xx_256.FLM");
+    ram_start = 0x20000000;
+
+    // load_flash_algo("devices/AIR001/Air001.FLM");
+    // load_flash_algo("devices/AIR001/AIR001xx_32.FLM");
+    // load_flash_algo("devices/STM/STM32F4xx/STM32F4xx_256.FLM");
+    load_flash_algo("C:\\Keil_v5\\ARM\\PACK\\Keil\\STM32F4xx_DFP\\2.17.1\\CMSIS\\Flash\\STM32F4xx\\STM32F4xx_128.FLM");
 }
 
 MainWindow::~MainWindow()
@@ -39,9 +42,10 @@ MainWindow::~MainWindow()
 int32_t MainWindow::load_flash_algo(QString file_path)
 {
     int32_t err;
-    FlashAlgo *algo = new FlashAlgo();
 
-    err = algo->load(file_path);
+    err = flash_algo.load(file_path);
+    if (err < 0)
+        return err;
 
     return 0;
 }
@@ -194,6 +198,7 @@ void MainWindow::cb_action_chip_select(void)
 
 void MainWindow::cb_action_connect(void)
 {
+    int32_t err;
     DAP_HID *tmp_dev;
 
     if (dap_hid_device_list.count() == 0)
@@ -208,7 +213,54 @@ void MainWindow::cb_action_connect(void)
         tmp_dev = dap_hid_device_list.at(current_device - 1);
     }
 
-    tmp_dev->connect();
+    err = tmp_dev->connect();
+    if (err < 0)
+    {
+        qDebug("[main] connect fail");
+    }
+
+    FlashDevice tmp_flash_info = flash_algo.get_flash_device_info();
+    QByteArray tmp_flash_code = flash_algo.get_flash_code();
+
+    // Download flash programming algorithm to target and initialise.
+    err = tmp_dev->dap_write_memory(ram_start,
+                                    (uint8_t *)tmp_flash_code.data(),
+                                    tmp_flash_code.length());
+    if (err < 0)
+    {
+        qDebug("[main] dap_write_memory fail");
+        return;
+    }
+
+    // QByteArray read_buf;
+    // err = tmp_dev->dap_read_memory(ram_start,
+    //                                (uint8_t *)read_buf.data(),
+    //                                tmp_flash_code.length());
+    // if (err < 0)
+    // {
+    //     qDebug("[main] dap_read_memory fail");
+    //     return;
+    // }
+
+    // if (tmp_flash_code != read_buf)
+    // {
+    //     qDebug("[main] read back verify fail");
+    //     return;
+    // }
+
+    program_syscall_t sys_call_s = flash_algo.get_sys_call_s();
+
+    uint32_t entry = flash_algo.get_flash_func_offset(FLASH_FUNC_Init);
+    uint32_t arg1 = flash_algo.get_flash_start();
+    err = tmp_dev->swd_flash_syscall_exec(&sys_call_s, entry, arg1, 0, 1, 0);
+    if (err < 0)
+    {
+        qDebug("[main] exec_flash_func Init arg:");
+        qDebug("    entry: %08X", entry);
+        qDebug("     arg1: %08X", arg1);
+        qDebug("[main] exec_flash_func Init fail");
+        return;
+    }
 }
 
 void MainWindow::cb_action_read_chip(void)
@@ -242,6 +294,36 @@ void MainWindow::cb_action_read_chip(void)
     }
 
     qDebug("[main] read chip ok");
+}
+
+void MainWindow::cb_action_erase_chip(void)
+{
+    int err;
+    DAP_HID *tmp_dev;
+
+    if (dap_hid_device_list.count() == 0)
+        return;
+
+    if (current_device == 0)
+    {
+        tmp_dev = dap_hid_device_list.at(0);
+    }
+    else
+    {
+        tmp_dev = dap_hid_device_list.at(current_device - 1);
+    }
+
+    program_syscall_t sys_call_s = flash_algo.get_sys_call_s();
+
+    uint32_t entry = flash_algo.get_flash_func_offset(FLASH_FUNC_EraseChip);
+    err = tmp_dev->swd_flash_syscall_exec(&sys_call_s, entry, 0, 0, 0, 0);
+    if (err < 0)
+    {
+        qDebug("[main] exec_flash_func EraseChip fail");
+        return;
+    }
+
+    qDebug("[main] exec_flash_func EraseChip ok");
 }
 
 void MainWindow::cb_action_write(void)
@@ -308,6 +390,7 @@ void MainWindow::cb_action_write(void)
 
 void MainWindow::cb_action_reset_run(void)
 {
+    int32_t err;
     DAP_HID *tmp_dev;
 
     if (dap_hid_device_list.count() == 0)
@@ -320,6 +403,16 @@ void MainWindow::cb_action_reset_run(void)
     else
     {
         tmp_dev = dap_hid_device_list.at(current_device - 1);
+    }
+
+    program_syscall_t sys_call_s = flash_algo.get_sys_call_s();
+
+    uint32_t entry = flash_algo.get_flash_func_offset(FLASH_FUNC_UnInit);
+    err = tmp_dev->swd_flash_syscall_exec(&sys_call_s, entry, 3, 0, 1, 0);
+    if (err < 0)
+    {
+        qDebug("[main] exec_flash_func UnInit fail");
+        return;
     }
 
     tmp_dev->run();

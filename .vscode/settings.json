@@ -53,6 +53,7 @@
         "flash_algo.h": "cpp",
         "glibc_elf.h": "cpp",
         "flashos.h": "cpp",
-        "xlocmon": "cpp"
+        "xlocmon": "cpp",
+        "future": "cpp"
     }
 }

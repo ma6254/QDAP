@@ -3,6 +3,7 @@
 
 #include "hidapi.h"
 #include "hidapi_winapi.h"
+#include "flash_algo.h"
 
 #include <QList>
 #include <QThread>
@@ -63,6 +64,11 @@ typedef enum
 #define DAP_TRANS_READ_REG (1 << 1)
 #define DAP_TRANS_WRITE_REG (0 << 1)
 #define DAP_TRANS_REG_ADDR(a) (a & 0x0c)
+
+#define DCRDR 0xE000EDF8
+#define DCRSR 0xE000EDF4
+#define DHCSR 0xE000EDF0
+#define REGWnR (1 << 16)
 
 // DAP Transfer Response
 #define DAP_TRANSFER_OK (1U << 0)
@@ -183,6 +189,12 @@ public:
 
     int32_t dap_read_memory(uint32_t addr, uint8_t *data, uint32_t size);
     int32_t dap_write_memory(uint32_t addr, uint8_t *data, uint32_t size);
+
+    int32_t swd_write_debug_state(debug_state_t *state);
+    int32_t swd_wait_until_halted(void);
+    int32_t swd_read_core_register(uint32_t n, uint32_t *val);
+    int32_t swd_write_core_register(uint32_t n, uint32_t val);
+    int32_t swd_flash_syscall_exec(const program_syscall_t *sysCallParam, uint32_t entry, uint32_t arg1, uint32_t arg2, uint32_t arg3, uint32_t arg4);
 
 private:
     hid_device *dev;
