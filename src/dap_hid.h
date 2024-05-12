@@ -127,6 +127,7 @@ class DAP_HID : public QObject
 public:
     DAP_HID(QString usb_path);
     ~DAP_HID();
+    static int32_t enum_device_id(QList<DAP_HID *> *dev_list, uint16_t vid = DAP_HID_VID, uint16_t pid = DAP_HID_PID);
     static int32_t enum_device(QList<DAP_HID *> *dev_list);
 
     int32_t open_device();

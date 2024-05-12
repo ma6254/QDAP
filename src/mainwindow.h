@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include "dap_hid.h"
 #include "flash_algo.h"
+#include "hex_viewer.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui
@@ -52,6 +53,8 @@ private:
 
     FlashAlgo flash_algo;
     uint32_t ram_start;
+
+    HexViewer *hex_viewer;
 
     bool dap_hid_device_list_compare(QList<DAP_HID *> a_list, QList<DAP_HID *> b_list);
     int32_t load_flash_algo(QString file_path);

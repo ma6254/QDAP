@@ -11,6 +11,11 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    hex_viewer = new HexViewer(ui->centralwidget);
+
+    ui->centralwidget->layout()->addWidget(hex_viewer);
+
     connect(ui->action_file_open, SIGNAL(triggered()), this, SLOT(cb_action_open_firmware_file(void)));
     connect(ui->action_file_save, SIGNAL(triggered()), this, SLOT(cb_action_save_firmware_file(void)));
     connect(ui->action_chip_select, SIGNAL(triggered()), this, SLOT(cb_action_chip_select(void)));
@@ -80,6 +85,9 @@ void MainWindow::cb_action_open_firmware_file(void)
 
         QLocale locale = this->locale();
         QString valueText = locale.formattedDataSize(firmware_buf.count());
+
+        // hex_viewer->load();
+        hex_viewer->load(firmware_buf);
 
         qDebug("[main] file_load %s", qPrintable(valueText));
     }

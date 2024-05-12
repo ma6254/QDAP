@@ -8,6 +8,7 @@
                 "${workspaceFolder}/src",
                 "${workspaceFolder}/libusb_hid_api/include",
                 "${workspaceFolder}/src/DAP",
+                "${workspaceFolder}/src/components",
                 "${workspaceFolder}/../build-QDAP-(2)-Desktop_Qt_5_14_2_MinGW_64_bit-Debug/QDAP_autogen/include"
             ],
             "defines": [

@@ -33,6 +33,7 @@ add_subdirectory("yaml-cpp")
 include_directories(
   libusb_hid_api/include
   src/DAP
+  src/components
   src
 )
 
@@ -61,6 +62,9 @@ else()
     src/chip_selecter.cpp
     src/chip_selecter.h
     src/chip_selecter.ui
+    src/components/hex_viewer.cpp
+    src/components/hex_viewer.h
+    src/components/hex_viewer.ui
     src/dap_hid.cpp
     src/dap_hid.h
     src/flash_algo.cpp

@@ -54,6 +54,15 @@
         "glibc_elf.h": "cpp",
         "flashos.h": "cpp",
         "xlocmon": "cpp",
-        "future": "cpp"
+        "future": "cpp",
+        "hex_viewer.h": "cpp",
+        "qbytearray": "cpp",
+        "qbytearray.h": "cpp",
+        "memory": "cpp",
+        "ui_hex_viewer.h": "cpp",
+        "qgridlayout": "cpp",
+        "sstream": "cpp",
+        "forward_list": "cpp",
+        "qthread": "cpp"
     }
 }

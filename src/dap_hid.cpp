@@ -301,10 +301,13 @@ int32_t DAP_HID::run()
  * @param None
  * @return None
  ******************************************************************************/
-int32_t DAP_HID::enum_device(QList<DAP_HID *> *dev_list)
+int32_t DAP_HID::enum_device_id(QList<DAP_HID *> *dev_list, uint16_t vid, uint16_t pid)
 {
     uint32_t i = 0;
-    hid_device_info *device_info = hid_enumerate(DAP_HID_VID, DAP_HID_PID);
+
+    dev_list->clear();
+
+    hid_device_info *device_info = hid_enumerate(vid, pid);
     if (device_info == NULL)
     {
         // qDebug("[enum_device] is empty");
@@ -313,7 +316,6 @@ int32_t DAP_HID::enum_device(QList<DAP_HID *> *dev_list)
         return 0;
     }
 
-    dev_list->clear();
     // for (i = 0; i < dev_list->count(); i++)
     // {
     //     DAP_HID *tmp_dev = dev_list->first();
@@ -346,6 +348,28 @@ int32_t DAP_HID::enum_device(QList<DAP_HID *> *dev_list)
     hid_free_enumeration(device_info);
 
     return i;
+}
+
+int32_t DAP_HID::enum_device(QList<DAP_HID *> *dev_list)
+{
+    dev_list->clear();
+
+    QList<DAP_HID *> tmp_list;
+
+    enum_device_id(&tmp_list);
+    dev_list->append(tmp_list);
+
+    enum_device_id(&tmp_list, 0xC251, 0xF001);
+    dev_list->append(tmp_list);
+
+    enum_device_id(&tmp_list, 0xC251, 0xF002);
+    dev_list->append(tmp_list);
+
+    enum_device_id(&tmp_list, 0xC251, 0x2722);
+    dev_list->append(tmp_list);
+
+    enum_device_id(&tmp_list, 0xC251, 0x2750);
+    dev_list->append(tmp_list);
 }
 
 int32_t DAP_HID::open_device()
