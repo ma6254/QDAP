@@ -4,9 +4,11 @@
 
 ## UI Preview
 
-![enum_device_list-Link](./doc/assets/menu_target_chip.png)
+![main_window](./doc/assets/main_window.png)
 
-![enum_device_list-Link](./doc/assets/enum_device_list.png)
+![menu_target_chip](./doc/assets/menu_target_chip.png)
+
+![enum_device_list](./doc/assets/enum_device_list.png)
 
 ## Reference
 

@@ -36,7 +36,7 @@ HexViewer::HexViewer(QWidget *parent) : QWidget(parent),
     // clear_layout();
 
     QByteArray init_data;
-    init_data.fill(0x00, 4);
+    init_data.fill(0x00, 42);
     // init_data.fill(0x00, 1024);
 
     qsrand(clock());
@@ -221,7 +221,7 @@ void HexViewer::load(uint8_t *data, uint32_t size)
             tmp_ascii_label->setAlignment(Qt::AlignCenter);
 
             if (is_visible_char(data[i + line_i]))
-                tmp_ascii_label->setText(QString("%1").arg(data[i + line_i]));
+                tmp_ascii_label->setText(QChar(data[i + line_i]));
             else
                 tmp_ascii_label->setText(QString("."));
 

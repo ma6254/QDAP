@@ -172,7 +172,6 @@ DAP_HID::~DAP_HID()
 int32_t DAP_HID::connect()
 {
     int32_t err;
-    uint32_t idcode;
 
     err = open_device();
     if (err < 0)
@@ -231,14 +230,14 @@ int32_t DAP_HID::connect()
         return err;
     }
 
-    err = dap_swd_read_idcode(&idcode);
+    err = dap_swd_read_idcode(&tmp_idcode);
     if (err < 0)
     {
-        qDebug("[DAP_HID] connect dap_swd_read_idcode fail idcode:0x%08X", idcode);
+        qDebug("[DAP_HID] connect dap_swd_read_idcode fail idcode:0x%08X", tmp_idcode);
     }
     else
     {
-        qDebug("[DAP_HID] connect dap_swd_read_idcode 0x%08X", idcode);
+        qDebug("[DAP_HID] connect dap_swd_read_idcode 0x%08X", tmp_idcode);
     }
 
     err = swd_init_debug();
@@ -363,6 +362,10 @@ int32_t DAP_HID::enum_device(QList<DAP_HID *> *dev_list)
     dev_list->append(tmp_list);
 
     enum_device_id(&tmp_list, 0xC251, 0xF002);
+    dev_list->append(tmp_list);
+    
+    // H7 Tool
+    enum_device_id(&tmp_list, 0xC251, 0xF00A);
     dev_list->append(tmp_list);
 
     enum_device_id(&tmp_list, 0xC251, 0x2722);

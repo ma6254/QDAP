@@ -140,6 +140,8 @@ public:
     QString dap_hid_get_product_string();
     void dap_hid_get_info();
 
+    uint32_t idcode() { return tmp_idcode; }
+
     int32_t dap_hid_request(uint8_t *tx_data, uint8_t *rx_data);
     int32_t dap_hid_resp_status_return(uint8_t *rx_data);
 
@@ -204,6 +206,8 @@ private:
 
     QString hid_manufacturer;
     QString hid_product;
+
+    uint32_t tmp_idcode;
 };
 
 #endif // DAP_HID_H

@@ -1,5 +1,6 @@
 #include <QFileDialog>
 #include <QTimer>
+#include <QDateTime>
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 #include "enum_writer_list.h"
@@ -11,6 +12,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    current_device = 0;
 
     hex_viewer = new HexViewer(ui->centralwidget);
 
@@ -18,10 +20,14 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->action_file_open, SIGNAL(triggered()), this, SLOT(cb_action_open_firmware_file(void)));
     connect(ui->action_file_save, SIGNAL(triggered()), this, SLOT(cb_action_save_firmware_file(void)));
+
+    connect(ui->action_view_info, SIGNAL(triggered()), this, SLOT(cb_action_view_info(void)));
+
     connect(ui->action_chip_select, SIGNAL(triggered()), this, SLOT(cb_action_chip_select(void)));
     connect(ui->action_target_connect, SIGNAL(triggered()), this, SLOT(cb_action_connect(void)));
     connect(ui->action_target_read_chip, SIGNAL(triggered()), this, SLOT(cb_action_read_chip(void)));
     connect(ui->action_target_erase_chip, SIGNAL(triggered()), this, SLOT(cb_action_erase_chip(void)));
+    connect(ui->action_target_check_blank, SIGNAL(triggered()), this, SLOT(cb_action_check_blank(void)));
     connect(ui->action_target_program, SIGNAL(triggered()), this, SLOT(cb_action_write(void)));
     connect(ui->action_target_run, SIGNAL(triggered()), this, SLOT(cb_action_reset_run(void)));
     connect(ui->action_enum_device_list, SIGNAL(triggered()), this, SLOT(cb_action_enum_device_list(void)));
@@ -30,6 +36,18 @@ MainWindow::MainWindow(QWidget *parent)
     connect(timer_enum_device, SIGNAL(timeout()), this, SLOT(cb_tick_enum_device()));
     timer_enum_device->setInterval(500);
     timer_enum_device->start();
+
+    // DAP_HID::enum_device(&dap_hid_device_list);
+    // if (dap_hid_device_list.count() > 0)
+    // {
+    //     DAP_HID *tmp_dev = dap_hid_device_list.at(0);
+
+    //     QString str = QString("%1 %2")
+    //                       .arg(qPrintable(tmp_dev->dap_hid_get_manufacturer_string()))
+    //                       .arg(qPrintable(tmp_dev->dap_hid_get_product_string()));
+
+    //     ui->label_info_dev_name->setText(str);
+    // }
 
     ram_start = 0x20000000;
 
@@ -51,6 +69,18 @@ int32_t MainWindow::load_flash_algo(QString file_path)
     err = flash_algo.load(file_path);
     if (err < 0)
         return err;
+
+    ui->label_info_chip_mfrs->setText("STM(意法半导体)");
+    ui->label_info_chip_series->setText("STM32F4XX");
+    ui->label_info_chip_name->setText("STM32F401CCU6");
+    ui->label_info_core_type->setText("ARM M4");
+
+    FlashDevice info = flash_algo.get_flash_device_info();
+
+    QLocale locale = this->locale();
+    QString valueText = locale.formattedDataSize(info.szDev);
+
+    ui->label_info_chip_flash_size->setText(valueText);
 
     return 0;
 }
@@ -74,6 +104,8 @@ void MainWindow::cb_action_open_firmware_file(void)
 
     qDebug("[main] select a file %s", qPrintable(file_name));
 
+    QFileInfo fileInfo(file_name);
+
     if (file_name.toLower().endsWith(".bin"))
     {
         QFile file(file_name);
@@ -87,9 +119,16 @@ void MainWindow::cb_action_open_firmware_file(void)
         QString valueText = locale.formattedDataSize(firmware_buf.count());
 
         // hex_viewer->load();
-        hex_viewer->load(firmware_buf);
+        // hex_viewer->load(firmware_buf);
 
+        ui->label_info_file_name->setText(fileInfo.fileName());
+
+        ui->label_info_data_size->setText(valueText);
         qDebug("[main] file_load %s", qPrintable(valueText));
+
+        QDateTime current_date_time = QDateTime::currentDateTime();
+        QString current_date = current_date_time.toString("yyyy-MM-dd hh:mm::ss");
+        ui->label_latest_load_time->setText(current_date);
     }
     else if (file_name.toLower().endsWith(".hex"))
     {
@@ -130,6 +169,10 @@ void MainWindow::cb_action_save_firmware_file(void)
     }
 }
 
+void MainWindow::cb_action_view_info(void)
+{
+}
+
 void MainWindow::cb_action_enum_device_list(void)
 {
     // DAP_HID::enum_device();
@@ -144,12 +187,25 @@ void MainWindow::cb_action_enum_device_list(void)
     d->setCurrentIndex(current_device);
     emit device_changed(dap_hid_device_list);
 
-    d->exec();
+    if (d->exec() == QDialog::Rejected)
+    {
+        delete d;
+        return;
+    }
+
     current_device = d->currentIndex();
 
     delete d;
 
     qDebug("[main] enum_device_list %d", current_device);
+
+    DAP_HID *tmp_dev = dap_hid_device_list.at(current_device - 1);
+
+    QString str = QString("%1 %2")
+                      .arg(qPrintable(tmp_dev->dap_hid_get_manufacturer_string()))
+                      .arg(qPrintable(tmp_dev->dap_hid_get_product_string()));
+
+    ui->label_info_dev_name->setText(str);
 }
 
 void MainWindow::cb_tick_enum_device(void)
@@ -166,8 +222,20 @@ void MainWindow::cb_tick_enum_device(void)
 
     DAP_HID::enum_device(&dap_hid_device_list);
 
+    if (dap_hid_device_list.count() == 1)
+    {
+        DAP_HID *tmp_dev = dap_hid_device_list.at(0);
+
+        QString str = QString("%1 %2")
+                          .arg(qPrintable(tmp_dev->dap_hid_get_manufacturer_string()))
+                          .arg(qPrintable(tmp_dev->dap_hid_get_product_string()));
+
+        ui->label_info_dev_name->setText(str);
+    }
+
     if (dap_hid_device_list_compare(dap_hid_device_list_prev, dap_hid_device_list) || force_update_device_list)
     {
+
         emit device_changed(dap_hid_device_list);
     }
 
@@ -179,6 +247,7 @@ void MainWindow::cb_tick_enum_device(void)
     //     delete tmp_dev;
     // }
 
+    dap_hid_device_list_prev.clear();
     dap_hid_device_list_prev.append(dap_hid_device_list);
 
     force_update_device_list = false;
@@ -212,6 +281,8 @@ void MainWindow::cb_action_connect(void)
     if (dap_hid_device_list.count() == 0)
         return;
 
+    qDebug("[main] cb_action_connect current_device: %d", current_device);
+
     if (current_device == 0)
     {
         tmp_dev = dap_hid_device_list.at(0);
@@ -226,6 +297,8 @@ void MainWindow::cb_action_connect(void)
     {
         qDebug("[main] connect fail");
     }
+
+    ui->label_info_idcode->setText(QString("%1").arg(tmp_dev->idcode(), 8, 16, QChar('0')).toUpper());
 
     FlashDevice tmp_flash_info = flash_algo.get_flash_device_info();
     QByteArray tmp_flash_code = flash_algo.get_flash_code();
@@ -277,9 +350,17 @@ void MainWindow::cb_action_read_chip(void)
     // uint8_t read_buf[32 * 1024];
 
     firmware_buf.clear();
-    firmware_buf.fill(0x00, 32 * 1024);
+    firmware_buf.fill(0x00, flash_algo.get_flash_device_info().szDev);
 
-    qDebug("[main] read chip");
+    QLocale locale = this->locale();
+    QString valueText = locale.formattedDataSize(flash_algo.get_flash_device_info().szDev);
+
+    QDateTime current_date_time = QDateTime::currentDateTime();
+    QString current_date = current_date_time.toString("yyyy-MM-dd hh:mm::ss");
+    ui->label_latest_load_time->setText(current_date);
+
+    ui->label_info_data_size->setText(valueText);
+    qDebug("[main] read chip size: %s", qPrintable(valueText));
 
     DAP_HID *tmp_dev;
 
@@ -324,6 +405,12 @@ void MainWindow::cb_action_erase_chip(void)
     program_syscall_t sys_call_s = flash_algo.get_sys_call_s();
 
     uint32_t entry = flash_algo.get_flash_func_offset(FLASH_FUNC_EraseChip);
+    if (entry == UINT32_MAX)
+    {
+        qDebug("[main] exec_flash_func unsuport func");
+        return;
+    }
+
     err = tmp_dev->swd_flash_syscall_exec(&sys_call_s, entry, 0, 0, 0, 0);
     if (err < 0)
     {
@@ -332,6 +419,10 @@ void MainWindow::cb_action_erase_chip(void)
     }
 
     qDebug("[main] exec_flash_func EraseChip ok");
+}
+
+void MainWindow::cb_action_check_blank(void)
+{
 }
 
 void MainWindow::cb_action_write(void)
