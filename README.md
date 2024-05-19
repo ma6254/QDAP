@@ -10,6 +10,17 @@
 
 ![enum_device_list](./doc/assets/enum_device_list.png)
 
+## Build
+
+```bash
+git clone --recursive https://github.com/ma6254/QDAP.git
+```
+
+1. Download and install QT: [qt-unified-windows-x64-online.exe](https://qtproject.mirror.liquidtelecom.com/official_releases/online_installers/qt-unified-windows-x64-online.exe)
+2. 文件 -> 打开文件或项目 -> CMakeLists.txt
+3. 等待工程加载完成
+4. 点击`运行(Ctrl+R)`
+
 ## Reference
 
 - <https://github.com/libusb/hidapi>
