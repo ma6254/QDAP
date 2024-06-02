@@ -1492,7 +1492,7 @@ int32_t DAP_HID::dap_set_target_reset(uint8_t asserted)
         if (err < 0)
             return err;
 
-        qDebug("[swd_init_debug] set_target_reset SCB_AIRCR: 0x%08X", val_scb_aircr);
+        // qDebug("[swd_init_debug] set_target_reset SCB_AIRCR: 0x%08X", val_scb_aircr);
 
         err = dap_write_word(
             (uint32_t)SCB_AIRCR,

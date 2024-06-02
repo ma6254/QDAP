@@ -259,6 +259,9 @@ int32_t FlashAlgo::load(QString file_path, uint32_t ram_start)
     qDebug("      static_base: %08X", sys_call_s.static_base);
     qDebug("    stack_pointer: %08X", sys_call_s.stack_pointer);
 
+    program_buffer = sys_call_s.static_base + PrgData_section.sh_size;
+
+    qDebug("[FlashAlgo] program_buffer: %08X", program_buffer);
     // hexdump((uint8_t *)flash_code.data(), flash_code.length());
     // dump_flash_code((uint32_t *)flash_code.data(), flash_code.length() / 4);
 
@@ -487,4 +490,9 @@ uint32_t FlashAlgo::get_flash_start(void)
 program_syscall_t FlashAlgo::get_sys_call_s(void)
 {
     return sys_call_s;
+}
+
+uint32_t FlashAlgo::program_mem_buffer(void)
+{
+    return program_buffer;
 }

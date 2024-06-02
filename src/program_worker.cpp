@@ -47,29 +47,119 @@ void ProgramWorker::erase_chip(void)
     emit finished(ProgramWorker::EraseChip, true);
 }
 
-void ProgramWorker::read_chip(void)
+void ProgramWorker::read_chip(QByteArray *data)
 {
     int32_t err;
-
     FlashDevice flash_info = algo->get_flash_device_info();
     uint32_t flash_size = flash_info.szDev;
     uint32_t flash_addr = flash_info.DevAdr;
+    uint32_t page_size = flash_info.szPage;
 
-    QByteArray data;
-    data.fill(0x00, flash_size);
+    read(flash_addr, flash_size, data);
 
-    for (uint32_t i = 0; i < flash_size; i += 1024)
+    // data.fill(0x00, flash_size);
+    // for (uint32_t i = 0; i < flash_size; i += page_size)
+    // {
+    //     err = dev->dap_read_memory(flash_addr + i, (uint8_t *)(data.data()) + i, page_size);
+    //     if (err < 0)
+    //     {
+    //         qDebug("[ProgramWorker] exec_flash_func ReadChip fail");
+    //         emit finished(ProgramWorker::ReadChip, false);
+    //         return;
+    //     }
+
+    //     emit process(i, flash_size);
+    // }
+
+    emit finished(ProgramWorker::ReadChip, true);
+}
+
+void ProgramWorker::read(uint32_t addr, uint32_t size, QByteArray *data, uint32_t page_size)
+{
+    int32_t err;
+    uint32_t pr_size;
+
+    data->clear();
+    data->fill(0x00, size);
+
+    for (uint32_t i = 0; i < size; i += page_size)
     {
-        err = dev->dap_read_memory(flash_addr + i, (uint8_t *)(data.data()) + i, 1024);
+
+        if ((i + page_size) > size)
+        {
+            pr_size = size % page_size;
+        }
+        else
+        {
+            pr_size = page_size;
+        }
+
+        err = dev->dap_read_memory(addr + i, (uint8_t *)(data->data()) + i, page_size);
         if (err < 0)
         {
-            qDebug("[_ProgramWorker] exec_flash_func ReadChip fail");
+            qDebug("[ProgramWorker] Read fail");
             emit finished(ProgramWorker::ReadChip, false);
             return;
         }
 
-        emit process(i, flash_size);
+        emit process(i, size);
+    }
+}
+
+void ProgramWorker::write(uint32_t addr, QByteArray *data)
+{
+    int32_t err;
+    program_syscall_t sys_call_s = algo->get_sys_call_s();
+    FlashDevice flash_info = algo->get_flash_device_info();
+    uint32_t flash_size = flash_info.szDev;
+    uint32_t flash_addr = flash_info.DevAdr;
+    uint32_t page_size = flash_info.szPage;
+    uint32_t program_buff = algo->program_mem_buffer();
+
+    uint32_t entry = algo->get_flash_func_offset(FLASH_FUNC_ProgramPage);
+    if (entry == UINT32_MAX)
+    {
+        qDebug("[ProgramWorker] exec_flash_func unsuport func");
+        emit finished(ProgramWorker::Program, false);
+        return;
     }
 
-    emit finished(ProgramWorker::ReadChip, true);
+    uint32_t fw_size = data->length();
+    uint32_t pw_size;
+
+    for (uint32_t i = 0; i < fw_size; i += page_size)
+    {
+        if ((i + page_size) > fw_size)
+        {
+            pw_size = fw_size % page_size;
+        }
+        else
+        {
+            pw_size = page_size;
+        }
+
+        err = dev->dap_write_memory(program_buff, (uint8_t *)(data->data()) + i, pw_size);
+        if (err < 0)
+        {
+            qDebug("[ProgramWorker] exec_flash_func ReadChip fail");
+            emit finished(ProgramWorker::ReadChip, false);
+            return;
+        }
+
+        err = dev->swd_flash_syscall_exec(&sys_call_s, entry, flash_addr + i, pw_size, program_buff, 0);
+        if (err < 0)
+        {
+            qDebug("[ProgramWorker] exec_flash_func ProgramPage fail");
+            emit finished(ProgramWorker::Program, false);
+            return;
+        }
+
+        emit process(i, fw_size);
+    }
+
+    emit finished(ProgramWorker::Program, true);
+}
+
+void ProgramWorker::verify(QByteArray *data)
+{
 }

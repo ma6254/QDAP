@@ -46,6 +46,7 @@ private slots:
     void cb_action_erase_chip(void);
     void cb_action_check_blank(void);
     void cb_action_write(void);
+    void cb_action_verify(void);
     void cb_action_reset_run(void);
 
     void cb_action_enum_device_list(void);
@@ -53,13 +54,17 @@ private slots:
 
     void cb_erase_chip_finish(ProgramWorker::ChipOp op, bool ok);
     void cb_read_chip_finish(ProgramWorker::ChipOp op, bool ok);
+    void cb_write_finish(ProgramWorker::ChipOp op, bool ok);
+
     void cb_read_chip_process(uint32_t val, uint32_t max);
+    void cb_write_chip_process(uint32_t val, uint32_t max);
 
 signals:
     void device_changed(QList<DAP_HID *> dev_list);
 
     void program_worker_erase_chip(void);
-    void program_worker_read_chip(void);
+    void program_worker_read_chip(QByteArray *data);
+    void program_worker_write(uint32_t addr, QByteArray *data);
 
 private:
     Ui::MainWindow *ui;
@@ -74,6 +79,8 @@ private:
     int current_device;
 
     QByteArray firmware_buf;
+    QByteArray read_back_buf;
+
     QString firmware_file_path;
 
     bool force_update_device_list;

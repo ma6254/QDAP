@@ -50,6 +50,7 @@ public:
     uint32_t get_flash_func_offset(flash_func_t f);
     uint32_t get_flash_start(void);
     program_syscall_t get_sys_call_s(void);
+    uint32_t program_mem_buffer(void);
 
 private:
     QString section_get_name(Elf32_Shdr section);
@@ -71,6 +72,7 @@ private:
     Elf32_Sym FlashDevice_symbol;
     Elf32_Sym flash_func_symbol_list[FLASH_FUNC_COUNT];
     QByteArray flash_code;
+    uint32_t program_buffer;
 
     program_syscall_t sys_call_s;
 

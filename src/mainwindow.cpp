@@ -2,6 +2,7 @@
 #include <QTimer>
 #include <QDateTime>
 #include <QScrollBar>
+#include <QMessageBox>
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 #include "enum_writer_list.h"
@@ -34,6 +35,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->action_target_erase_chip, SIGNAL(triggered()), this, SLOT(cb_action_erase_chip(void)));
     connect(ui->action_target_check_blank, SIGNAL(triggered()), this, SLOT(cb_action_check_blank(void)));
     connect(ui->action_target_program, SIGNAL(triggered()), this, SLOT(cb_action_write(void)));
+    connect(ui->action_target_verify, SIGNAL(triggered()), this, SLOT(cb_action_verify(void)));
     connect(ui->action_target_run, SIGNAL(triggered()), this, SLOT(cb_action_reset_run(void)));
     connect(ui->action_enum_device_list, SIGNAL(triggered()), this, SLOT(cb_action_enum_device_list(void)));
 
@@ -543,7 +545,7 @@ void MainWindow::cb_action_read_chip(void)
     connect(program_worker, &ProgramWorker::process, this, &MainWindow::cb_read_chip_process);
 
     take_timer.restart();
-    emit program_worker_read_chip();
+    emit program_worker_read_chip(&read_back_buf);
 
     ui->progressBar->setValue(0);
     ui->progressBar->setMaximum(flash_size);
@@ -676,20 +678,14 @@ void MainWindow::cb_action_write(void)
 {
     int err;
     DAP_HID *tmp_dev;
-    uint8_t w_buf[16];
-    uint8_t r_buf[sizeof(w_buf)];
 
-    memset(r_buf, 0, sizeof(r_buf));
-    for (uint8_t i = 0; i < sizeof(w_buf); i++)
+    if (firmware_buf.length() == 0)
     {
-        if (i % 2)
-        {
-            w_buf[i] = 0xA0 + i;
-        }
-        else
-        {
-            w_buf[i] = 0x50 + i;
-        }
+        QMessageBox msgBox;
+        msgBox.setText("请导入一个数据文件");
+        msgBox.exec();
+
+        return;
     }
 
     if (dap_hid_device_list.count() == 0)
@@ -704,34 +700,89 @@ void MainWindow::cb_action_write(void)
         tmp_dev = dap_hid_device_list.at(current_device - 1);
     }
 
-    qDebug("[main] write");
+    err = tmp_dev->connect();
+    if (err < 0)
+    {
+        log_error("Chip connection failed");
+        qDebug("[main] connect fail");
+        return;
+    }
 
-    err = tmp_dev->dap_write_memory(0x20000000, w_buf, sizeof(w_buf));
+    log_info("chip connect ok");
+
+    QString idcode_str = QString("%1").arg(tmp_dev->idcode(), 8, 16, QChar('0')).toUpper();
+    ui->label_info_idcode->setText(idcode_str);
+    log_info(QString("IDCODE: 0x%1").arg(idcode_str));
+
+    FlashDevice tmp_flash_info = flash_algo.get_flash_device_info();
+    QByteArray tmp_flash_code = flash_algo.get_flash_code();
+
+    FlashDevice flash_info = flash_algo.get_flash_device_info();
+    uint32_t flash_size = flash_info.szDev;
+    uint32_t flash_addr = flash_info.DevAdr;
+
+    // hexdump((uint8_t *)tmp_flash_code.data(), tmp_flash_code.size());
+
+    // Download flash programming algorithm to target and initialise.
+    err = tmp_dev->dap_write_memory(ram_start,
+                                    (uint8_t *)tmp_flash_code.data(),
+                                    tmp_flash_code.length());
     if (err < 0)
     {
         qDebug("[main] dap_write_memory fail");
+        log_error("load flash algo fail");
         return;
     }
 
-    err = tmp_dev->dap_read_memory(0x20000000, r_buf, sizeof(w_buf));
-    // err = tmp_dev->dap_read_memory(0x8001000, r_buf, 16);
+    log_info("load flash algo code ok");
+
+    uint32_t entry = flash_algo.get_flash_func_offset(FLASH_FUNC_Init);
+    uint32_t arg1 = flash_algo.get_flash_start();
+    program_syscall_t sys_call_s = flash_algo.get_sys_call_s();
+    err = tmp_dev->swd_flash_syscall_exec(&sys_call_s, entry, arg1, 0, 1, 0);
     if (err < 0)
     {
-        qDebug("[main] dap_read_memory fail");
+        qDebug("[main] exec_flash_func Init fail");
+        log_error("exec FlashFunc[Init] fail");
         return;
     }
 
-    qDebug("[main] r_buf:");
-    hexdump(r_buf, sizeof(r_buf));
+    log_info("exec FlashFunc[Init] ok");
 
-    if (memcmp(w_buf, r_buf, sizeof(w_buf)) == 0)
+    program_worker = new ProgramWorker(tmp_dev, &flash_algo);
+
+    connect(this, &MainWindow::program_worker_write, program_worker, &ProgramWorker::write);
+    connect(program_worker, &ProgramWorker::finished, this, &MainWindow::cb_write_finish);
+    connect(program_worker, &ProgramWorker::process, this, &MainWindow::cb_write_chip_process);
+
+    take_timer.restart();
+    emit program_worker_write(flash_addr, &firmware_buf);
+
+    ui->progressBar->setValue(0);
+    ui->progressBar->setMaximum(firmware_buf.length());
+    ui->progressBar->setVisible(true);
+
+    log_info("Write starting...");
+}
+
+void MainWindow::cb_action_verify(void)
+{
+    int32_t err;
+    DAP_HID *tmp_dev;
+
+    if (dap_hid_device_list.count() == 0)
+        return;
+
+    if (current_device == 0)
     {
-        qDebug("[main] ramcheck ok");
+        tmp_dev = dap_hid_device_list.at(0);
     }
     else
     {
-        qDebug("[main] ramcheck fail");
+        tmp_dev = dap_hid_device_list.at(current_device - 1);
     }
+
+    log_info("Verify starting...");
 }
 
 void MainWindow::cb_action_reset_run(void)
@@ -761,7 +812,14 @@ void MainWindow::cb_action_reset_run(void)
         return;
     }
 
-    tmp_dev->run();
+    err = tmp_dev->run();
+    if (err < 0)
+    {
+        qDebug("[main] run fail");
+        return;
+    }
+
+    log_info("Chip is reset and runnig");
 }
 
 void MainWindow::cb_erase_chip_finish(ProgramWorker::ChipOp op, bool ok)
@@ -773,7 +831,7 @@ void MainWindow::cb_erase_chip_finish(ProgramWorker::ChipOp op, bool ok)
 
     if (ok)
     {
-        log_info(QString("EraseChip done, take time: %1 secoud").arg(take_sec, 0, 'f', 2));
+        log_info(QString("EraseChip done, take time: %1 second").arg(take_sec, 0, 'f', 2));
     }
     else
     {
@@ -792,7 +850,7 @@ void MainWindow::cb_read_chip_finish(ProgramWorker::ChipOp op, bool ok)
 
     if (ok)
     {
-        log_info(QString("ReadChip done, take time: %1 secoud").arg(take_sec, 0, 'f', 2));
+        log_info(QString("ReadChip done, take time: %1 second").arg(take_sec, 0, 'f', 2));
 
         // 更新固件时间
         QDateTime current_date_time = QDateTime::currentDateTime();
@@ -807,7 +865,30 @@ void MainWindow::cb_read_chip_finish(ProgramWorker::ChipOp op, bool ok)
     delete program_worker;
 }
 
+void MainWindow::cb_write_finish(ProgramWorker::ChipOp op, bool ok)
+{
+    float take_sec = (float)(take_timer.elapsed()) / 1000;
+    ui->progressBar->setHidden(true);
+
+    if (ok)
+    {
+        log_info(QString("Write done, take time: %1 second").arg(take_sec, 0, 'f', 2));
+    }
+    else
+    {
+        log_error("Write fail");
+    }
+
+    delete program_worker;
+}
+
 void MainWindow::cb_read_chip_process(uint32_t val, uint32_t max)
+{
+    ui->progressBar->setValue(val);
+    // qDebug("%d/%d", val, max);
+}
+
+void MainWindow::cb_write_chip_process(uint32_t val, uint32_t max)
 {
     ui->progressBar->setValue(val);
     // qDebug("%d/%d", val, max);
