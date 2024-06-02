@@ -281,7 +281,7 @@ int32_t DAP_HID::run()
     }
 
     // err = dap_set_target_state_hw(DAP_TARGET_RESET_RUN);
-    err = dap_set_target_state_hw(DAP_TARGET_RUN);
+    err = dap_set_target_state_hw(DAP_TARGET_RESET_RUN);
     if (err < 0)
     {
         qDebug("[DAP_HID] run dap_set_target_state_hw DAP_TARGET_RESET_RUN fail");
@@ -363,7 +363,7 @@ int32_t DAP_HID::enum_device(QList<DAP_HID *> *dev_list)
 
     enum_device_id(&tmp_list, 0xC251, 0xF002);
     dev_list->append(tmp_list);
-    
+
     // H7 Tool
     enum_device_id(&tmp_list, 0xC251, 0xF00A);
     dev_list->append(tmp_list);
@@ -373,6 +373,8 @@ int32_t DAP_HID::enum_device(QList<DAP_HID *> *dev_list)
 
     enum_device_id(&tmp_list, 0xC251, 0x2750);
     dev_list->append(tmp_list);
+
+    return dev_list->count();
 }
 
 int32_t DAP_HID::open_device()

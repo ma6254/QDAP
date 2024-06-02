@@ -69,6 +69,8 @@ else()
     src/dap_hid.h
     src/flash_algo.cpp
     src/flash_algo.h
+    src/program_worker.cpp
+    src/program_worker.h
     ${TS_FILES}
   )
 endif()

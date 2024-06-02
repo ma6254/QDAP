@@ -6,16 +6,14 @@
     ],
     "files.autoGuessEncoding": true,
     "files.exclude": {
-        "*.uvguix.*": true,
-        "out": true,
-        "Objects": true,
-        "Listings": true
+        "build": true,
     },
     "files.associations": {
         "*.H": "c",
         "Caddyfile": "caddyfile",
         "*.j2": "jinja",
         "*.ts": "xml",
+        "*.h": "cpp",
         "*.A51": "a51",
         "hidapi.h": "c",
         "hidapi_winapi.h": "c",
@@ -63,6 +61,8 @@
         "qgridlayout": "cpp",
         "sstream": "cpp",
         "forward_list": "cpp",
-        "qthread": "cpp"
+        "qthread": "cpp",
+        "qdebug": "cpp",
+        "qapplication": "cpp"
     }
 }
