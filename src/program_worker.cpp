@@ -55,7 +55,13 @@ void ProgramWorker::read_chip(QByteArray *data)
     uint32_t flash_addr = flash_info.DevAdr;
     uint32_t page_size = flash_info.szPage;
 
-    read(flash_addr, flash_size, data);
+    err = read(flash_addr, flash_size, data);
+    if (err < 0)
+    {
+        qDebug("[ProgramWorker] exec_flash_func ReadChip fail");
+        emit finished(ProgramWorker::ReadChip, false);
+        return;
+    }
 
     // data.fill(0x00, flash_size);
     // for (uint32_t i = 0; i < flash_size; i += page_size)
@@ -74,7 +80,7 @@ void ProgramWorker::read_chip(QByteArray *data)
     emit finished(ProgramWorker::ReadChip, true);
 }
 
-void ProgramWorker::read(uint32_t addr, uint32_t size, QByteArray *data, uint32_t page_size)
+int32_t ProgramWorker::read(uint32_t addr, uint32_t size, QByteArray *data, uint32_t page_size)
 {
     int32_t err;
     uint32_t pr_size;
@@ -98,12 +104,14 @@ void ProgramWorker::read(uint32_t addr, uint32_t size, QByteArray *data, uint32_
         if (err < 0)
         {
             qDebug("[ProgramWorker] Read fail");
-            emit finished(ProgramWorker::ReadChip, false);
-            return;
+            // emit finished(ProgramWorker::ReadChip, false);
+            return -1;
         }
 
         emit process(i, size);
     }
+
+    return 0;
 }
 
 void ProgramWorker::write(uint32_t addr, QByteArray *data)
@@ -160,6 +168,44 @@ void ProgramWorker::write(uint32_t addr, QByteArray *data)
     emit finished(ProgramWorker::Program, true);
 }
 
-void ProgramWorker::verify(QByteArray *data)
+void ProgramWorker::verify(uint32_t addr, QByteArray *data)
 {
+    int32_t err;
+    uint32_t pr_size;
+    uint32_t page_size = 1024;
+    QByteArray tmp_buf;
+
+    tmp_buf.fill(0x00, page_size);
+
+    for (uint32_t i = 0; i < data->length(); i += page_size)
+    {
+        if ((i + page_size) > data->length())
+        {
+            pr_size = data->length() % page_size;
+        }
+        else
+        {
+            pr_size = page_size;
+        }
+
+        err = dev->dap_read_memory(addr + i, (uint8_t *)(tmp_buf.data()), pr_size);
+        if (err < 0)
+        {
+            qDebug("[ProgramWorker] Read fail");
+            emit finished(ProgramWorker::Verify, false);
+            return;
+        }
+
+        if (memcmp(tmp_buf.data(), data->data() + i, pr_size) != 0)
+        {
+            qDebug("[ProgramWorker] Verify fail addr:%d", i);
+            emit finished(ProgramWorker::Verify, false);
+            return;
+        }
+
+        emit process(i, data->length());
+    }
+
+    qDebug("[ProgramWorker] Verify ok");
+    emit finished(ProgramWorker::Verify, true);
 }

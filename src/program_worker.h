@@ -27,6 +27,7 @@ public:
         ReadChip,
         EraseBlock,
         Program,
+        Verify,
     } ChipOp;
 
 private:
@@ -40,10 +41,10 @@ signals:
 
 public slots:
     void erase_chip(void);
-    void read(uint32_t addr, uint32_t size, QByteArray *data, uint32_t page_size = 1024);
+    int32_t read(uint32_t addr, uint32_t size, QByteArray *data, uint32_t page_size = 1024);
     void read_chip(QByteArray *data);
     void write(uint32_t addr, QByteArray *data);
-    void verify(QByteArray *data);
+    void verify(uint32_t addr, QByteArray *data);
 };
 
 #endif // PROGRAM_WORK_H

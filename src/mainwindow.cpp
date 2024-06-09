@@ -70,6 +70,8 @@ MainWindow::MainWindow(QWidget *parent)
     // label_log_ending->setText("--- 到底啦 ---");
     label_log_ending->setAlignment(Qt::AlignHCenter);
 
+    log_info("application started");
+
     // DAP_HID::enum_device(&dap_hid_device_list);
     // if (dap_hid_device_list.count() > 0)
     // {
@@ -343,6 +345,7 @@ void MainWindow::cb_tick_enum_device(void)
             log_info("All devices have been removed");
 
             ui->label_info_dev_name->setText("N/A");
+            ui->label_info_idcode->setText("N/A");
         }
         else if (dap_hid_device_list.count() == 1)
         {
@@ -770,6 +773,10 @@ void MainWindow::cb_action_verify(void)
     int32_t err;
     DAP_HID *tmp_dev;
 
+    FlashDevice flash_info = flash_algo.get_flash_device_info();
+    uint32_t flash_size = flash_info.szDev;
+    uint32_t flash_addr = flash_info.DevAdr;
+
     if (dap_hid_device_list.count() == 0)
         return;
 
@@ -781,6 +788,29 @@ void MainWindow::cb_action_verify(void)
     {
         tmp_dev = dap_hid_device_list.at(current_device - 1);
     }
+
+    err = tmp_dev->connect();
+    if (err < 0)
+    {
+        log_error("Chip connection failed");
+        qDebug("[main] connect fail");
+        return;
+    }
+
+    log_info("chip connect ok");
+
+    program_worker = new ProgramWorker(tmp_dev, &flash_algo);
+
+    connect(this, &MainWindow::program_worker_verify, program_worker, &ProgramWorker::verify);
+    connect(program_worker, &ProgramWorker::finished, this, &MainWindow::cb_verify_finish);
+    connect(program_worker, &ProgramWorker::process, this, &MainWindow::cb_verify_chip_process);
+
+    take_timer.restart();
+    emit program_worker_verify(flash_addr, &firmware_buf);
+
+    ui->progressBar->setValue(0);
+    ui->progressBar->setMaximum(firmware_buf.length());
+    ui->progressBar->setVisible(true);
 
     log_info("Verify starting...");
 }
@@ -882,6 +912,23 @@ void MainWindow::cb_write_finish(ProgramWorker::ChipOp op, bool ok)
     delete program_worker;
 }
 
+void MainWindow::cb_verify_finish(ProgramWorker::ChipOp op, bool ok)
+{
+    float take_sec = (float)(take_timer.elapsed()) / 1000;
+    ui->progressBar->setHidden(true);
+
+    if (ok)
+    {
+        log_info(QString("Verify done, take time: %1 second").arg(take_sec, 0, 'f', 2));
+    }
+    else
+    {
+        log_error("Verify fail");
+    }
+
+    delete program_worker;
+}
+
 void MainWindow::cb_read_chip_process(uint32_t val, uint32_t max)
 {
     ui->progressBar->setValue(val);
@@ -889,6 +936,12 @@ void MainWindow::cb_read_chip_process(uint32_t val, uint32_t max)
 }
 
 void MainWindow::cb_write_chip_process(uint32_t val, uint32_t max)
+{
+    ui->progressBar->setValue(val);
+    // qDebug("%d/%d", val, max);
+}
+
+void MainWindow::cb_verify_chip_process(uint32_t val, uint32_t max)
 {
     ui->progressBar->setValue(val);
     // qDebug("%d/%d", val, max);

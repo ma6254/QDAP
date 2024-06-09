@@ -247,12 +247,15 @@ int32_t DAP_HID::connect()
         return err;
     }
 
+    qDebug("[DAP_HID] connect swd_init_debug ok");
+
     err = dap_set_target_state_hw(DAP_TARGET_RESET_PROGRAM);
     if (err < 0)
     {
         qDebug("[DAP_HID] connect dap_set_target_state_hw RESET_PROGRAM fail");
         return err;
     }
+    qDebug("[DAP_HID] connect dap_set_target_state_hw RESET_PROGRAM ok");
 
     // dap_disconnect();
     // close_device();
@@ -1509,6 +1512,7 @@ int32_t DAP_HID::dap_set_target_state_hw(dap_target_reset_state_t state)
     uint32_t err;
     uint32_t val;
     int8_t ap_retries = 2;
+    uint16_t retry = 32;
 
     switch (state)
     {
@@ -1577,9 +1581,16 @@ int32_t DAP_HID::dap_set_target_state_hw(dap_target_reset_state_t state)
 
         do
         {
+            if (retry == 0)
+                return -1;
+
             err = dap_read_word(DBG_HCSR, &val);
             if (err < 0)
                 return err;
+
+            if (retry)
+                retry--;
+
         } while ((val & S_HALT) == 0);
 
         // Disable halt on reset
@@ -2010,8 +2021,9 @@ int32_t DAP_HID::swd_wait_until_halted(void)
 {
     // Wait for target to stop
     int32_t err;
-    uint32_t val, i, timeout = 1000000;
+    uint32_t val, i, timeout = 1500;
 
+    // TODO: 需要根据实际的情况设置超时值
     for (i = 0; i < timeout; i++)
     {
         err = dap_read_word(DBG_HCSR, &val);

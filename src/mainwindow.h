@@ -54,10 +54,12 @@ private slots:
 
     void cb_erase_chip_finish(ProgramWorker::ChipOp op, bool ok);
     void cb_read_chip_finish(ProgramWorker::ChipOp op, bool ok);
-    void cb_write_finish(ProgramWorker::ChipOp op, bool ok);
+    void cb_write_finish(ProgramWorker::ChipOp op, bool ok); 
+    void cb_verify_finish(ProgramWorker::ChipOp op, bool ok); 
 
     void cb_read_chip_process(uint32_t val, uint32_t max);
     void cb_write_chip_process(uint32_t val, uint32_t max);
+    void cb_verify_chip_process(uint32_t val, uint32_t max);
 
 signals:
     void device_changed(QList<DAP_HID *> dev_list);
@@ -65,6 +67,7 @@ signals:
     void program_worker_erase_chip(void);
     void program_worker_read_chip(QByteArray *data);
     void program_worker_write(uint32_t addr, QByteArray *data);
+    void program_worker_verify(uint32_t addr, QByteArray *data);
 
 private:
     Ui::MainWindow *ui;

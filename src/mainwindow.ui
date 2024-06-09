@@ -208,8 +208,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>205</width>
-          <height>599</height>
+          <width>217</width>
+          <height>577</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -851,7 +851,7 @@
    <property name="minimumSize">
     <size>
      <width>215</width>
-     <height>143</height>
+     <height>0</height>
     </size>
    </property>
    <property name="floating">
@@ -921,7 +921,7 @@
           <x>0</x>
           <y>0</y>
           <width>1077</width>
-          <height>85</height>
+          <height>342</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -1072,6 +1072,9 @@
   <action name="action_cancel">
    <property name="text">
     <string>取消</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
    </property>
   </action>
   <action name="action_load_flm">
