@@ -32,6 +32,7 @@ add_subdirectory("yaml-cpp")
 
 include_directories(
   libusb_hid_api/include
+  yaml-cpp/include
   src/DAP
   src/components
   src
@@ -79,6 +80,7 @@ target_link_libraries(
   QDAP
   PRIVATE Qt5::Widgets
   ${CMAKE_SOURCE_DIR}/libusb_hid_api/x64/hidapi.lib
+  yaml-cpp
 )
 
 qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})

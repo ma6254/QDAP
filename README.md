@@ -1,6 +1,8 @@
 # Q-DAP
 
 [DAP-Link](https://github.com/ARM-software/CMSIS-DAP) upper by [Qt](http://qt.io)
+ 
+chip device libray: <https://github.com/ma6254/qdap_chips>
 
 ## UI Preview
 

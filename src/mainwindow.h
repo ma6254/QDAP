@@ -8,6 +8,7 @@
 #include "flash_algo.h"
 #include "hex_viewer.h"
 #include "program_worker.h"
+#include "chip_selecter.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui
@@ -30,6 +31,13 @@ public:
     void log_info(QString str);
     void log_warn(QString str);
     void log_error(QString str);
+
+    void config_save(void);
+    int config_load(void);
+
+    void set_dock_chip_info();
+
+    bool detect_git();
 
 private slots:
     void cb_action_open_firmware_file(void);
@@ -54,8 +62,8 @@ private slots:
 
     void cb_erase_chip_finish(ProgramWorker::ChipOp op, bool ok);
     void cb_read_chip_finish(ProgramWorker::ChipOp op, bool ok);
-    void cb_write_finish(ProgramWorker::ChipOp op, bool ok); 
-    void cb_verify_finish(ProgramWorker::ChipOp op, bool ok); 
+    void cb_write_finish(ProgramWorker::ChipOp op, bool ok);
+    void cb_verify_finish(ProgramWorker::ChipOp op, bool ok);
 
     void cb_read_chip_process(uint32_t val, uint32_t max);
     void cb_write_chip_process(uint32_t val, uint32_t max);
@@ -73,6 +81,7 @@ private:
     Ui::MainWindow *ui;
     QTimer *timer_enum_device;
     QElapsedTimer take_timer;
+    QString firmware_file_path;
 
     QList<DAP_HID *> dap_hid_device_list_prev;
     QList<DAP_HID *> dap_hid_device_list;
@@ -84,7 +93,9 @@ private:
     QByteArray firmware_buf;
     QByteArray read_back_buf;
 
-    QString firmware_file_path;
+    QString chip_vendor_name;
+    QString chip_series_name;
+    QString chip_name;
 
     bool force_update_device_list;
 
@@ -94,6 +105,8 @@ private:
     HexViewer *hex_viewer;
 
     ProgramWorker *program_worker;
+
+    ChipSelecter *dialog_chip_selecter;
 
     bool dap_hid_device_list_compare(QList<DAP_HID *> a_list, QList<DAP_HID *> b_list);
     int32_t load_flash_algo(QString file_path);

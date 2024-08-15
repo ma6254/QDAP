@@ -61,7 +61,7 @@
      <x>0</x>
      <y>0</y>
      <width>1100</width>
-     <height>25</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu">
@@ -74,6 +74,7 @@
     <property name="title">
      <string>目标芯片</string>
     </property>
+    <addaction name="action_chips"/>
     <addaction name="action_chip_select"/>
     <addaction name="action_load_flm"/>
     <addaction name="separator"/>
@@ -105,8 +106,16 @@
     <property name="title">
      <string>文件</string>
     </property>
+    <widget class="QMenu" name="menu_6">
+     <property name="title">
+      <string>最近访问的文件</string>
+     </property>
+     <addaction name="separator"/>
+     <addaction name="action_3"/>
+    </widget>
     <addaction name="action_file_open"/>
     <addaction name="action_file_save"/>
+    <addaction name="menu_6"/>
     <addaction name="separator"/>
     <addaction name="action_file_auto_load"/>
    </widget>
@@ -143,10 +152,10 @@
     <bool>false</bool>
    </property>
    <property name="features">
-    <set>QDockWidget::DockWidgetMovable</set>
+    <set>QDockWidget::DockWidgetFeature::DockWidgetMovable</set>
    </property>
    <property name="allowedAreas">
-    <set>Qt::AllDockWidgetAreas</set>
+    <set>Qt::DockWidgetArea::AllDockWidgetAreas</set>
    </property>
    <property name="windowTitle">
     <string>信息视图</string>
@@ -195,10 +204,10 @@
         </sizepolicy>
        </property>
        <property name="verticalScrollBarPolicy">
-        <enum>Qt::ScrollBarAlwaysOn</enum>
+        <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOn</enum>
        </property>
        <property name="horizontalScrollBarPolicy">
-        <enum>Qt::ScrollBarAlwaysOff</enum>
+        <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
        </property>
        <property name="widgetResizable">
         <bool>true</bool>
@@ -208,11 +217,11 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>217</width>
-          <height>577</height>
+          <width>209</width>
+          <height>610</height>
          </rect>
         </property>
-        <layout class="QVBoxLayout" name="verticalLayout_3">
+        <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,0,1">
          <property name="leftMargin">
           <number>0</number>
          </property>
@@ -264,7 +273,7 @@
                <string>烧录器</string>
               </property>
               <property name="alignment">
-               <set>Qt::AlignCenter</set>
+               <set>Qt::AlignmentFlag::AlignCenter</set>
               </property>
               <property name="margin">
                <number>5</number>
@@ -276,10 +285,10 @@
               <item row="1" column="1">
                <widget class="QLabel" name="label_info_dev_name">
                 <property name="frameShape">
-                 <enum>QFrame::Box</enum>
+                 <enum>QFrame::Shape::Box</enum>
                 </property>
                 <property name="frameShadow">
-                 <enum>QFrame::Plain</enum>
+                 <enum>QFrame::Shadow::Plain</enum>
                 </property>
                 <property name="text">
                  <string>N/A</string>
@@ -305,17 +314,17 @@
                  <string>类型:</string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                 </property>
                </widget>
               </item>
               <item row="2" column="1">
                <widget class="QLabel" name="label_14">
                 <property name="frameShape">
-                 <enum>QFrame::Box</enum>
+                 <enum>QFrame::Shape::Box</enum>
                 </property>
                 <property name="frameShadow">
-                 <enum>QFrame::Plain</enum>
+                 <enum>QFrame::Shadow::Plain</enum>
                 </property>
                 <property name="text">
                  <string>DAPLink</string>
@@ -338,7 +347,7 @@
                  <string>名称:</string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                 </property>
                </widget>
               </item>
@@ -355,17 +364,17 @@
                  <string>接口:</string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                 </property>
                </widget>
               </item>
               <item row="0" column="1">
                <widget class="QLabel" name="label_2">
                 <property name="frameShape">
-                 <enum>QFrame::Box</enum>
+                 <enum>QFrame::Shape::Box</enum>
                 </property>
                 <property name="frameShadow">
-                 <enum>QFrame::Plain</enum>
+                 <enum>QFrame::Shadow::Plain</enum>
                 </property>
                 <property name="text">
                  <string>USB_HID</string>
@@ -422,7 +431,7 @@
                <string>目标芯片</string>
               </property>
               <property name="alignment">
-               <set>Qt::AlignCenter</set>
+               <set>Qt::AlignmentFlag::AlignCenter</set>
               </property>
               <property name="margin">
                <number>5</number>
@@ -436,24 +445,25 @@
                 <property name="font">
                  <font>
                   <family>Courier New</family>
+                  <italic>false</italic>
                   <bold>true</bold>
                  </font>
                 </property>
                 <property name="text">
-                 <string>ROM容量:</string>
+                 <string>Flash容量:</string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                 </property>
                </widget>
               </item>
               <item row="3" column="1">
                <widget class="QLabel" name="label_info_chip_flash_size">
                 <property name="frameShape">
-                 <enum>QFrame::Box</enum>
+                 <enum>QFrame::Shape::Box</enum>
                 </property>
                 <property name="frameShadow">
-                 <enum>QFrame::Plain</enum>
+                 <enum>QFrame::Shadow::Plain</enum>
                 </property>
                 <property name="text">
                  <string>N/A</string>
@@ -468,6 +478,7 @@
                 <property name="font">
                  <font>
                   <family>Courier New</family>
+                  <italic>false</italic>
                   <bold>true</bold>
                  </font>
                 </property>
@@ -475,7 +486,7 @@
                  <string>制造商:</string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                 </property>
                </widget>
               </item>
@@ -484,6 +495,7 @@
                 <property name="font">
                  <font>
                   <family>Courier New</family>
+                  <italic>false</italic>
                   <bold>true</bold>
                  </font>
                 </property>
@@ -491,7 +503,7 @@
                  <string>内核:</string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                 </property>
                </widget>
               </item>
@@ -500,6 +512,7 @@
                 <property name="font">
                  <font>
                   <family>Courier New</family>
+                  <italic>false</italic>
                   <bold>true</bold>
                  </font>
                 </property>
@@ -507,33 +520,39 @@
                  <string>系列:</string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                 </property>
                </widget>
               </item>
               <item row="1" column="1">
                <widget class="QLabel" name="label_info_chip_series">
                 <property name="frameShape">
-                 <enum>QFrame::Box</enum>
+                 <enum>QFrame::Shape::Box</enum>
                 </property>
                 <property name="frameShadow">
-                 <enum>QFrame::Plain</enum>
+                 <enum>QFrame::Shadow::Plain</enum>
                 </property>
                 <property name="text">
                  <string>N/A</string>
                 </property>
+                <property name="textFormat">
+                 <enum>Qt::TextFormat::MarkdownText</enum>
+                </property>
                 <property name="margin">
                  <number>2</number>
+                </property>
+                <property name="openExternalLinks">
+                 <bool>true</bool>
                 </property>
                </widget>
               </item>
               <item row="4" column="1">
                <widget class="QLabel" name="label_info_core_type">
                 <property name="frameShape">
-                 <enum>QFrame::Box</enum>
+                 <enum>QFrame::Shape::Box</enum>
                 </property>
                 <property name="frameShadow">
-                 <enum>QFrame::Plain</enum>
+                 <enum>QFrame::Shadow::Plain</enum>
                 </property>
                 <property name="text">
                  <string>N/A</string>
@@ -546,10 +565,10 @@
               <item row="2" column="1">
                <widget class="QLabel" name="label_info_chip_name">
                 <property name="frameShape">
-                 <enum>QFrame::Box</enum>
+                 <enum>QFrame::Shape::Box</enum>
                 </property>
                 <property name="frameShadow">
-                 <enum>QFrame::Plain</enum>
+                 <enum>QFrame::Shadow::Plain</enum>
                 </property>
                 <property name="text">
                  <string>N/A</string>
@@ -562,10 +581,10 @@
               <item row="5" column="1">
                <widget class="QLabel" name="label_info_idcode">
                 <property name="frameShape">
-                 <enum>QFrame::Box</enum>
+                 <enum>QFrame::Shape::Box</enum>
                 </property>
                 <property name="frameShadow">
-                 <enum>QFrame::Plain</enum>
+                 <enum>QFrame::Shadow::Plain</enum>
                 </property>
                 <property name="text">
                  <string>N/A</string>
@@ -576,18 +595,24 @@
                </widget>
               </item>
               <item row="0" column="1">
-               <widget class="QLabel" name="label_info_chip_mfrs">
+               <widget class="QLabel" name="label_info_chip_vendor">
                 <property name="frameShape">
-                 <enum>QFrame::Box</enum>
+                 <enum>QFrame::Shape::Box</enum>
                 </property>
                 <property name="frameShadow">
-                 <enum>QFrame::Plain</enum>
+                 <enum>QFrame::Shadow::Plain</enum>
                 </property>
                 <property name="text">
                  <string>N/A</string>
                 </property>
+                <property name="textFormat">
+                 <enum>Qt::TextFormat::MarkdownText</enum>
+                </property>
                 <property name="margin">
                  <number>2</number>
+                </property>
+                <property name="openExternalLinks">
+                 <bool>true</bool>
                 </property>
                </widget>
               </item>
@@ -596,6 +621,7 @@
                 <property name="font">
                  <font>
                   <family>Courier New</family>
+                  <italic>false</italic>
                   <bold>true</bold>
                  </font>
                 </property>
@@ -603,7 +629,7 @@
                  <string>IDCODE:</string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                 </property>
                </widget>
               </item>
@@ -612,6 +638,7 @@
                 <property name="font">
                  <font>
                   <family>Courier New</family>
+                  <italic>false</italic>
                   <bold>true</bold>
                  </font>
                 </property>
@@ -619,7 +646,7 @@
                  <string>型号:</string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                 </property>
                </widget>
               </item>
@@ -670,7 +697,7 @@
                <string>固件</string>
               </property>
               <property name="alignment">
-               <set>Qt::AlignCenter</set>
+               <set>Qt::AlignmentFlag::AlignCenter</set>
               </property>
               <property name="margin">
                <number>5</number>
@@ -682,10 +709,10 @@
               <item row="1" column="1">
                <widget class="QLabel" name="label_info_data_size">
                 <property name="frameShape">
-                 <enum>QFrame::Box</enum>
+                 <enum>QFrame::Shape::Box</enum>
                 </property>
                 <property name="frameShadow">
-                 <enum>QFrame::Plain</enum>
+                 <enum>QFrame::Shadow::Plain</enum>
                 </property>
                 <property name="text">
                  <string>N/A</string>
@@ -698,10 +725,10 @@
               <item row="2" column="1">
                <widget class="QLabel" name="label_11">
                 <property name="frameShape">
-                 <enum>QFrame::Box</enum>
+                 <enum>QFrame::Shape::Box</enum>
                 </property>
                 <property name="frameShadow">
-                 <enum>QFrame::Plain</enum>
+                 <enum>QFrame::Shadow::Plain</enum>
                 </property>
                 <property name="text">
                  <string>N/A</string>
@@ -724,7 +751,7 @@
                  <string>大小:</string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                 </property>
                </widget>
               </item>
@@ -741,7 +768,7 @@
                  <string>CRC16:</string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                 </property>
                </widget>
               </item>
@@ -758,17 +785,17 @@
                  <string>文件名:</string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                 </property>
                </widget>
               </item>
               <item row="3" column="1">
                <widget class="QLabel" name="label_latest_load_time">
                 <property name="frameShape">
-                 <enum>QFrame::Box</enum>
+                 <enum>QFrame::Shape::Box</enum>
                 </property>
                 <property name="frameShadow">
-                 <enum>QFrame::Plain</enum>
+                 <enum>QFrame::Shadow::Plain</enum>
                 </property>
                 <property name="text">
                  <string>N/A</string>
@@ -797,10 +824,10 @@
               <item row="0" column="1">
                <widget class="QLabel" name="label_info_file_name">
                 <property name="frameShape">
-                 <enum>QFrame::Box</enum>
+                 <enum>QFrame::Shape::Box</enum>
                 </property>
                 <property name="frameShadow">
-                 <enum>QFrame::Plain</enum>
+                 <enum>QFrame::Shadow::Plain</enum>
                 </property>
                 <property name="text">
                  <string>N/A</string>
@@ -824,7 +851,7 @@
          <item>
           <spacer name="verticalSpacer">
            <property name="orientation">
-            <enum>Qt::Vertical</enum>
+            <enum>Qt::Orientation::Vertical</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
@@ -851,17 +878,17 @@
    <property name="minimumSize">
     <size>
      <width>215</width>
-     <height>0</height>
+     <height>143</height>
     </size>
    </property>
    <property name="floating">
     <bool>false</bool>
    </property>
    <property name="features">
-    <set>QDockWidget::DockWidgetMovable</set>
+    <set>QDockWidget::DockWidgetFeature::DockWidgetMovable</set>
    </property>
    <property name="allowedAreas">
-    <set>Qt::AllDockWidgetAreas</set>
+    <set>Qt::DockWidgetArea::AllDockWidgetAreas</set>
    </property>
    <property name="windowTitle">
     <string>日志视图</string>
@@ -891,6 +918,9 @@
        <property name="value">
         <number>24</number>
        </property>
+       <property name="alignment">
+        <set>Qt::AlignmentFlag::AlignCenter</set>
+       </property>
       </widget>
      </item>
      <item row="0" column="0" colspan="2">
@@ -910,7 +940,7 @@
         </font>
        </property>
        <property name="verticalScrollBarPolicy">
-        <enum>Qt::ScrollBarAlwaysOn</enum>
+        <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOn</enum>
        </property>
        <property name="widgetResizable">
         <bool>true</bool>
@@ -920,8 +950,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>1077</width>
-          <height>342</height>
+          <width>1081</width>
+          <height>95</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -1080,6 +1110,16 @@
   <action name="action_load_flm">
    <property name="text">
     <string>加载FLM算法文件</string>
+   </property>
+  </action>
+  <action name="action_3">
+   <property name="text">
+    <string>清除记录</string>
+   </property>
+  </action>
+  <action name="action_chips">
+   <property name="text">
+    <string>芯片器件库</string>
    </property>
   </action>
  </widget>

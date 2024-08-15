@@ -3,13 +3,17 @@
         {
             "name": "QT",
             "includePath": [
-                "C:\\Qt\\Qt5.14.2\\5.14.2\\mingw73_64\\include\\",
+                "C:\\Qt\\Qt5.14.2\\5.14.2\\mingw73_64\\include",
                 "C:\\Qt\\Qt5.14.2\\5.14.2\\mingw73_64\\include\\*\\**",
+                "D:\\qt_online_1\\5.15.2\\mingw81_64\\include",
+                "D:\\qt_online_1\\5.15.2\\mingw81_64\\include\\*\\**",
                 "${workspaceFolder}/src",
                 "${workspaceFolder}/libusb_hid_api/include",
+                "${workspaceFolder}/yaml-cpp/include",
                 "${workspaceFolder}/src/DAP",
                 "${workspaceFolder}/src/components",
-                "${workspaceFolder}/../build-QDAP-(2)-Desktop_Qt_5_14_2_MinGW_64_bit-Debug/QDAP_autogen/include"
+                "${workspaceFolder}/build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include"
+                // "${workspaceFolder}/../build-QDAP-(2)-Desktop_Qt_5_14_2_MinGW_64_bit-Debug/QDAP_autogen/include"
             ],
             "defines": [
                 "_DEBUG",
