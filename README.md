@@ -1,5 +1,16 @@
 # Q-DAP
 
+
+
+[![License](https://img.shields.io/github/license/ma6254/qdap.svg)](https://raw.githubusercontent.com/ma6254/qdap/master/LICENSE)
+[![release_version](https://img.shields.io/github/release/ma6254/qdap.svg)](https://github.com/ma6254/qdap/releases)
+[![last-commit](https://img.shields.io/github/last-commit/ma6254/qdap.svg)](https://github.com/ma6254/qdap/commits)
+
+![qt_version](https://img.shields.io/badge/Qt-5.15.2_MinGW_64Bit-41cd52.svg)
+![qt_make](https://img.shields.io/badge/Qt-cmake-green.svg)
+
+[![QQ 群](https://img.shields.io/badge/QQ%E7%BE%A4-495477288-orange.svg)](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=DkzYlCZ9VSQEq6CqUtqGiqYBZh1V5CKK&authKey=btu30mBqaqx6GSVS3futp%2BhYitMfhtAltmp%2B84Kob9xS%2F6J5yQkd0dSeozzxbclT&noverify=0&group_code=495477288)
+
 [DAP-Link](https://github.com/ARM-software/CMSIS-DAP) upper by [Qt](http://qt.io)
  
 chip device libray: <https://github.com/ma6254/qdap_chips>
