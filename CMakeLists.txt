@@ -73,6 +73,7 @@ else()
     src/program_worker.cpp
     src/program_worker.h
     ${TS_FILES}
+    src/dialog_chips_config.h src/dialog_chips_config.cpp src/dialog_chips_config.ui
   )
 endif()
 

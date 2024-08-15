@@ -415,6 +415,16 @@ QString ChipSelecter::chip_name()
     return current_chip_info()->name;
 }
 
+QString ChipSelecter::core_homepage(QString core)
+{
+    if (chip_core_homepage_map.keys().contains(core) == false)
+    {
+        return "";
+    }
+
+    return chip_core_homepage_map[core];
+}
+
 void ChipSelecter::load_chips(QString chips_dir_path)
 {
     if (chips_dir_path.isEmpty())

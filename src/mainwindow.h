@@ -9,6 +9,7 @@
 #include "hex_viewer.h"
 #include "program_worker.h"
 #include "chip_selecter.h"
+#include "dialog_chips_config.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui
@@ -46,6 +47,7 @@ private slots:
     void cb_action_view_info(void);
     void cb_action_log_clear(void);
 
+    void cb_action_chips(void);
     void cb_action_chip_select(void);
     void cb_action_load_flm(void);
 
@@ -96,6 +98,7 @@ private:
     QString chip_vendor_name;
     QString chip_series_name;
     QString chip_name;
+    QString chips_url;
 
     bool force_update_device_list;
 
@@ -107,6 +110,7 @@ private:
     ProgramWorker *program_worker;
 
     ChipSelecter *dialog_chip_selecter;
+    DialogChipsConfig *dialog_chips_config;
 
     bool dap_hid_device_list_compare(QList<DAP_HID *> a_list, QList<DAP_HID *> b_list);
     int32_t load_flash_algo(QString file_path);

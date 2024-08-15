@@ -139,6 +139,7 @@ public:
     QString series_homepage();
     QString chip_name();
 
+    QString core_homepage(QString core);
 
     Vendor *current_vendor()
     {

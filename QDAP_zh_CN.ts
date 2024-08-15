@@ -5,41 +5,50 @@
     <name>ChipSelecter</name>
     <message>
         <location filename="src/chip_selecter.ui" line="14"/>
-        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_chip_selecter.h" line="150"/>
+        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_chip_selecter.h" line="151"/>
         <source>芯片型号选择</source>
         <oldsource>请选择想要烧录的芯片型号</oldsource>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="src/chip_selecter.ui" line="79"/>
-        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_chip_selecter.h" line="152"/>
+        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_chip_selecter.h" line="153"/>
         <source>厂商</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="src/chip_selecter.ui" line="86"/>
-        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_chip_selecter.h" line="153"/>
+        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_chip_selecter.h" line="154"/>
         <source>系列/家族</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="src/chip_selecter.ui" line="100"/>
-        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_chip_selecter.h" line="154"/>
+        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_chip_selecter.h" line="155"/>
         <source>型号</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="src/chip_selecter.ui" line="152"/>
-        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_chip_selecter.h" line="156"/>
+        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_chip_selecter.h" line="157"/>
         <source>确定</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="src/chip_selecter.ui" line="41"/>
         <location filename="src/chip_selecter.ui" line="142"/>
-        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_chip_selecter.h" line="151"/>
-        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_chip_selecter.h" line="155"/>
+        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_chip_selecter.h" line="152"/>
+        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_chip_selecter.h" line="156"/>
         <source>TextLabel</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>DialogChipsConfig</name>
+    <message>
+        <location filename="src/dialog_chips_config.ui" line="14"/>
+        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_dialog_chips_config.h" line="35"/>
+        <source>Dialog</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -408,32 +417,32 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.cpp" line="382"/>
+        <location filename="src/mainwindow.cpp" line="386"/>
         <source>请选择一个烧录文件</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.cpp" line="384"/>
+        <location filename="src/mainwindow.cpp" line="388"/>
         <source>Firmware (*.hex *.bin)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.cpp" line="426"/>
+        <location filename="src/mainwindow.cpp" line="430"/>
         <source>请选择烧录文件保存路径</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.cpp" line="428"/>
+        <location filename="src/mainwindow.cpp" line="432"/>
         <source>Binary file (*.bin);;Intel HEX file (*.hex)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.cpp" line="609"/>
+        <location filename="src/mainwindow.cpp" line="613"/>
         <source>请选择一个算法</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.cpp" line="611"/>
+        <location filename="src/mainwindow.cpp" line="615"/>
         <source>flash algo (*.flm)</source>
         <translation type="unfinished"></translation>
     </message>

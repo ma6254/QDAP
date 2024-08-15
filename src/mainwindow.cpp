@@ -30,6 +30,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->action_view_info, SIGNAL(triggered()), this, SLOT(cb_action_view_info(void)));
     connect(ui->action_log_clear, SIGNAL(triggered()), this, SLOT(cb_action_log_clear(void)));
 
+    connect(ui->action_chips, SIGNAL(triggered()), this, SLOT(cb_action_chips(void)));
     connect(ui->action_chip_select, SIGNAL(triggered()), this, SLOT(cb_action_chip_select(void)));
     connect(ui->action_load_flm, SIGNAL(triggered()), this, SLOT(cb_action_load_flm(void)));
 
@@ -143,12 +144,17 @@ MainWindow::MainWindow(QWidget *parent)
         return;
     }
 
+    dialog_chips_config = new DialogChipsConfig(this);
+    dialog_chips_config->set_chips_url(chips_url);
+
     set_dock_chip_info();
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+    delete dialog_chip_selecter;
+    delete dialog_chips_config;
 }
 
 QString MainWindow::now_time(void)
@@ -237,6 +243,10 @@ void MainWindow::config_save(void)
     node_chip_selected["chip_name"] = qUtf8Printable(chip_name);
     node["chip_selected"] = node_chip_selected;
 
+    YAML::Node node_chips_library;
+    node_chips_library["url"] = qUtf8Printable(dialog_chips_config->get_chips_url());
+    node["chips_library"] = node_chips_library;
+
     YAML::Emitter emitter;
     // emitter.SetIndent(4);
     emitter << node;
@@ -304,6 +314,15 @@ int MainWindow::config_load(void)
            qUtf8Printable(chip_series_name),
            qUtf8Printable(chip_name));
 
+    YAML::Node node_chips_library = node["chips_library"];
+    if (node_chips_library.IsMap() == false)
+        return -1;
+
+    tmp_node = node_chips_library["url"];
+    if (tmp_node.IsScalar() == false)
+        return -1;
+    chips_url = QString(tmp_node.as<std::string>().c_str());
+
     qDebug("[cfg] load ok");
     return 0;
 }
@@ -342,7 +361,28 @@ void MainWindow::set_dock_chip_info()
 
     ChipInfo chip_info = dialog_chip_selecter->chip_info();
     ui->label_info_chip_flash_size->setText(chip_info.flash_size_str);
-    ui->label_info_core_type->setText(chip_info.core);
+
+    QString tmp_core_homepage = dialog_chip_selecter->core_homepage(chip_info.core);
+
+    if (tmp_core_homepage.isEmpty() == false)
+    {
+        ui->label_info_core_type->setText(QString::asprintf("[%s](%s)",
+                                                            qUtf8Printable(chip_info.core),
+                                                            qUtf8Printable(tmp_core_homepage)));
+    }
+    else
+    {
+        ui->label_info_core_type->setText(chip_info.core);
+    }
+
+    if (firmware_file_path.isEmpty() == false)
+    {
+        ui->label_info_file_name->setText(firmware_file_path);
+    }
+    else
+    {
+        ui->label_info_file_name->setText("N/A");
+    }
 }
 
 int32_t MainWindow::load_flash_algo(QString file_path)
@@ -571,6 +611,19 @@ bool MainWindow::dap_hid_device_list_compare(QList<DAP_HID *> a_list, QList<DAP_
     // 比较内容
 
     return 0;
+}
+
+void MainWindow::cb_action_chips(void)
+{
+    dialog_chips_config->exec();
+    int result = dialog_chips_config->result();
+
+    if (result == QDialog::Rejected)
+    {
+        return;
+    }
+
+    config_save();
 }
 
 void MainWindow::cb_action_chip_select(void)
