@@ -4,12 +4,13 @@
 #include <QMainWindow>
 #include <QLabel>
 #include <QElapsedTimer>
-#include "dap_hid.h"
+#include "devices.h"
 #include "flash_algo.h"
 #include "hex_viewer.h"
 #include "program_worker.h"
 #include "chip_selecter.h"
 #include "dialog_chips_config.h"
+#include "enum_writer_list.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui
@@ -61,6 +62,8 @@ private slots:
 
     void cb_action_enum_device_list(void);
     void cb_tick_enum_device(void);
+    void cb_action_manual_refresh_enum_devices();
+    void cb_action_auto_refresh_enum_devices(bool checked);
 
     void cb_erase_chip_finish(ProgramWorker::ChipOp op, bool ok);
     void cb_read_chip_finish(ProgramWorker::ChipOp op, bool ok);
@@ -72,7 +75,7 @@ private slots:
     void cb_verify_chip_process(uint32_t val, uint32_t max);
 
 signals:
-    void device_changed(QList<DAP_HID *> dev_list);
+    void device_changed(QList<Devices *> dev_list);
 
     void program_worker_erase_chip(void);
     void program_worker_read_chip(QByteArray *data);
@@ -87,6 +90,11 @@ private:
 
     QList<DAP_HID *> dap_hid_device_list_prev;
     QList<DAP_HID *> dap_hid_device_list;
+
+    QList<CMSIS_DAP_V2 *> dap_v2_device_list_prev;
+    QList<CMSIS_DAP_V2 *> dap_v2_device_list;
+
+    QList<Devices *> device_list;
 
     QLabel *label_log_ending;
 
@@ -111,8 +119,11 @@ private:
 
     ChipSelecter *dialog_chip_selecter;
     DialogChipsConfig *dialog_chips_config;
+    enum_writer_list *dialog_enum_devices;
 
-    bool dap_hid_device_list_compare(QList<DAP_HID *> a_list, QList<DAP_HID *> b_list);
+    bool auto_refresh_enum_devices;
+
+    bool dap_hid_device_list_compare(QList<DAP_HID *> *now_list, QList<DAP_HID *> *prev_list);
     int32_t load_flash_algo(QString file_path);
 };
 #endif // MAINWINDOW_H

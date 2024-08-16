@@ -132,6 +132,10 @@
         "semaphore": "cpp",
         "span": "cpp",
         "stop_token": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "qelapsedtimer": "cpp",
+        "qvboxlayout": "cpp",
+        "qcombobox": "cpp",
+        "qgroupbox": "cpp"
     }
 }

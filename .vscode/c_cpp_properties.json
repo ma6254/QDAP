@@ -9,9 +9,12 @@
                 "D:\\qt_online_1\\5.15.2\\mingw81_64\\include\\*\\**",
                 "${workspaceFolder}/src",
                 "${workspaceFolder}/libusb_hid_api/include",
+                "${workspaceFolder}/libusb/include",
                 "${workspaceFolder}/yaml-cpp/include",
                 "${workspaceFolder}/src/DAP",
                 "${workspaceFolder}/src/components",
+                "${workspaceFolder}/src/ui_components",
+                "${workspaceFolder}/src/devices",
                 "${workspaceFolder}/build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include"
                 // "${workspaceFolder}/../build-QDAP-(2)-Desktop_Qt_5_14_2_MinGW_64_bit-Debug/QDAP_autogen/include"
             ],

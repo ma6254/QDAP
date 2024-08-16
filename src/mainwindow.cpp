@@ -5,8 +5,7 @@
 #include <QMessageBox>
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
-#include "enum_writer_list.h"
-#include "dap_hid.h"
+#include "devices.h"
 #include "utils.h"
 #include <yaml-cpp/yaml.h>
 
@@ -30,6 +29,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->action_view_info, SIGNAL(triggered()), this, SLOT(cb_action_view_info(void)));
     connect(ui->action_log_clear, SIGNAL(triggered()), this, SLOT(cb_action_log_clear(void)));
 
+    connect(ui->action_enum_device_list, SIGNAL(triggered()), this, SLOT(cb_action_enum_device_list(void)));
+    connect(ui->action_refresh_enum_devices, SIGNAL(triggered()), this, SLOT(cb_tick_enum_device(void)));
+
     connect(ui->action_chips, SIGNAL(triggered()), this, SLOT(cb_action_chips(void)));
     connect(ui->action_chip_select, SIGNAL(triggered()), this, SLOT(cb_action_chip_select(void)));
     connect(ui->action_load_flm, SIGNAL(triggered()), this, SLOT(cb_action_load_flm(void)));
@@ -41,7 +43,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->action_target_program, SIGNAL(triggered()), this, SLOT(cb_action_write(void)));
     connect(ui->action_target_verify, SIGNAL(triggered()), this, SLOT(cb_action_verify(void)));
     connect(ui->action_target_run, SIGNAL(triggered()), this, SLOT(cb_action_reset_run(void)));
-    connect(ui->action_enum_device_list, SIGNAL(triggered()), this, SLOT(cb_action_enum_device_list(void)));
 
     QVBoxLayout *log_layout = ((QVBoxLayout *)ui->scrollAreaWidgetContents->layout());
     QScrollBar *log_ver_scroll = ui->scrollArea->verticalScrollBar();
@@ -68,7 +69,7 @@ MainWindow::MainWindow(QWidget *parent)
     timer_enum_device = new QTimer();
     connect(timer_enum_device, SIGNAL(timeout()), this, SLOT(cb_tick_enum_device()));
     timer_enum_device->setInterval(500);
-    timer_enum_device->start();
+    // timer_enum_device->start();
 
     label_log_ending = new QLabel();
     // label_log_ending->setText("--- 到底啦 ---");
@@ -148,6 +149,23 @@ MainWindow::MainWindow(QWidget *parent)
     dialog_chips_config->set_chips_url(chips_url);
 
     set_dock_chip_info();
+
+    dialog_enum_devices = new enum_writer_list(this);
+    connect(this, SIGNAL(device_changed(QList<Devices *>)),
+            dialog_enum_devices, SLOT(cb_device_changed(QList<Devices *>)));
+
+    connect(dialog_enum_devices, SIGNAL(refresh_enum_devides()), this, SLOT(cb_action_manual_refresh_enum_devices()));
+
+    if (auto_refresh_enum_devices)
+    {
+        log_info("[cfg] enum devices auto refresh Enabled");
+        timer_enum_device->start();
+    }
+    ui->action_auto_refresh_enum_devices->setChecked(auto_refresh_enum_devices);
+    connect(ui->action_auto_refresh_enum_devices,
+            SIGNAL(toggled(bool)),
+            this,
+            SLOT(cb_action_auto_refresh_enum_devices(bool)));
 }
 
 MainWindow::~MainWindow()
@@ -236,16 +254,28 @@ void MainWindow::config_save(void)
     node["latest"] = now_time().toLocal8Bit().constData();
     node["firmware_file_path"] = firmware_file_path.toLocal8Bit().constData();
     node["firmware_history"] = node_fimware_history;
+    node["auto_refresh_enum_devices"] = auto_refresh_enum_devices;
 
+    // 已选中的芯片
     YAML::Node node_chip_selected;
     node_chip_selected["vendor_name"] = qUtf8Printable(chip_vendor_name);
     node_chip_selected["series_name"] = qUtf8Printable(chip_series_name);
     node_chip_selected["chip_name"] = qUtf8Printable(chip_name);
     node["chip_selected"] = node_chip_selected;
 
+    // 芯片器件库
     YAML::Node node_chips_library;
     node_chips_library["url"] = qUtf8Printable(dialog_chips_config->get_chips_url());
     node["chips_library"] = node_chips_library;
+
+    // 已选中的设备
+    YAML::Node node_devices_selected;
+    node_devices_selected["any"] = "";
+    node_devices_selected["type"] = "";
+    node_devices_selected["manufacturer"] = "";
+    node_devices_selected["product"] = "";
+    node_devices_selected["serial"] = "";
+    node["devices_selected"] = node_devices_selected;
 
     YAML::Emitter emitter;
     // emitter.SetIndent(4);
@@ -289,6 +319,12 @@ int MainWindow::config_load(void)
     firmware_file_path = QString(tmp_node.as<std::string>().c_str());
 
     qDebug("[cfg] firmware_file_path: %s", qPrintable(firmware_file_path));
+
+    // 自动刷新枚举设备
+    tmp_node = node["auto_refresh_enum_devices"];
+    if (tmp_node.IsScalar() == false)
+        return -1;
+    auto_refresh_enum_devices = tmp_node.as<bool>();
 
     YAML::Node node_chip_selected = node["chip_selected"];
     if (node_chip_selected.IsMap() == false)
@@ -518,42 +554,52 @@ void MainWindow::cb_action_enum_device_list(void)
 {
     // DAP_HID::enum_device();
 
-    enum_writer_list *d = new enum_writer_list(this);
-
-    connect(this, SIGNAL(device_changed(QList<DAP_HID *>)),
-            d, SLOT(cb_device_changed(QList<DAP_HID *>)));
-
     // force_update_device_list = true;
 
-    d->setCurrentIndex(current_device);
-    emit device_changed(dap_hid_device_list);
+    cb_tick_enum_device();
 
-    if (d->exec() == QDialog::Rejected)
+    // emit device_changed(device_list);
+    dialog_enum_devices->setCurrentIndex(current_device);
+
+    dialog_enum_devices->exec();
+
+    if (dialog_enum_devices->result() == QDialog::Rejected)
     {
-        delete d;
         return;
     }
 
-    current_device = d->currentIndex();
+    Devices *tmp_dev = dialog_enum_devices->current_device();
 
-    delete d;
+    if (tmp_dev != NULL)
+    {
+        QString tmp_str = QString::asprintf(
+            "%s %s",
+            qPrintable(tmp_dev->get_manufacturer_string()),
+            qPrintable(tmp_dev->get_product_string()));
+        ui->label_info_dev_name->setText(tmp_str);
 
-    qDebug("[main] enum_device_list %d", current_device);
+        ui->label_device_type->setText(tmp_dev->type_str());
+        return;
+    }
 
-    DAP_HID *tmp_dev = dap_hid_device_list.at(current_device - 1);
+    // current_device = dialog_enum_devices->currentIndex();
 
-    QString str = QString("%1 %2")
-                      .arg(qPrintable(tmp_dev->dap_hid_get_manufacturer_string()))
-                      .arg(qPrintable(tmp_dev->dap_hid_get_product_string()));
+    // qDebug("[main] enum_device_list %d", current_device);
 
-    ui->label_info_dev_name->setText(str);
+    // DAP_HID *tmp_dev = dap_hid_device_list.at(current_device - 1);
+
+    // QString str = QString("%1 %2")
+    //                   .arg(qPrintable(tmp_dev->dap_hid_get_manufacturer_string()))
+    //                   .arg(qPrintable(tmp_dev->dap_hid_get_product_string()));
+
+    // ui->label_info_dev_name->setText(str);
 }
 
-void MainWindow::cb_tick_enum_device(void)
+void MainWindow::cb_tick_enum_device()
 {
     // qDebug("[tick_enum_device] tick");
 
-    dap_hid_device_list.clear();
+    bool is_changed = false;
     // for (uint32_t i = 0; i < dap_hid_device_list.count(); i++)
     // {
     //     DAP_HID *tmp_dev = dap_hid_device_list.first();
@@ -561,56 +607,161 @@ void MainWindow::cb_tick_enum_device(void)
     //     delete tmp_dev;
     // }
 
+    // for (uint32_t i = 0; i < dap_hid_device_list.count(); i++)
+    // {
+    //     delete dap_hid_device_list[i];
+    // }
+    // dap_hid_device_list.clear();
+
+    dap_hid_device_list.clear();
     DAP_HID::enum_device(&dap_hid_device_list);
-
-    if (dap_hid_device_list_compare(dap_hid_device_list_prev, dap_hid_device_list) || force_update_device_list)
+    if (dap_hid_device_list_compare(&dap_hid_device_list, &dap_hid_device_list_prev))
     {
-
-        if (dap_hid_device_list.count() == 0)
-        {
-            log_info("All devices have been removed");
-
-            ui->label_info_dev_name->setText("N/A");
-            ui->label_info_idcode->setText("N/A");
-        }
-        else if (dap_hid_device_list.count() == 1)
-        {
-            DAP_HID *tmp_dev = dap_hid_device_list.at(0);
-
-            QString str = QString("%1 %2")
-                              .arg(qPrintable(tmp_dev->dap_hid_get_manufacturer_string()))
-                              .arg(qPrintable(tmp_dev->dap_hid_get_product_string()));
-
-            ui->label_info_dev_name->setText(str);
-            log_info("Detected a device: " + str);
-        }
-
-        emit device_changed(dap_hid_device_list);
+        is_changed = true;
     }
 
-    // dap_hid_device_list_prev.clear();
-    // for (uint32_t i = 0; i < dap_hid_device_list_prev.count(); i++)
+    // if (dap_hid_device_list.count() == 0)
     // {
-    //     DAP_HID *tmp_dev = dap_hid_device_list_prev.first();
-    //     dap_hid_device_list_prev.pop_front();
-    //     delete tmp_dev;
+    //     // log_info("All devices have been removed");
+
+    //     ui->label_info_dev_name->setText("N/A");
+    //     ui->label_info_idcode->setText("N/A");
+    // }
+    // else if (dap_hid_device_list.count() == 1)
+    // {
+    //     DAP_HID *tmp_dev = dap_hid_device_list.at(0);
+
+    //     QString str = QString("%1 %2")
+    //                       .arg(qPrintable(tmp_dev->dap_hid_get_manufacturer_string()))
+    //                       .arg(qPrintable(tmp_dev->dap_hid_get_product_string()));
+
+    //     ui->label_info_dev_name->setText(str);
+    //     // log_info("Detected a dap_usb_hid device: " + str);
     // }
 
-    dap_hid_device_list_prev.clear();
-    dap_hid_device_list_prev.append(dap_hid_device_list);
+    // emit device_changed(dap_hid_device_list);
+    // }
 
-    force_update_device_list = false;
+    CMSIS_DAP_V2::enum_device(&dap_v2_device_list);
+    if (CMSIS_DAP_V2::device_list_compare(dap_v2_device_list, dap_v2_device_list_prev))
+    {
+        is_changed = true;
+    }
+
+    // dap_v2_device_list.clear();
+    // CMSIS_DAP_V2::enum_device(&dap_v2_device_list);
+    // if (CMSIS_DAP_V2::device_list_compare(dap_v2_device_list_prev, dap_v2_device_list) || force_update_device_list)
+    // {
+    //     is_changed = true;
+
+    //     if (dap_v2_device_list.count() == 0)
+    //     {
+    //         log_info("[CMSIS_DAP_V2] All devices have been removed");
+
+    //         ui->label_info_dev_name->setText("N/A");
+    //         ui->label_info_idcode->setText("N/A");
+    //     }
+    //     else if (dap_v2_device_list.count() == 1)
+    //     {
+    //         CMSIS_DAP_V2 *tmp_dev = dap_v2_device_list.at(0);
+
+    //         QString str = QString("%1 %2")
+    //                           .arg(qPrintable(tmp_dev->get_manufacturer()))
+    //                           .arg(qPrintable(tmp_dev->get_product()));
+
+    //         // QString str = QString("%1 %2 %3")
+    //         //                   .arg(qPrintable(tmp_dev->dap_hid_get_manufacturer_string()))
+    //         //                   .arg(qPrintable(tmp_dev->dap_hid_get_product_string()))
+    //         //                   .arg(qPrintable(tmp_dev->dap_get_info_cmsis_dap_protocol_version()));
+
+    //         ui->label_info_dev_name->setText(str);
+    //         log_info("Detected a dap_usb_bulk device: " + str);
+    //     }
+    // }
+    // dap_v2_device_list_prev.clear();
+    // dap_v2_device_list_prev.append(dap_v2_device_list);
+
+    if (is_changed)
+    {
+
+        // while (device_list.count())
+        // {
+        //     delete device_list[0];
+        //     device_list.removeFirst();
+        // }
+        device_list.clear();
+
+        foreach (DAP_HID *tmp_hid_dev, dap_hid_device_list)
+        {
+            device_list.append((Devices *)tmp_hid_dev);
+        }
+
+        foreach (CMSIS_DAP_V2 *tmp_bulk_dev, dap_v2_device_list)
+        {
+            device_list.append((Devices *)tmp_bulk_dev);
+        }
+
+        qDebug("device_list is changed");
+
+        emit device_changed(device_list);
+    }
 }
 
-bool MainWindow::dap_hid_device_list_compare(QList<DAP_HID *> a_list, QList<DAP_HID *> b_list)
+void MainWindow::cb_action_manual_refresh_enum_devices()
 {
+    cb_tick_enum_device();
+}
+
+void MainWindow::cb_action_auto_refresh_enum_devices(bool checked)
+{
+    if (checked)
+    {
+        log_info("[cfg] enum devices auto refresh Enabled");
+        timer_enum_device->start();
+    }
+    else
+    {
+        log_info("[cfg] enum devices auto refresh Disabled");
+        timer_enum_device->stop();
+    }
+
+    auto_refresh_enum_devices = checked;
+    config_save();
+}
+
+bool MainWindow::dap_hid_device_list_compare(QList<DAP_HID *> *now_list, QList<DAP_HID *> *prev_list)
+{
+    bool result = false;
+
+    for (uint32_t prev_i = 0; prev_i < prev_list->count(); prev_i++)
+    {
+        bool is_find = false;
+
+        for (uint32_t now_i = 0; now_i < now_list->count(); now_i++)
+        {
+            if (prev_list->at(prev_i)->get_usb_path() == now_list->at(now_i)->get_usb_path())
+            {
+                is_find = true;
+                break;
+            }
+        }
+
+        if (is_find == false)
+        {
+            delete prev_list->at(prev_i);
+        }
+    }
+
     // 比较大小
-    if (a_list.count() != b_list.count())
-        return 1;
-
+    if (now_list->count() != prev_list->count())
+    {
+        result = true;
+    }
     // 比较内容
+    prev_list->clear();
+    prev_list->append(*now_list);
 
-    return 0;
+    return result;
 }
 
 void MainWindow::cb_action_chips(void)

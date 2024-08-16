@@ -1,52 +1,9 @@
-﻿#include "dap_hid.h"
+﻿#include "dap_usb_hid.h"
 #include "debug_cm.h"
 #include "utils.h"
 #include <QtGlobal>
 
 uint32_t Flash_Page_Size = 4096;
-const char *dap_state_to_string(uint8_t state)
-{
-    if (state == DAP_OK)
-        return "DAP_OK";
-    else if (state == DAP_ERROR)
-        return "DAP_ERROR";
-    else
-        return "???";
-}
-
-QString parse_dap_hid_info_resp(uint16_t data)
-{
-    QStringList impl_list;
-
-    if (data & 0x01)
-        impl_list.append(QString("SWD"));
-
-    if (data & 0x02)
-        impl_list.append(QString("JTAG"));
-
-    if (data & 0x04)
-        impl_list.append(QString("SWO_UART"));
-
-    if (data & 0x08)
-        impl_list.append(QString("SWO_Manchester"));
-
-    if (data & 0x10)
-        impl_list.append(QString("Atomic_Commands"));
-
-    if (data & 0x20)
-        impl_list.append(QString("Test Domain Timer"));
-
-    if (data & 0x40)
-        impl_list.append(QString("SWO Streaming_Trace"));
-
-    if (data & 0x80)
-        impl_list.append(QString("UART_Communication_Port"));
-
-    if (data & 0x0100)
-        impl_list.append(QString("USB_COM_Port"));
-
-    return impl_list.join(" ");
-}
 
 DAP_HID::DAP_HID(QString usb_path)
 {
@@ -58,18 +15,56 @@ DAP_HID::DAP_HID(QString usb_path)
     if (err < 0)
     {
         qDebug("[enum_device] open fail");
+        err_code = -1;
+        close_device();
         return;
     }
 
     // qDebug("[DAP_HID] init");
 
-    dap_hid_get_info();
+    // dap_hid_get_info();
     // close_device();
+
+    err = dap_hid_get_info();
+    if (err < 0)
+    {
+        qDebug("[enum_device] dap_hid_get_info fail");
+        err_code = -1;
+        close_device();
+        return;
+    }
 
     // qDebug("    vendor_name: %s", qPrintable(dap_get_info_vendor_name()));
     // qDebug("    product_name: %s", qPrintable(dap_get_info_product_name()));
     // qDebug("    serial_number: %s", qPrintable(dap_get_info_serial_number()));
     // qDebug("    protocol_version: %s", qPrintable(dap_get_info_cmsis_dap_protocol_version()));
+
+    // qDebug("[enum_device] protocol_version %s", qPrintable(tmp_str));
+
+    hid_version = dap_get_info_cmsis_dap_protocol_version();
+    if (hid_version.isEmpty())
+    {
+        // qDebug("[enum_device] dap_hid_get_info fail");
+        err_code = -1;
+        close_device();
+        return;
+    }
+
+    close_device();
+    // if (hid_serial.isEmpty())
+    // {
+    //     hid_serial = dap_get_info_serial_number();
+    // }
+
+    // tmp_str = dap_get_info_product_name();
+    // qDebug("[enum_device] product_name %s", qPrintable(tmp_str));
+
+    // if (tmp_str.isEmpty())
+    // {
+    //     // qDebug("[enum_device] dap_hid_get_info fail");
+    //     err_code = -1;
+    //     return;
+    // }
 
     // err = dap_get_info_caps();
     // if (err < 0)
@@ -163,10 +158,13 @@ DAP_HID::DAP_HID(QString usb_path)
 
 DAP_HID::~DAP_HID()
 {
-    dap_disconnect();
-    close_device();
 
-    qDebug("[enum_device] destroy");
+    if (dev)
+    {
+        qDebug("[DAP_HID] destroy");
+        dap_disconnect();
+        close_device();
+    }
 }
 
 int32_t DAP_HID::connect()
@@ -259,7 +257,6 @@ int32_t DAP_HID::connect()
 
     // dap_disconnect();
     // close_device();
-
     return 0;
 }
 
@@ -331,6 +328,17 @@ int32_t DAP_HID::enum_device_id(QList<DAP_HID *> *dev_list, uint16_t vid, uint16
 
         DAP_HID *tmp_dev = new DAP_HID(device_info->path);
 
+        if (tmp_dev->error() < 0)
+        {
+            delete tmp_dev;
+
+            if (device_info->next == NULL)
+                break;
+
+            device_info = device_info->next;
+            continue;
+        }
+
         // qDebug("[enum_device] #%d. ser:%d %ls %ls", i,
         //        device_info->interface_number,
         //        device_info->manufacturer_string,
@@ -371,11 +379,11 @@ int32_t DAP_HID::enum_device(QList<DAP_HID *> *dev_list)
     enum_device_id(&tmp_list, 0xC251, 0xF00A);
     dev_list->append(tmp_list);
 
-    enum_device_id(&tmp_list, 0xC251, 0x2722);
-    dev_list->append(tmp_list);
+    // enum_device_id(&tmp_list, 0xC251, 0x2722);
+    // dev_list->append(tmp_list);
 
-    enum_device_id(&tmp_list, 0xC251, 0x2750);
-    dev_list->append(tmp_list);
+    // enum_device_id(&tmp_list, 0xC251, 0x2750);
+    // dev_list->append(tmp_list);
 
     return dev_list->count();
 }
@@ -388,7 +396,7 @@ int32_t DAP_HID::open_device()
     if (hid_dev == NULL)
     {
         QString err_info = QString::fromWCharArray(hid_error(NULL));
-        qDebug("[DAP_HID] hid open fail: %s", qPrintable(err_info));
+        qDebug("[DAP_HID] hid open fail: %s", qUtf8Printable(err_info));
         return -1;
     }
     this->dev = hid_dev;
@@ -422,7 +430,7 @@ int32_t DAP_HID::dap_hid_request(uint8_t *tx_data, uint8_t *rx_data)
     if (err < 0)
     {
         QString err_info = QString::fromWCharArray(hid_error(dev));
-        qDebug("[DAP_HID] dap_hid_requst fail: %s", qPrintable(err_info));
+        qDebug("[DAP_HID] dap_hid_request fail: %s", qUtf8Printable(err_info));
         return err;
     }
 
@@ -430,7 +438,7 @@ int32_t DAP_HID::dap_hid_request(uint8_t *tx_data, uint8_t *rx_data)
     if (err < 0)
     {
         QString err_info = QString::fromWCharArray(hid_error(dev));
-        qDebug("[DAP_HID] dap_hid_request fail: %s", qPrintable(err_info));
+        qDebug("[DAP_HID] dap_hid_request fail: %s", qUtf8Printable(err_info));
         return err;
     }
 
@@ -467,26 +475,38 @@ QString DAP_HID::dap_hid_get_product_string()
     return hid_product;
 }
 
-void DAP_HID::dap_hid_get_info()
+int32_t DAP_HID::dap_hid_get_info()
 {
+    wchar_t tmp_serial_wchar_buf[1024];
+    int err;
+
     if (dev == NULL)
     {
-        return;
+        return -1;
     }
 
     hid_device_info *info = hid_get_device_info(dev);
     if (info == NULL)
     {
         qDebug("[dap_hid] hid_get_device_info fail");
-        return;
+        return -1;
     }
 
     hid_manufacturer = QString::fromWCharArray(info->manufacturer_string);
     hid_product = QString::fromWCharArray(info->product_string);
+    // hid_serial = QString::fromWCharArray(info->serial_number);
+
+    err = hid_get_serial_number_string(dev, tmp_serial_wchar_buf, 33);
+    if (err == 0)
+    {
+        hid_serial = QString::fromWCharArray(tmp_serial_wchar_buf, 33);
+    }
 
     // qDebug("[dap_hid] hid_get_device_info ok");
     // qDebug("[dap_hid] manufacturer_string: %s", qPrintable(manufacturer));
     // qDebug("[dap_hid] product_string: %s", qPrintable(product));
+
+    return 0;
 }
 
 /*******************************************************************************
@@ -501,9 +521,10 @@ QString DAP_HID::dap_get_info_vendor_name()
     uint8_t rx_buf[64] = {0};
     int32_t err;
 
+    // qDebug("[dap_hid] dap_get_info_vendor_name");
+
     tx_buf[0] = 0x00;
     tx_buf[1] = 0x01;
-
     err = dap_hid_request(tx_buf, rx_buf);
     if (err < 0)
     {
@@ -535,9 +556,10 @@ QString DAP_HID::dap_get_info_product_name()
     uint8_t rx_buf[64] = {0};
     int32_t err;
 
+    // qDebug("[dap_hid] dap_get_info_product_name");
+
     tx_buf[0] = 0x00;
     tx_buf[1] = 0x02;
-
     err = dap_hid_request(tx_buf, rx_buf);
     if (err < 0)
     {
@@ -568,9 +590,10 @@ QString DAP_HID::dap_get_info_serial_number()
     uint8_t rx_buf[64] = {0};
     int32_t err;
 
+    // qDebug("[dap_hid] dap_get_info_serial_number");
+
     tx_buf[0] = 0x00;
     tx_buf[1] = 0x03;
-
     err = dap_hid_request(tx_buf, rx_buf);
     if (err < 0)
     {
@@ -601,9 +624,10 @@ QString DAP_HID::dap_get_info_cmsis_dap_protocol_version()
     uint8_t rx_buf[64] = {0};
     int32_t err;
 
+    // qDebug("[dap_hid] dap_get_info_cmsis_dap_protocol_version");
+
     tx_buf[0] = 0x00;
     tx_buf[1] = 0x04;
-
     err = dap_hid_request(tx_buf, rx_buf);
     if (err < 0)
         return "";
@@ -632,9 +656,10 @@ int32_t DAP_HID::dap_get_info_caps()
     uint8_t rx_buf[64] = {0};
     int32_t err;
 
+    qDebug("[dap_hid] dap_get_info_caps");
+
     tx_buf[0] = 0x00;
     tx_buf[1] = 0xF0;
-
     err = dap_hid_request(tx_buf, rx_buf);
     if (err < 0)
         return err;
@@ -663,9 +688,10 @@ int32_t DAP_HID::dap_get_info_freq()
     uint8_t rx_buf[64] = {0};
     int32_t err;
 
+    // qDebug("[dap_hid] dap_get_info_freq");
+
     tx_buf[0] = 0x00;
     tx_buf[1] = 0xF1;
-
     err = dap_hid_request(tx_buf, rx_buf);
     if (err < 0)
         return err;
@@ -693,9 +719,10 @@ int32_t DAP_HID::dap_connect(uint8_t port)
     uint8_t rx_port;
     int32_t err;
 
+    // qDebug("[dap_hid] dap_connect");
+
     tx_buf[0] = DAP_CMD_CONNECT;
     tx_buf[1] = port;
-
     err = dap_hid_request(tx_buf, rx_buf);
     if (err < 0)
     {
@@ -725,8 +752,9 @@ int32_t DAP_HID::dap_disconnect()
     uint8_t rx_buf[64] = {0};
     int32_t err;
 
-    tx_buf[0] = DAP_CMD_DISCONNECT;
+    // qDebug("[dap_hid] dap_disconnect");
 
+    tx_buf[0] = DAP_CMD_DISCONNECT;
     err = dap_hid_request(tx_buf, rx_buf);
     if (err < 0)
         return err;
@@ -748,9 +776,10 @@ int32_t DAP_HID::dap_reset_target()
     uint8_t rx_buf[64] = {0};
     int32_t err;
 
+    // qDebug("[dap_hid] dap_reset_target");
+
     // 报告编号
     tx_buf[0] = DAP_CMD_RESET_TARGET;
-
     err = dap_hid_request(tx_buf, rx_buf);
     if (err < 0)
         return err;
@@ -782,6 +811,8 @@ int32_t DAP_HID::dap_swj_sequence(uint8_t bit_count, uint8_t *data)
     uint8_t rx_buf[64] = {0};
     int32_t err;
     uint8_t count_byte;
+
+    // qDebug("[dap_hid] dap_swj_sequence");
 
     tx_buf[0] = 0x12;
     tx_buf[1] = bit_count; // Sequence Count
@@ -815,10 +846,11 @@ int32_t DAP_HID::dap_swd_config(uint8_t cfg)
     uint8_t rx_buf[64] = {0};
     int32_t err;
 
+    // qDebug("[dap_hid] dap_swd_config");
+
     tx_buf[0] = 0x00; // 报告编号
     tx_buf[1] = 0x13;
     tx_buf[2] = cfg; // Configuration
-
     err = hid_write(dev, tx_buf, 3);
     if (err < 0)
     {
@@ -853,6 +885,8 @@ int32_t DAP_HID::dap_swd_sequence_write(uint8_t count, uint8_t *tx_data)
     uint8_t rx_buf[64] = {0};
     int32_t err;
     uint8_t count_byte;
+
+    // qDebug("[dap_hid] dap_swd_sequence_write");
 
     tx_buf[0] = 0x00; // 报告编号
     tx_buf[1] = 0x1D;
@@ -904,6 +938,8 @@ int32_t DAP_HID::dap_transfer_config(uint8_t idle_cyless, uint16_t wait_retry, u
     uint8_t rx_buf[64] = {0};
     int32_t err;
 
+    // qDebug("[dap_hid] dap_transfer_config");
+
     tx_buf[0] = 0x00; // 报告编号
     tx_buf[1] = 0x04;
     tx_buf[2] = idle_cyless;
@@ -951,6 +987,8 @@ int32_t DAP_HID::dap_swd_transfer(uint8_t req, uint32_t tx_data, uint8_t *resp, 
     uint8_t tx_buf[64] = {0};
     uint8_t rx_buf[64] = {0};
     int32_t err;
+
+    // qDebug("[dap_hid] dap_swd_transfer");
 
     tx_buf[0] = 0x05;                // cmd
     tx_buf[1] = 0;                   // DAP_Index

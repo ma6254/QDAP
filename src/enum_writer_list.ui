@@ -13,126 +13,61 @@
   <property name="windowTitle">
    <string>请选择一个烧录器</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <item>
-    <widget class="QScrollArea" name="scrollArea">
-     <property name="verticalScrollBarPolicy">
-      <enum>Qt::ScrollBarAlwaysOn</enum>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="1" column="1">
+    <widget class="QPushButton" name="btn_ok">
+     <property name="text">
+      <string>确定(Enter)</string>
      </property>
-     <property name="horizontalScrollBarPolicy">
-      <enum>Qt::ScrollBarAlwaysOff</enum>
+     <property name="shortcut">
+      <string>Return</string>
      </property>
-     <property name="widgetResizable">
-      <bool>true</bool>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QPushButton" name="btn_refresh_enum_devices">
+     <property name="text">
+      <string>刷新枚举(F5)</string>
      </property>
-     <widget class="QWidget" name="scrollAreaWidgetContents">
+     <property name="shortcut">
+      <string>F5</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0" colspan="2">
+    <widget class="QToolBox" name="collapse">
+     <property name="currentIndex">
+      <number>1</number>
+     </property>
+     <property name="tabSpacing">
+      <number>5</number>
+     </property>
+     <widget class="QWidget" name="page">
       <property name="geometry">
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>359</width>
-        <height>446</height>
+        <width>382</width>
+        <height>397</height>
        </rect>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
-        <widget class="QPushButton" name="btn_any">
-         <property name="text">
-          <string>Any all</string>
-         </property>
-         <property name="checkable">
-          <bool>false</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="gbox_cmsis_dap">
-         <property name="title">
-          <string>CMSIS-DAP</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_3">
-          <item>
-           <widget class="QComboBox" name="comboBox_daplink">
-            <item>
-             <property name="text">
-              <string>Any DAPLink</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="gbox_jlink">
-         <property name="title">
-          <string>Segger_JLink</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_4">
-          <item>
-           <widget class="QPushButton" name="btn_any_jlink">
-            <property name="text">
-             <string>Any JLink</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="gbox_ch347">
-         <property name="title">
-          <string>WCH_CH347</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_5">
-          <item>
-           <widget class="QPushButton" name="btn_any_ch347">
-            <property name="text">
-             <string>Any CH347</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="gbox_ft2232">
-         <property name="title">
-          <string>FTDI_FT2232</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_6">
-          <item>
-           <widget class="QPushButton" name="btn_any_ft2232">
-            <property name="text">
-             <string>Any FT2232</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
+      <attribute name="label">
+       <string>Page 1</string>
+      </attribute>
      </widget>
-    </widget>
-   </item>
-   <item>
-    <widget class="QPushButton" name="btn_ok">
-     <property name="text">
-      <string>选择</string>
-     </property>
+     <widget class="QWidget" name="page_2">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>382</width>
+        <height>397</height>
+       </rect>
+      </property>
+      <attribute name="label">
+       <string>Page 2</string>
+      </attribute>
+     </widget>
     </widget>
    </item>
   </layout>

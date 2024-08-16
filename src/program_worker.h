@@ -4,7 +4,7 @@
 #include <QList>
 #include <QThread>
 #include <QDebug>
-#include "dap_hid.h"
+#include "devices.h"
 #include "flash_algo.h"
 #include "utils.h"
 

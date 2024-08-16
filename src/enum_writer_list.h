@@ -1,8 +1,14 @@
 #ifndef ENUM_WRITER_LIST_H
 #define ENUM_WRITER_LIST_H
 
+#include <QWidget>
 #include <QDialog>
-#include "dap_hid.h"
+#include <QVBoxLayout>
+#include <QComboBox>
+#include <QGroupBox>
+#include "devices.h"
+#include "enum_writer_list.h"
+#include "enum_dap.h"
 
 namespace Ui
 {
@@ -21,14 +27,35 @@ public:
     int currentIndex(void);
     void setCurrentIndex(int n);
 
+    Devices *current_device();
+
+    void set_collapse_icon(uint32_t index);
+
+signals:
+    void refresh_enum_devides();
+
 public slots:
-    void cb_device_changed(QList<DAP_HID *> dev_list);
+    void cb_device_changed(QList<Devices *> dev_list);
+    void cb_collapse_currentChanged(int index);
     void cb_btn_ok(void);
+    void cb_refresh_enum_devices();
 
 private:
     Ui::enum_writer_list *ui;
 
-    int current_device;
+    int current_device_index;
+    Devices *tmp_current_device;
+
+    // QWidget *widget_dap;
+    // QVBoxLayout *vbox_dap;
+    // QComboBox *dd_dap;
+
+    EnumDAP *enum_dap;
+
+    QIcon icon_arrow_right;
+    QIcon icon_arrow_down;
+
+    QStringList collapse_title_bak_list;
 };
 
 #endif // ENUM_WRITER_LIST_H

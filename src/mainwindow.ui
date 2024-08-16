@@ -69,6 +69,8 @@
      <string>烧录器</string>
     </property>
     <addaction name="action_enum_device_list"/>
+    <addaction name="action_refresh_enum_devices"/>
+    <addaction name="action_auto_refresh_enum_devices"/>
    </widget>
    <widget class="QMenu" name="menu_2">
     <property name="title">
@@ -267,6 +269,7 @@
                <string notr="true">QLabel{
 	background-color: #323232;
 	color: white;
+	border-radius: 5px;
 }</string>
               </property>
               <property name="text">
@@ -375,7 +378,7 @@
                </widget>
               </item>
               <item row="0" column="1">
-               <widget class="QLabel" name="label_2">
+               <widget class="QLabel" name="label_device_type">
                 <property name="frameShape">
                  <enum>QFrame::Shape::Box</enum>
                 </property>
@@ -434,6 +437,7 @@
                <string notr="true">QLabel{
 	background-color: #323232;
 	color: white;
+	border-radius: 5px;
 }</string>
               </property>
               <property name="text">
@@ -724,6 +728,7 @@
                <string notr="true">QLabel{
 	background-color: #323232;
 	color: white;
+	border-radius: 5px;
 }</string>
               </property>
               <property name="text">
@@ -1165,6 +1170,22 @@
   <action name="action_chips">
    <property name="text">
     <string>芯片器件库</string>
+   </property>
+  </action>
+  <action name="action_refresh_enum_devices">
+   <property name="text">
+    <string>刷新枚举</string>
+   </property>
+   <property name="shortcut">
+    <string>F5</string>
+   </property>
+  </action>
+  <action name="action_auto_refresh_enum_devices">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>自动刷新枚举</string>
    </property>
   </action>
  </widget>

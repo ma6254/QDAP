@@ -32,9 +32,12 @@ add_subdirectory("yaml-cpp")
 
 include_directories(
   libusb_hid_api/include
+  libusb/include
   yaml-cpp/include
   src/DAP
   src/components
+  src/ui_components
+  src/devices
   src
 )
 
@@ -50,6 +53,7 @@ else()
   add_executable(QDAP
     libusb_hid_api/include/hidapi.h
     libusb_hid_api/include/hidapi_winapi.h
+    libusb/include/libusb.h
     src/DAP/debug_cm.h
     src/main.cpp
     src/mainwindow.cpp
@@ -66,14 +70,17 @@ else()
     src/components/hex_viewer.cpp
     src/components/hex_viewer.h
     src/components/hex_viewer.ui
-    src/dap_hid.cpp
-    src/dap_hid.h
     src/flash_algo.cpp
     src/flash_algo.h
     src/program_worker.cpp
     src/program_worker.h
-    ${TS_FILES}
     src/dialog_chips_config.h src/dialog_chips_config.cpp src/dialog_chips_config.ui
+    ${TS_FILES}
+    src/devices/devices.cpp src/devices/devices.h
+    src/devices/dap.cpp src/devices/dap.h
+    src/devices/dap_usb_hid.cpp src/devices/dap_usb_hid.h
+    src/devices/dap_usb_bulk.cpp src/devices/dap_usb_bulk.h
+    src/ui_components/enum_dap.h src/ui_components/enum_dap.cpp src/ui_components/enum_dap.ui
   )
 endif()
 
@@ -81,6 +88,7 @@ target_link_libraries(
   QDAP
   PRIVATE Qt5::Widgets
   ${CMAKE_SOURCE_DIR}/libusb_hid_api/x64/hidapi.lib
+  ${CMAKE_SOURCE_DIR}/libusb/MinGW64/static/libusb-1.0.a
   yaml-cpp
 )
 
