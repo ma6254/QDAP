@@ -231,7 +231,7 @@ int32_t CMSIS_DAP_V2::enum_device(QList<CMSIS_DAP_V2 *> *dev_list)
 
                     interface_number = intf_desc->bInterfaceNumber;
 
-                    qDebug("[CMSIS_DAP_V2] found interface %d string '%s'", intf_desc->bInterfaceNumber, interface_str);
+                    // qDebug("[CMSIS_DAP_V2] found interface %d string '%s'", intf_desc->bInterfaceNumber, interface_str);
                 }
             }
         }
@@ -262,15 +262,18 @@ int32_t CMSIS_DAP_V2::enum_device(QList<CMSIS_DAP_V2 *> *dev_list)
     return dev_list->count();
 }
 
-bool CMSIS_DAP_V2::device_list_compare(QList<CMSIS_DAP_V2 *> a_list, QList<CMSIS_DAP_V2 *> b_list)
+bool CMSIS_DAP_V2::device_list_compare(QList<CMSIS_DAP_V2 *> *now_list, QList<CMSIS_DAP_V2 *> *prev_list)
 {
+    bool result = false;
+
     // 比较大小
-    if (a_list.count() != b_list.count())
-        return 1;
+    if (now_list->count() != prev_list->count())
+        result = true;
 
     // 比较内容
-
-    return 0;
+    prev_list->clear();
+    prev_list->append(*now_list);
+    return result;
 }
 
 int32_t CMSIS_DAP_V2::open_device()

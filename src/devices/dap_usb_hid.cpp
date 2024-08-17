@@ -362,22 +362,24 @@ int32_t DAP_HID::enum_device_id(QList<DAP_HID *> *dev_list, uint16_t vid, uint16
 
 int32_t DAP_HID::enum_device(QList<DAP_HID *> *dev_list)
 {
-    dev_list->clear();
-
     QList<DAP_HID *> tmp_list;
 
-    enum_device_id(&tmp_list);
-    dev_list->append(tmp_list);
+    if (dev_list == NULL)
+        return -1;
+    dev_list->clear();
 
-    enum_device_id(&tmp_list, 0xC251, 0xF001);
-    dev_list->append(tmp_list);
+    if (enum_device_id(&tmp_list))
+        dev_list->append(tmp_list);
 
-    enum_device_id(&tmp_list, 0xC251, 0xF002);
-    dev_list->append(tmp_list);
+    if (enum_device_id(&tmp_list, 0xC251, 0xF001))
+        dev_list->append(tmp_list);
+
+    if (enum_device_id(&tmp_list, 0xC251, 0xF002))
+        dev_list->append(tmp_list);
 
     // H7 Tool
-    enum_device_id(&tmp_list, 0xC251, 0xF00A);
-    dev_list->append(tmp_list);
+    if (enum_device_id(&tmp_list, 0xC251, 0xF00A))
+        dev_list->append(tmp_list);
 
     // enum_device_id(&tmp_list, 0xC251, 0x2722);
     // dev_list->append(tmp_list);

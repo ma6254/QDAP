@@ -617,7 +617,6 @@ void MainWindow::cb_tick_enum_device()
     // }
     // dap_hid_device_list.clear();
 
-    dap_hid_device_list.clear();
     DAP_HID::enum_device(&dap_hid_device_list);
     if (dap_hid_device_list_compare(&dap_hid_device_list, &dap_hid_device_list_prev))
     {
@@ -647,7 +646,7 @@ void MainWindow::cb_tick_enum_device()
     // }
 
     CMSIS_DAP_V2::enum_device(&dap_v2_device_list);
-    if (CMSIS_DAP_V2::device_list_compare(dap_v2_device_list, dap_v2_device_list_prev))
+    if (CMSIS_DAP_V2::device_list_compare(&dap_v2_device_list, &dap_v2_device_list_prev))
     {
         is_changed = true;
     }
@@ -705,7 +704,8 @@ void MainWindow::cb_tick_enum_device()
             device_list.append((Devices *)tmp_bulk_dev);
         }
 
-        qDebug("device_list is changed");
+        // qDebug("device_list is changed len:%d", device_list.count());
+        log_info(QString::asprintf("device_list is changed len:%d", device_list.count()));
 
         emit device_changed(device_list);
     }

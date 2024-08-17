@@ -17,7 +17,7 @@ public:
     ~CMSIS_DAP_V2();
 
     static int32_t enum_device(QList<CMSIS_DAP_V2 *> *dev_list);
-    static bool device_list_compare(QList<CMSIS_DAP_V2 *> a_list, QList<CMSIS_DAP_V2 *> b_list);
+    static bool device_list_compare(QList<CMSIS_DAP_V2 *> *now_list, QList<CMSIS_DAP_V2 *> *prev_list);
 
     int32_t open_device();
     void close_device();

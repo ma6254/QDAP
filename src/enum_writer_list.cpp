@@ -76,22 +76,22 @@ void enum_writer_list::cb_device_changed(QList<Devices *> dev_list)
         {
         case Devices::DAP_USB_HID:
         {
-            qDebug("    %d [%s] [%s] [%s]",
-                   i,
-                   qPrintable(tmp_dev->type_str()),
-                   qPrintable(tmp_dev->get_manufacturer_string()),
-                   qPrintable(tmp_dev->get_product_string()));
+            // qDebug("    %d [%s] [%s] [%s]",
+            //        i,
+            //        qPrintable(tmp_dev->type_str()),
+            //        qPrintable(tmp_dev->get_manufacturer_string()),
+            //        qPrintable(tmp_dev->get_product_string()));
 
             enum_dap->dd_dev_append((CMSIS_DAP_Base *)tmp_dev);
         }
         break;
         case Devices::DAP_USB_Bulk:
         {
-            qDebug("    %d [%s] [%s] [%s]",
-                   i,
-                   qPrintable(tmp_dev->type_str()),
-                   qPrintable(tmp_dev->get_manufacturer_string()),
-                   qPrintable(tmp_dev->get_product_string()));
+            // qDebug("    %d [%s] [%s] [%s]",
+            //        i,
+            //        qPrintable(tmp_dev->type_str()),
+            //        qPrintable(tmp_dev->get_manufacturer_string()),
+            //        qPrintable(tmp_dev->get_product_string()));
 
             enum_dap->dd_dev_append((CMSIS_DAP_Base *)tmp_dev);
         }
