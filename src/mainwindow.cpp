@@ -166,6 +166,8 @@ MainWindow::MainWindow(QWidget *parent)
             SIGNAL(toggled(bool)),
             this,
             SLOT(cb_action_auto_refresh_enum_devices(bool)));
+
+    cb_tick_enum_device();
 }
 
 MainWindow::~MainWindow()

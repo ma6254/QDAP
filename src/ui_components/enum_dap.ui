@@ -48,7 +48,7 @@
       </item>
       <item>
        <widget class="QWidget" name="widget" native="true">
-        <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0" columnstretch="0,1">
+        <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0" columnstretch="0,0,0,0">
          <property name="leftMargin">
           <number>10</number>
          </property>
@@ -64,7 +64,7 @@
          <property name="spacing">
           <number>10</number>
          </property>
-         <item row="2" column="1">
+         <item row="1" column="1">
           <widget class="QLabel" name="label_serial">
            <property name="styleSheet">
             <string notr="true">QLabel {
@@ -87,8 +87,28 @@
            </property>
           </widget>
          </item>
-         <item row="0" column="1">
-          <widget class="QLabel" name="label_manufacturer">
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_title_serial">
+           <property name="text">
+            <string>序列码：</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_title_version">
+           <property name="text">
+            <string>版本号：</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLabel" name="label_version">
            <property name="styleSheet">
             <string notr="true">QLabel {
     background-color: rgba(50, 50, 50, 1);
@@ -113,88 +133,62 @@
          <item row="0" column="0">
           <widget class="QLabel" name="label_title_manufacturer">
            <property name="text">
-            <string>厂商：</string>
+            <string>厂商/产品：</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
            </property>
           </widget>
          </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="label_title_version">
-           <property name="text">
-            <string>版本号：</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QLabel" name="label_version">
-           <property name="styleSheet">
-            <string notr="true">QLabel {
+         <item row="0" column="1">
+          <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1">
+           <item>
+            <widget class="QLabel" name="label_manufacturer">
+             <property name="styleSheet">
+              <string notr="true">QLabel {
     background-color: rgba(50, 50, 50, 1);
     color: rgba(255, 255, 255, 1);
     border-radius: 5px;
 }</string>
-           </property>
-           <property name="text">
-            <string>N/A</string>
-           </property>
-           <property name="wordWrap">
-            <bool>true</bool>
-           </property>
-           <property name="margin">
-            <number>5</number>
-           </property>
-           <property name="textInteractionFlags">
-            <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_title_serial">
-           <property name="text">
-            <string>序列码：</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_title_product">
-           <property name="text">
-            <string>产品：</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QLabel" name="label_product">
-           <property name="styleSheet">
-            <string notr="true">QLabel {
+             </property>
+             <property name="text">
+              <string>N/A</string>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
+             <property name="margin">
+              <number>5</number>
+             </property>
+             <property name="textInteractionFlags">
+              <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_product">
+             <property name="styleSheet">
+              <string notr="true">QLabel {
     background-color: rgba(50, 50, 50, 1);
     color: rgba(255, 255, 255, 1);
     border-radius: 5px;
 }</string>
-           </property>
-           <property name="text">
-            <string>N/A</string>
-           </property>
-           <property name="wordWrap">
-            <bool>true</bool>
-           </property>
-           <property name="margin">
-            <number>5</number>
-           </property>
-           <property name="textInteractionFlags">
-            <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
-           </property>
-          </widget>
+             </property>
+             <property name="text">
+              <string>N/A</string>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
+             <property name="margin">
+              <number>5</number>
+             </property>
+             <property name="textInteractionFlags">
+              <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
         </layout>
        </widget>

@@ -41,27 +41,39 @@ void EnumDAP::dd_dev_append(CMSIS_DAP_Base *dap)
 {
     dev_list.append(dap);
 
-    QString type_str;
+    QString tmp_str;
 
     switch (dap->type())
     {
     case Devices::DAP_USB_HID:
-        type_str = "HID";
-        break;
+    {
+
+        // tmp_str = QString::asprintf(
+        //     "%d | HID [%s] [%s]",
+        //     ui->dd_dev->count(),
+        //     qPrintable(dap->get_manufacturer_string()),
+        //     qPrintable(dap->get_product_string()));
+        tmp_str = QString::asprintf(
+            "%d | %s",
+            ui->dd_dev->count(),
+            qPrintable(dap->get_product_string()));
+    }
+    break;
     case Devices::DAP_USB_Bulk:
-        type_str = "Bulk";
-        break;
+    {
+        CMSIS_DAP_V2 *tmp_dap_v2 = (CMSIS_DAP_V2 *)dap;
+
+        tmp_str = QString::asprintf(
+            "%d | %s",
+            ui->dd_dev->count(),
+            qPrintable(tmp_dap_v2->get_interface_string()));
+    }
+    break;
     default:
-        type_str = "Unknown " + dap->type_str();
+        tmp_str = "Unknown " + dap->type_str();
         break;
     }
 
-    QString tmp_str = QString::asprintf(
-        "%d | %s [%s] [%s]",
-        ui->dd_dev->count(),
-        qPrintable(type_str),
-        qPrintable(dap->get_manufacturer_string()),
-        qPrintable(dap->get_product_string()));
     ui->dd_dev->addItem(tmp_str);
 
     if (ui->dd_dev->currentIndex() == 0)

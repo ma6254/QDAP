@@ -13,7 +13,7 @@ class CMSIS_DAP_V2 : public CMSIS_DAP_Base
     Q_OBJECT
 
 public:
-    CMSIS_DAP_V2(libusb_device *dev);
+    CMSIS_DAP_V2(libusb_device *dev, int interface_number);
     ~CMSIS_DAP_V2();
 
     static int32_t enum_device(QList<CMSIS_DAP_V2 *> *dev_list);
@@ -32,6 +32,7 @@ public:
     QString get_manufacturer_string() override { return manufacturer_str; }
     QString get_product_string() override { return product_str; }
     QString get_serial_string() override { return serial_number_str; }
+    QString get_interface_string() { return interface_str; }
     // QString get_version_string() override { return hid_version; }
 
 private:
@@ -43,6 +44,7 @@ private:
     QString product_str;
     QString manufacturer_str;
     QString serial_number_str;
+    QString interface_str;
 
     int32_t err_code;
 };
