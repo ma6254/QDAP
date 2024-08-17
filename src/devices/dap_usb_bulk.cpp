@@ -159,7 +159,7 @@ int32_t CMSIS_DAP_V2::enum_device(QList<CMSIS_DAP_V2 *> *dev_list)
         rc = libusb_get_string_descriptor_ascii(handle, dev_desc.iSerialNumber, (unsigned char *)buf_serial, sizeof(buf_serial));
         if (rc < LIBUSB_SUCCESS)
         {
-            qDebug("[CMSIS_DAP_V2] libusb_get_string_descriptor_ascii iSerialNumber fail %d", rc);
+            // qDebug("[CMSIS_DAP_V2] libusb_get_string_descriptor_ascii iSerialNumber fail %d", rc);
             libusb_close(handle);
             continue;
         }
@@ -167,7 +167,7 @@ int32_t CMSIS_DAP_V2::enum_device(QList<CMSIS_DAP_V2 *> *dev_list)
         rc = libusb_get_string_descriptor_ascii(handle, dev_desc.iProduct, (unsigned char *)buf_product, sizeof(buf_product));
         if (rc < LIBUSB_SUCCESS)
         {
-            qDebug("[CMSIS_DAP_V2] libusb_get_string_descriptor_ascii iProduct fail %d", rc);
+            // qDebug("[CMSIS_DAP_V2] libusb_get_string_descriptor_ascii iProduct fail %d", rc);
             libusb_close(handle);
             continue;
         }

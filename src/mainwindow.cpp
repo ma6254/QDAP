@@ -141,8 +141,8 @@ MainWindow::MainWindow(QWidget *parent)
         msgBox.setText("芯片选择信息有误");
         msgBox.setIcon(QMessageBox::Critical);
         msgBox.exec();
-        exit(1);
-        return;
+        // exit(1);
+        // return;
     }
 
     dialog_chips_config = new DialogChipsConfig(this);
@@ -160,6 +160,8 @@ MainWindow::MainWindow(QWidget *parent)
     {
         log_info("[cfg] enum devices auto refresh Enabled");
         timer_enum_device->start();
+        dialog_enum_devices->set_btn_manual_refresh_enabled(false);
+        ui->action_refresh_enum_devices->setDisabled(true);
     }
     ui->action_auto_refresh_enum_devices->setChecked(auto_refresh_enum_devices);
     connect(ui->action_auto_refresh_enum_devices,
@@ -720,11 +722,15 @@ void MainWindow::cb_action_auto_refresh_enum_devices(bool checked)
     {
         log_info("[cfg] enum devices auto refresh Enabled");
         timer_enum_device->start();
+        dialog_enum_devices->set_btn_manual_refresh_enabled(false);
+        ui->action_refresh_enum_devices->setDisabled(true);
     }
     else
     {
         log_info("[cfg] enum devices auto refresh Disabled");
         timer_enum_device->stop();
+        dialog_enum_devices->set_btn_manual_refresh_enabled(true);
+        ui->action_refresh_enum_devices->setEnabled(true);
     }
 
     auto_refresh_enum_devices = checked;
@@ -735,24 +741,24 @@ bool MainWindow::dap_hid_device_list_compare(QList<DAP_HID *> *now_list, QList<D
 {
     bool result = false;
 
-    for (uint32_t prev_i = 0; prev_i < prev_list->count(); prev_i++)
-    {
-        bool is_find = false;
+    // for (uint32_t prev_i = 0; prev_i < prev_list->count(); prev_i++)
+    // {
+    //     bool is_find = false;
 
-        for (uint32_t now_i = 0; now_i < now_list->count(); now_i++)
-        {
-            if (prev_list->at(prev_i)->get_usb_path() == now_list->at(now_i)->get_usb_path())
-            {
-                is_find = true;
-                break;
-            }
-        }
+    //     for (uint32_t now_i = 0; now_i < now_list->count(); now_i++)
+    //     {
+    //         if (prev_list->at(prev_i)->get_usb_path() == now_list->at(now_i)->get_usb_path())
+    //         {
+    //             is_find = true;
+    //             break;
+    //         }
+    //     }
 
-        if (is_find == false)
-        {
-            delete prev_list->at(prev_i);
-        }
-    }
+    //     if (is_find == false)
+    //     {
+    //         delete prev_list->at(prev_i);
+    //     }
+    // }
 
     // 比较大小
     if (now_list->count() != prev_list->count())

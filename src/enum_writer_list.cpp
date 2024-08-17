@@ -52,6 +52,8 @@ QToolBox::tab {
     border-radius: 5px;
 }
 )"");
+
+    connect(ui->btn_refresh_enum_devices, SIGNAL(clicked()), this, SLOT(cb_refresh_enum_devices()));
 }
 
 enum_writer_list::~enum_writer_list()
@@ -123,8 +125,6 @@ void enum_writer_list::cb_device_changed(QList<Devices *> dev_list)
                                      qPrintable(collapse_title_bak_list[0]),
                                      enum_dap->count()));
     // enum_dap->dd_dev()->setCurrentIndex(current_device_index);
-
-    connect(ui->btn_refresh_enum_devices, SIGNAL(clicked()), this, SLOT(cb_refresh_enum_devices()));
 }
 
 void enum_writer_list::cb_collapse_currentChanged(int index)
@@ -183,4 +183,9 @@ void enum_writer_list::set_collapse_icon(uint32_t index)
     ui->collapse->setItemIcon(3, icon_arrow_right);
 
     ui->collapse->setItemIcon(index, icon_arrow_down);
+}
+
+void enum_writer_list::set_btn_manual_refresh_enabled(bool enabled)
+{
+    ui->btn_refresh_enum_devices->setEnabled(enabled);
 }

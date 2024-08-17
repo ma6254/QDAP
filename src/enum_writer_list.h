@@ -30,6 +30,7 @@ public:
     Devices *current_device();
 
     void set_collapse_icon(uint32_t index);
+    void set_btn_manual_refresh_enabled(bool enabled);
 
 signals:
     void refresh_enum_devides();
