@@ -73,6 +73,7 @@ CMakeLists.txt.user.*
 # --------
 # *.dll
 # *.exe
+/release
 
 # libusb
 # /libusb_hid_api/x86

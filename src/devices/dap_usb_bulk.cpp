@@ -7,6 +7,7 @@ CMSIS_DAP_V2::CMSIS_DAP_V2(libusb_device *dev, int interface_number)
     char buf_str_descriptor[1024];
 
     this->dev = dev;
+    this->interface_number = interface_number;
     err_code = 0;
 
     rc = libusb_get_device_descriptor(this->dev, &desc);
@@ -93,7 +94,7 @@ CMSIS_DAP_V2::~CMSIS_DAP_V2()
     // close_device();
 }
 
-int32_t CMSIS_DAP_V2::enum_device(QList<CMSIS_DAP_V2 *> *dev_list)
+int32_t CMSIS_DAP_V2::enum_device(DeviceList *dev_list)
 {
     libusb_context *context = NULL;
     libusb_device **list = NULL;
@@ -262,17 +263,25 @@ int32_t CMSIS_DAP_V2::enum_device(QList<CMSIS_DAP_V2 *> *dev_list)
     return dev_list->count();
 }
 
-bool CMSIS_DAP_V2::device_list_compare(QList<CMSIS_DAP_V2 *> *now_list, QList<CMSIS_DAP_V2 *> *prev_list)
+bool CMSIS_DAP_V2::equal(const Devices &device)
 {
-    bool result = false;
+    CMSIS_DAP_V2 *dap_v2 = (CMSIS_DAP_V2 *)&device;
+    bool result;
 
-    // 比较大小
-    if (now_list->count() != prev_list->count())
+    if ((interface_number == dap_v2->interface_number) &&   // 接口号
+        (interface_str == dap_v2->interface_str) &&         // 接口名称
+        (serial_number_str == dap_v2->serial_number_str) && // 序列号
+        (manufacturer_str == dap_v2->manufacturer_str) &&   // 厂商
+        (product_str == dap_v2->product_str)                // 产品
+    )
+    {
         result = true;
+    }
+    else
+    {
+        result = false;
+    }
 
-    // 比较内容
-    prev_list->clear();
-    prev_list->append(*now_list);
     return result;
 }
 
@@ -293,4 +302,14 @@ void CMSIS_DAP_V2::close_device()
 {
     libusb_close(handle);
     handle = NULL;
+}
+
+int32_t request(uint8_t *tx_data, uint8_t *rx_data)
+{
+    return 0;
+}
+
+int32_t respone_status_return(uint8_t *rx_data)
+{
+    return 0;
 }

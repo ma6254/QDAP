@@ -76,6 +76,7 @@ else()
     src/program_worker.h
     src/dialog_chips_config.h src/dialog_chips_config.cpp src/dialog_chips_config.ui
     src/devices/devices.cpp src/devices/devices.h
+    src/devices/device_list.cpp src/devices/device_list.h
     src/devices/dap.cpp src/devices/dap.h
     src/devices/dap_usb_hid.cpp src/devices/dap_usb_hid.h
     src/devices/dap_usb_bulk.cpp src/devices/dap_usb_bulk.h

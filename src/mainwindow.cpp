@@ -17,7 +17,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     ram_start = 0x20000000;
-    current_device = 0;
+    current_device_index = -1;
     ui->progressBar->setHidden(true);
 
     hex_viewer = new HexViewer(ui->centralwidget);
@@ -151,8 +151,8 @@ MainWindow::MainWindow(QWidget *parent)
     set_dock_chip_info();
 
     dialog_enum_devices = new enum_writer_list(this);
-    connect(this, SIGNAL(device_changed(QList<Devices *>)),
-            dialog_enum_devices, SLOT(cb_device_changed(QList<Devices *>)));
+    connect(this, SIGNAL(device_changed(DeviceList, bool)),
+            dialog_enum_devices, SLOT(cb_device_changed(DeviceList, bool)));
 
     connect(dialog_enum_devices, SIGNAL(refresh_enum_devides()), this, SLOT(cb_action_manual_refresh_enum_devices()));
 
@@ -563,7 +563,8 @@ void MainWindow::cb_action_enum_device_list(void)
     cb_tick_enum_device();
 
     // emit device_changed(device_list);
-    dialog_enum_devices->setCurrentIndex(current_device);
+    dialog_enum_devices->setCurrentIndex(current_device_index + 1);
+    dialog_enum_devices->set_auto_refresh(auto_refresh_enum_devices);
 
     dialog_enum_devices->exec();
 
@@ -574,17 +575,18 @@ void MainWindow::cb_action_enum_device_list(void)
 
     Devices *tmp_dev = dialog_enum_devices->current_device();
 
-    if (tmp_dev != NULL)
+    if (tmp_dev == NULL)
     {
-        QString tmp_str = QString::asprintf(
-            "%s %s",
-            qPrintable(tmp_dev->get_manufacturer_string()),
-            qPrintable(tmp_dev->get_product_string()));
-        ui->label_info_dev_name->setText(tmp_str);
-
-        ui->label_device_type->setText(tmp_dev->type_str());
         return;
     }
+
+    QString tmp_str = QString::asprintf(
+        "%s %s",
+        qPrintable(tmp_dev->get_manufacturer_string()),
+        qPrintable(tmp_dev->get_product_string()));
+    ui->label_info_dev_name->setText(tmp_str);
+
+    ui->label_device_type->setText(tmp_dev->type_str());
 
     // current_device = dialog_enum_devices->currentIndex();
 
@@ -617,11 +619,15 @@ void MainWindow::cb_tick_enum_device()
     // }
     // dap_hid_device_list.clear();
 
+    // qDebug("[main] cb_tick_enum_device DAP_HID");
     DAP_HID::enum_device(&dap_hid_device_list);
-    if (dap_hid_device_list_compare(&dap_hid_device_list, &dap_hid_device_list_prev))
+    if (Devices::device_list_compare(dap_hid_device_list, dap_hid_device_list_prev))
     {
         is_changed = true;
     }
+
+    dap_hid_device_list_prev.clear();
+    dap_hid_device_list_prev.append(dap_hid_device_list);
 
     // if (dap_hid_device_list.count() == 0)
     // {
@@ -645,11 +651,15 @@ void MainWindow::cb_tick_enum_device()
     // emit device_changed(dap_hid_device_list);
     // }
 
+    // qDebug("[main] cb_tick_enum_device CMSIS_DAP_V2");
     CMSIS_DAP_V2::enum_device(&dap_v2_device_list);
-    if (CMSIS_DAP_V2::device_list_compare(&dap_v2_device_list, &dap_v2_device_list_prev))
+    if (Devices::device_list_compare(dap_v2_device_list, dap_v2_device_list_prev))
     {
         is_changed = true;
     }
+
+    dap_v2_device_list_prev.clear();
+    dap_v2_device_list_prev.append(dap_v2_device_list);
 
     // dap_v2_device_list.clear();
     // CMSIS_DAP_V2::enum_device(&dap_v2_device_list);
@@ -693,22 +703,19 @@ void MainWindow::cb_tick_enum_device()
         //     device_list.removeFirst();
         // }
         device_list.clear();
+        device_list.append(dap_hid_device_list);
+        device_list.append(dap_v2_device_list);
 
-        foreach (DAP_HID *tmp_hid_dev, dap_hid_device_list)
-        {
-            device_list.append((Devices *)tmp_hid_dev);
-        }
-
-        foreach (CMSIS_DAP_V2 *tmp_bulk_dev, dap_v2_device_list)
-        {
-            device_list.append((Devices *)tmp_bulk_dev);
-        }
+        // foreach (CMSIS_DAP_V2 *tmp_bulk_dev, dap_v2_device_list)
+        // {
+        //     device_list.append((Devices *)tmp_bulk_dev);
+        // }
 
         // qDebug("device_list is changed len:%d", device_list.count());
         log_info(QString::asprintf("device_list is changed len:%d", device_list.count()));
-
-        emit device_changed(device_list);
     }
+
+    emit device_changed(device_list, is_changed);
 }
 
 void MainWindow::cb_action_manual_refresh_enum_devices()
@@ -737,40 +744,40 @@ void MainWindow::cb_action_auto_refresh_enum_devices(bool checked)
     config_save();
 }
 
-bool MainWindow::dap_hid_device_list_compare(QList<DAP_HID *> *now_list, QList<DAP_HID *> *prev_list)
-{
-    bool result = false;
+// bool MainWindow::dap_hid_device_list_compare(QList<DAP_HID *> *now_list, QList<DAP_HID *> *prev_list)
+// {
+//     bool result = false;
 
-    // for (uint32_t prev_i = 0; prev_i < prev_list->count(); prev_i++)
-    // {
-    //     bool is_find = false;
+//     // for (uint32_t prev_i = 0; prev_i < prev_list->count(); prev_i++)
+//     // {
+//     //     bool is_find = false;
 
-    //     for (uint32_t now_i = 0; now_i < now_list->count(); now_i++)
-    //     {
-    //         if (prev_list->at(prev_i)->get_usb_path() == now_list->at(now_i)->get_usb_path())
-    //         {
-    //             is_find = true;
-    //             break;
-    //         }
-    //     }
+//     //     for (uint32_t now_i = 0; now_i < now_list->count(); now_i++)
+//     //     {
+//     //         if (prev_list->at(prev_i)->get_usb_path() == now_list->at(now_i)->get_usb_path())
+//     //         {
+//     //             is_find = true;
+//     //             break;
+//     //         }
+//     //     }
 
-    //     if (is_find == false)
-    //     {
-    //         delete prev_list->at(prev_i);
-    //     }
-    // }
+//     //     if (is_find == false)
+//     //     {
+//     //         delete prev_list->at(prev_i);
+//     //     }
+//     // }
 
-    // 比较大小
-    if (now_list->count() != prev_list->count())
-    {
-        result = true;
-    }
-    // 比较内容
-    prev_list->clear();
-    prev_list->append(*now_list);
+//     // 比较大小
+//     if (now_list->count() != prev_list->count())
+//     {
+//         result = true;
+//     }
+//     // 比较内容
+//     prev_list->clear();
+//     prev_list->append(*now_list);
 
-    return result;
-}
+//     return result;
+// }
 
 void MainWindow::cb_action_chips(void)
 {
@@ -834,42 +841,38 @@ void MainWindow::cb_action_load_flm(void)
 void MainWindow::cb_action_connect(void)
 {
     int32_t err;
-    DAP_HID *tmp_dev;
+    Devices *tmp_dev;
 
     if (dap_hid_device_list.count() == 0)
         return;
 
-    qDebug("[main] cb_action_connect current_device: %d", current_device);
+    qDebug("[main] cb_action_connect current_device: %d", current_device_index);
 
-    if (current_device == 0)
-    {
-        tmp_dev = dap_hid_device_list.at(0);
-    }
-    else
-    {
-        tmp_dev = dap_hid_device_list.at(current_device - 1);
-    }
-
-    err = tmp_dev->connect();
-    if (err < 0)
-    {
-        qDebug("[main] connect fail");
-    }
-
-    ui->label_info_idcode->setText(QString("%1").arg(tmp_dev->idcode(), 8, 16, QChar('0')).toUpper());
-
-    FlashDevice tmp_flash_info = flash_algo.get_flash_device_info();
-    QByteArray tmp_flash_code = flash_algo.get_flash_code();
-
-    // Download flash programming algorithm to target and initialise.
-    err = tmp_dev->dap_write_memory(ram_start,
-                                    (uint8_t *)tmp_flash_code.data(),
-                                    tmp_flash_code.length());
-    if (err < 0)
-    {
-        qDebug("[main] dap_write_memory fail");
+    if (current_device_index < 0)
         return;
-    }
+
+    tmp_dev = dap_hid_device_list[current_device_index];
+
+    // err = tmp_dev->connect();
+    // if (err < 0)
+    // {
+    //     qDebug("[main] connect fail");
+    // }
+
+    // ui->label_info_idcode->setText(QString("%1").arg(tmp_dev->idcode(), 8, 16, QChar('0')).toUpper());
+
+    // FlashDevice tmp_flash_info = flash_algo.get_flash_device_info();
+    // QByteArray tmp_flash_code = flash_algo.get_flash_code();
+
+    // // Download flash programming algorithm to target and initialise.
+    // err = tmp_dev->dap_write_memory(ram_start,
+    //                                 (uint8_t *)tmp_flash_code.data(),
+    //                                 tmp_flash_code.length());
+    // if (err < 0)
+    // {
+    //     qDebug("[main] dap_write_memory fail");
+    //     return;
+    // }
 
     // QByteArray read_buf;
     // err = tmp_dev->dap_read_memory(ram_start,
@@ -887,19 +890,19 @@ void MainWindow::cb_action_connect(void)
     //     return;
     // }
 
-    program_syscall_t sys_call_s = flash_algo.get_sys_call_s();
+    // program_syscall_t sys_call_s = flash_algo.get_sys_call_s();
 
-    uint32_t entry = flash_algo.get_flash_func_offset(FLASH_FUNC_Init);
-    uint32_t arg1 = flash_algo.get_flash_start();
-    err = tmp_dev->swd_flash_syscall_exec(&sys_call_s, entry, arg1, 0, 1, 0);
-    if (err < 0)
-    {
-        qDebug("[main] exec_flash_func Init arg:");
-        qDebug("    entry: %08X", entry);
-        qDebug("     arg1: %08X", arg1);
-        qDebug("[main] exec_flash_func Init fail");
-        return;
-    }
+    // uint32_t entry = flash_algo.get_flash_func_offset(FLASH_FUNC_Init);
+    // uint32_t arg1 = flash_algo.get_flash_start();
+    // err = tmp_dev->swd_flash_syscall_exec(&sys_call_s, entry, arg1, 0, 1, 0);
+    // if (err < 0)
+    // {
+    //     qDebug("[main] exec_flash_func Init arg:");
+    //     qDebug("    entry: %08X", entry);
+    //     qDebug("     arg1: %08X", arg1);
+    //     qDebug("[main] exec_flash_func Init fail");
+    //     return;
+    // }
 }
 
 void MainWindow::cb_action_read_chip(void)
@@ -912,69 +915,69 @@ void MainWindow::cb_action_read_chip(void)
     if (dap_hid_device_list.count() == 0)
         return;
 
-    if (current_device == 0)
-    {
-        tmp_dev = dap_hid_device_list.at(0);
-    }
-    else
-    {
-        tmp_dev = dap_hid_device_list.at(current_device - 1);
-    }
+    // if (current_device_index == 0)
+    // {
+    //     tmp_dev = dap_hid_device_list.at(0);
+    // }
+    // else
+    // {
+    //     tmp_dev = dap_hid_device_list.at(current_device - 1);
+    // }
 
-    err = tmp_dev->connect();
-    if (err < 0)
-    {
-        log_error("初始化失败");
-        qDebug("[main] connect fail");
-    }
+    // err = tmp_dev->connect();
+    // if (err < 0)
+    // {
+    //     log_error("初始化失败");
+    //     qDebug("[main] connect fail");
+    // }
 
-    QString idcode_str = QString("%1").arg(tmp_dev->idcode(), 8, 16, QChar('0')).toUpper();
-    ui->label_info_idcode->setText(idcode_str);
-    log_info(QString("IDCODE: 0x%1").arg(idcode_str));
+    // QString idcode_str = QString("%1").arg(tmp_dev->idcode(), 8, 16, QChar('0')).toUpper();
+    // ui->label_info_idcode->setText(idcode_str);
+    // log_info(QString("IDCODE: 0x%1").arg(idcode_str));
 
-    FlashDevice tmp_flash_info = flash_algo.get_flash_device_info();
-    QByteArray tmp_flash_code = flash_algo.get_flash_code();
+    // FlashDevice tmp_flash_info = flash_algo.get_flash_device_info();
+    // QByteArray tmp_flash_code = flash_algo.get_flash_code();
 
-    FlashDevice flash_info = flash_algo.get_flash_device_info();
-    uint32_t flash_size = flash_info.szDev;
-    uint32_t flash_addr = flash_info.DevAdr;
+    // FlashDevice flash_info = flash_algo.get_flash_device_info();
+    // uint32_t flash_size = flash_info.szDev;
+    // uint32_t flash_addr = flash_info.DevAdr;
 
-    QString flash_addr_str = QString("%1").arg(flash_addr, 8, 16, QChar('0')).toUpper();
+    // QString flash_addr_str = QString("%1").arg(flash_addr, 8, 16, QChar('0')).toUpper();
 
-    QLocale locale = this->locale();
-    QString flash_size_str = locale.formattedDataSize(flash_size);
+    // QLocale locale = this->locale();
+    // QString flash_size_str = locale.formattedDataSize(flash_size);
 
-    ui->label_info_data_size->setText(flash_size_str);
-    qDebug("[main] read chip size: %s", qPrintable(flash_size_str));
+    // ui->label_info_data_size->setText(flash_size_str);
+    // qDebug("[main] read chip size: %s", qPrintable(flash_size_str));
 
-    log_info(QString("flash_addr: 0x%1").arg(flash_addr_str));
-    log_info(QString("flash_size: %1").arg(flash_size_str));
+    // log_info(QString("flash_addr: 0x%1").arg(flash_addr_str));
+    // log_info(QString("flash_size: %1").arg(flash_size_str));
 
-    // Download flash programming algorithm to target and initialise.
-    err = tmp_dev->dap_write_memory(ram_start,
-                                    (uint8_t *)tmp_flash_code.data(),
-                                    tmp_flash_code.length());
-    if (err < 0)
-    {
-        qDebug("[main] dap_write_memory fail");
-        log_error("初始化失败");
-        return;
-    }
+    // // Download flash programming algorithm to target and initialise.
+    // err = tmp_dev->dap_write_memory(ram_start,
+    //                                 (uint8_t *)tmp_flash_code.data(),
+    //                                 tmp_flash_code.length());
+    // if (err < 0)
+    // {
+    //     qDebug("[main] dap_write_memory fail");
+    //     log_error("初始化失败");
+    //     return;
+    // }
 
-    program_worker = new ProgramWorker(tmp_dev, &flash_algo);
+    // program_worker = new ProgramWorker(tmp_dev, &flash_algo);
 
-    connect(this, &MainWindow::program_worker_read_chip, program_worker, &ProgramWorker::read_chip);
-    connect(program_worker, &ProgramWorker::finished, this, &MainWindow::cb_read_chip_finish);
-    connect(program_worker, &ProgramWorker::process, this, &MainWindow::cb_read_chip_process);
+    // connect(this, &MainWindow::program_worker_read_chip, program_worker, &ProgramWorker::read_chip);
+    // connect(program_worker, &ProgramWorker::finished, this, &MainWindow::cb_read_chip_finish);
+    // connect(program_worker, &ProgramWorker::process, this, &MainWindow::cb_read_chip_process);
 
-    take_timer.restart();
-    emit program_worker_read_chip(&read_back_buf);
+    // take_timer.restart();
+    // emit program_worker_read_chip(&read_back_buf);
 
-    ui->progressBar->setValue(0);
-    ui->progressBar->setMaximum(flash_size);
-    ui->progressBar->setVisible(true);
+    // ui->progressBar->setValue(0);
+    // ui->progressBar->setMaximum(flash_size);
+    // ui->progressBar->setVisible(true);
 
-    log_info("ReadChip starting...");
+    // log_info("ReadChip starting...");
 
     // err = tmp_dev->dap_read_memory(0x8000000, (uint8_t *)firmware_buf.data(), firmware_buf.count());
     // if (err < 0)
@@ -999,73 +1002,73 @@ void MainWindow::cb_action_erase_chip(void)
     if (dap_hid_device_list.count() == 0)
         return;
 
-    if (current_device == 0)
-    {
-        tmp_dev = dap_hid_device_list.at(0);
-    }
-    else
-    {
-        tmp_dev = dap_hid_device_list.at(current_device - 1);
-    }
+    // if (current_device == 0)
+    // {
+    //     tmp_dev = dap_hid_device_list.at(0);
+    // }
+    // else
+    // {
+    //     tmp_dev = dap_hid_device_list.at(current_device - 1);
+    // }
 
-    err = tmp_dev->connect();
-    if (err < 0)
-    {
-        log_error("Chip connection failed");
-        qDebug("[main] connect fail");
-        return;
-    }
+    // err = tmp_dev->connect();
+    // if (err < 0)
+    // {
+    //     log_error("Chip connection failed");
+    //     qDebug("[main] connect fail");
+    //     return;
+    // }
 
-    log_info("chip connect ok");
+    // log_info("chip connect ok");
 
-    QString idcode_str = QString("%1").arg(tmp_dev->idcode(), 8, 16, QChar('0')).toUpper();
-    ui->label_info_idcode->setText(idcode_str);
-    log_info(QString("IDCODE: 0x%1").arg(idcode_str));
+    // QString idcode_str = QString("%1").arg(tmp_dev->idcode(), 8, 16, QChar('0')).toUpper();
+    // ui->label_info_idcode->setText(idcode_str);
+    // log_info(QString("IDCODE: 0x%1").arg(idcode_str));
 
-    FlashDevice tmp_flash_info = flash_algo.get_flash_device_info();
-    QByteArray tmp_flash_code = flash_algo.get_flash_code();
+    // FlashDevice tmp_flash_info = flash_algo.get_flash_device_info();
+    // QByteArray tmp_flash_code = flash_algo.get_flash_code();
 
-    // hexdump((uint8_t *)tmp_flash_code.data(), tmp_flash_code.size());
+    // // hexdump((uint8_t *)tmp_flash_code.data(), tmp_flash_code.size());
 
-    // Download flash programming algorithm to target and initialise.
-    err = tmp_dev->dap_write_memory(ram_start,
-                                    (uint8_t *)tmp_flash_code.data(),
-                                    tmp_flash_code.length());
-    if (err < 0)
-    {
-        qDebug("[main] dap_write_memory fail");
-        log_error("load flash algo fail");
-        return;
-    }
+    // // Download flash programming algorithm to target and initialise.
+    // err = tmp_dev->dap_write_memory(ram_start,
+    //                                 (uint8_t *)tmp_flash_code.data(),
+    //                                 tmp_flash_code.length());
+    // if (err < 0)
+    // {
+    //     qDebug("[main] dap_write_memory fail");
+    //     log_error("load flash algo fail");
+    //     return;
+    // }
 
-    log_info("load flash algo code ok");
+    // log_info("load flash algo code ok");
 
-    uint32_t entry = flash_algo.get_flash_func_offset(FLASH_FUNC_Init);
-    uint32_t arg1 = flash_algo.get_flash_start();
-    program_syscall_t sys_call_s = flash_algo.get_sys_call_s();
-    err = tmp_dev->swd_flash_syscall_exec(&sys_call_s, entry, arg1, 0, 1, 0);
-    if (err < 0)
-    {
-        qDebug("[main] exec_flash_func Init fail");
-        log_error("exec FlashFunc[Init] fail");
-        return;
-    }
+    // uint32_t entry = flash_algo.get_flash_func_offset(FLASH_FUNC_Init);
+    // uint32_t arg1 = flash_algo.get_flash_start();
+    // program_syscall_t sys_call_s = flash_algo.get_sys_call_s();
+    // err = tmp_dev->swd_flash_syscall_exec(&sys_call_s, entry, arg1, 0, 1, 0);
+    // if (err < 0)
+    // {
+    //     qDebug("[main] exec_flash_func Init fail");
+    //     log_error("exec FlashFunc[Init] fail");
+    //     return;
+    // }
 
-    log_info("exec FlashFunc[Init] ok");
+    // log_info("exec FlashFunc[Init] ok");
 
-    program_worker = new ProgramWorker(tmp_dev, &flash_algo);
+    // program_worker = new ProgramWorker(tmp_dev, &flash_algo);
 
-    connect(this, &MainWindow::program_worker_erase_chip, program_worker, &ProgramWorker::erase_chip);
-    connect(program_worker, &ProgramWorker::finished, this, &MainWindow::cb_erase_chip_finish);
+    // connect(this, &MainWindow::program_worker_erase_chip, program_worker, &ProgramWorker::erase_chip);
+    // connect(program_worker, &ProgramWorker::finished, this, &MainWindow::cb_erase_chip_finish);
 
-    take_timer.restart();
-    emit program_worker_erase_chip();
+    // take_timer.restart();
+    // emit program_worker_erase_chip();
 
-    ui->progressBar->setValue(0);
-    ui->progressBar->setMaximum(0);
-    ui->progressBar->setVisible(true);
+    // ui->progressBar->setValue(0);
+    // ui->progressBar->setMaximum(0);
+    // ui->progressBar->setVisible(true);
 
-    log_info("EraseChip starting...");
+    // log_info("EraseChip starting...");
 
     // QList<uint64_t> process_bar;
     // process_bar.append(0);
@@ -1090,7 +1093,7 @@ void MainWindow::cb_action_erase_chip(void)
     //     return;
     // }
 
-    qDebug("[main] exec_flash_func EraseChip wating...");
+    // qDebug("[main] exec_flash_func EraseChip wating...");
 }
 
 void MainWindow::cb_action_check_blank(void)
@@ -1114,78 +1117,78 @@ void MainWindow::cb_action_write(void)
     if (dap_hid_device_list.count() == 0)
         return;
 
-    if (current_device == 0)
-    {
-        tmp_dev = dap_hid_device_list.at(0);
-    }
-    else
-    {
-        tmp_dev = dap_hid_device_list.at(current_device - 1);
-    }
+    // if (current_device == 0)
+    // {
+    //     tmp_dev = dap_hid_device_list.at(0);
+    // }
+    // else
+    // {
+    //     tmp_dev = dap_hid_device_list.at(current_device - 1);
+    // }
 
-    err = tmp_dev->connect();
-    if (err < 0)
-    {
-        log_error("Chip connection failed");
-        qDebug("[main] connect fail");
-        return;
-    }
+    // err = tmp_dev->connect();
+    // if (err < 0)
+    // {
+    //     log_error("Chip connection failed");
+    //     qDebug("[main] connect fail");
+    //     return;
+    // }
 
-    log_info("chip connect ok");
+    // log_info("chip connect ok");
 
-    QString idcode_str = QString("%1").arg(tmp_dev->idcode(), 8, 16, QChar('0')).toUpper();
-    ui->label_info_idcode->setText(idcode_str);
-    log_info(QString("IDCODE: 0x%1").arg(idcode_str));
+    // QString idcode_str = QString("%1").arg(tmp_dev->idcode(), 8, 16, QChar('0')).toUpper();
+    // ui->label_info_idcode->setText(idcode_str);
+    // log_info(QString("IDCODE: 0x%1").arg(idcode_str));
 
-    FlashDevice tmp_flash_info = flash_algo.get_flash_device_info();
-    QByteArray tmp_flash_code = flash_algo.get_flash_code();
+    // FlashDevice tmp_flash_info = flash_algo.get_flash_device_info();
+    // QByteArray tmp_flash_code = flash_algo.get_flash_code();
 
-    FlashDevice flash_info = flash_algo.get_flash_device_info();
-    uint32_t flash_size = flash_info.szDev;
-    uint32_t flash_addr = flash_info.DevAdr;
+    // FlashDevice flash_info = flash_algo.get_flash_device_info();
+    // uint32_t flash_size = flash_info.szDev;
+    // uint32_t flash_addr = flash_info.DevAdr;
 
-    // hexdump((uint8_t *)tmp_flash_code.data(), tmp_flash_code.size());
+    // // hexdump((uint8_t *)tmp_flash_code.data(), tmp_flash_code.size());
 
-    // Download flash programming algorithm to target and initialise.
-    err = tmp_dev->dap_write_memory(ram_start,
-                                    (uint8_t *)tmp_flash_code.data(),
-                                    tmp_flash_code.length());
-    if (err < 0)
-    {
-        qDebug("[main] dap_write_memory fail");
-        log_error("load flash algo fail");
-        return;
-    }
+    // // Download flash programming algorithm to target and initialise.
+    // err = tmp_dev->dap_write_memory(ram_start,
+    //                                 (uint8_t *)tmp_flash_code.data(),
+    //                                 tmp_flash_code.length());
+    // if (err < 0)
+    // {
+    //     qDebug("[main] dap_write_memory fail");
+    //     log_error("load flash algo fail");
+    //     return;
+    // }
 
-    log_info("load flash algo code ok");
+    // log_info("load flash algo code ok");
 
-    uint32_t entry = flash_algo.get_flash_func_offset(FLASH_FUNC_Init);
-    uint32_t arg1 = flash_algo.get_flash_start();
-    program_syscall_t sys_call_s = flash_algo.get_sys_call_s();
-    err = tmp_dev->swd_flash_syscall_exec(&sys_call_s, entry, arg1, 0, 1, 0);
-    if (err < 0)
-    {
-        qDebug("[main] exec_flash_func Init fail");
-        log_error("exec FlashFunc[Init] fail");
-        return;
-    }
+    // uint32_t entry = flash_algo.get_flash_func_offset(FLASH_FUNC_Init);
+    // uint32_t arg1 = flash_algo.get_flash_start();
+    // program_syscall_t sys_call_s = flash_algo.get_sys_call_s();
+    // err = tmp_dev->swd_flash_syscall_exec(&sys_call_s, entry, arg1, 0, 1, 0);
+    // if (err < 0)
+    // {
+    //     qDebug("[main] exec_flash_func Init fail");
+    //     log_error("exec FlashFunc[Init] fail");
+    //     return;
+    // }
 
-    log_info("exec FlashFunc[Init] ok");
+    // log_info("exec FlashFunc[Init] ok");
 
-    program_worker = new ProgramWorker(tmp_dev, &flash_algo);
+    // program_worker = new ProgramWorker(tmp_dev, &flash_algo);
 
-    connect(this, &MainWindow::program_worker_write, program_worker, &ProgramWorker::write);
-    connect(program_worker, &ProgramWorker::finished, this, &MainWindow::cb_write_finish);
-    connect(program_worker, &ProgramWorker::process, this, &MainWindow::cb_write_chip_process);
+    // connect(this, &MainWindow::program_worker_write, program_worker, &ProgramWorker::write);
+    // connect(program_worker, &ProgramWorker::finished, this, &MainWindow::cb_write_finish);
+    // connect(program_worker, &ProgramWorker::process, this, &MainWindow::cb_write_chip_process);
 
-    take_timer.restart();
-    emit program_worker_write(flash_addr, &firmware_buf);
+    // take_timer.restart();
+    // emit program_worker_write(flash_addr, &firmware_buf);
 
-    ui->progressBar->setValue(0);
-    ui->progressBar->setMaximum(firmware_buf.length());
-    ui->progressBar->setVisible(true);
+    // ui->progressBar->setValue(0);
+    // ui->progressBar->setMaximum(firmware_buf.length());
+    // ui->progressBar->setVisible(true);
 
-    log_info("Write starting...");
+    // log_info("Write starting...");
 }
 
 void MainWindow::cb_action_verify(void)
@@ -1200,39 +1203,39 @@ void MainWindow::cb_action_verify(void)
     if (dap_hid_device_list.count() == 0)
         return;
 
-    if (current_device == 0)
-    {
-        tmp_dev = dap_hid_device_list.at(0);
-    }
-    else
-    {
-        tmp_dev = dap_hid_device_list.at(current_device - 1);
-    }
+    // if (current_device == 0)
+    // {
+    //     tmp_dev = dap_hid_device_list.at(0);
+    // }
+    // else
+    // {
+    //     tmp_dev = dap_hid_device_list.at(current_device - 1);
+    // }
 
-    err = tmp_dev->connect();
-    if (err < 0)
-    {
-        log_error("Chip connection failed");
-        qDebug("[main] connect fail");
-        return;
-    }
+    // err = tmp_dev->connect();
+    // if (err < 0)
+    // {
+    //     log_error("Chip connection failed");
+    //     qDebug("[main] connect fail");
+    //     return;
+    // }
 
-    log_info("chip connect ok");
+    // log_info("chip connect ok");
 
-    program_worker = new ProgramWorker(tmp_dev, &flash_algo);
+    // program_worker = new ProgramWorker(tmp_dev, &flash_algo);
 
-    connect(this, &MainWindow::program_worker_verify, program_worker, &ProgramWorker::verify);
-    connect(program_worker, &ProgramWorker::finished, this, &MainWindow::cb_verify_finish);
-    connect(program_worker, &ProgramWorker::process, this, &MainWindow::cb_verify_chip_process);
+    // connect(this, &MainWindow::program_worker_verify, program_worker, &ProgramWorker::verify);
+    // connect(program_worker, &ProgramWorker::finished, this, &MainWindow::cb_verify_finish);
+    // connect(program_worker, &ProgramWorker::process, this, &MainWindow::cb_verify_chip_process);
 
-    take_timer.restart();
-    emit program_worker_verify(flash_addr, &firmware_buf);
+    // take_timer.restart();
+    // emit program_worker_verify(flash_addr, &firmware_buf);
 
-    ui->progressBar->setValue(0);
-    ui->progressBar->setMaximum(firmware_buf.length());
-    ui->progressBar->setVisible(true);
+    // ui->progressBar->setValue(0);
+    // ui->progressBar->setMaximum(firmware_buf.length());
+    // ui->progressBar->setVisible(true);
 
-    log_info("Verify starting...");
+    // log_info("Verify starting...");
 }
 
 void MainWindow::cb_action_reset_run(void)
@@ -1243,33 +1246,33 @@ void MainWindow::cb_action_reset_run(void)
     if (dap_hid_device_list.count() == 0)
         return;
 
-    if (current_device == 0)
-    {
-        tmp_dev = dap_hid_device_list.at(0);
-    }
-    else
-    {
-        tmp_dev = dap_hid_device_list.at(current_device - 1);
-    }
+    // if (current_device == 0)
+    // {
+    //     tmp_dev = dap_hid_device_list.at(0);
+    // }
+    // else
+    // {
+    //     tmp_dev = dap_hid_device_list.at(current_device - 1);
+    // }
 
-    program_syscall_t sys_call_s = flash_algo.get_sys_call_s();
+    // program_syscall_t sys_call_s = flash_algo.get_sys_call_s();
 
-    uint32_t entry = flash_algo.get_flash_func_offset(FLASH_FUNC_UnInit);
-    err = tmp_dev->swd_flash_syscall_exec(&sys_call_s, entry, 3, 0, 0, 0);
-    if (err < 0)
-    {
-        qDebug("[main] exec_flash_func UnInit fail");
-        return;
-    }
+    // uint32_t entry = flash_algo.get_flash_func_offset(FLASH_FUNC_UnInit);
+    // err = tmp_dev->swd_flash_syscall_exec(&sys_call_s, entry, 3, 0, 0, 0);
+    // if (err < 0)
+    // {
+    //     qDebug("[main] exec_flash_func UnInit fail");
+    //     return;
+    // }
 
-    err = tmp_dev->run();
-    if (err < 0)
-    {
-        qDebug("[main] run fail");
-        return;
-    }
+    // err = tmp_dev->run();
+    // if (err < 0)
+    // {
+    //     qDebug("[main] run fail");
+    //     return;
+    // }
 
-    log_info("Chip is reset and runnig");
+    // log_info("Chip is reset and runnig");
 }
 
 void MainWindow::cb_erase_chip_finish(ProgramWorker::ChipOp op, bool ok)

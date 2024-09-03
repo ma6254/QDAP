@@ -29,7 +29,7 @@ void EnumDAP::dd_dev_clear()
         ui->dd_dev->removeItem(1);
     }
 
-    dev_list.clear();
+    device_list.clear();
 
     ui->label_manufacturer->setText("N/A");
     ui->label_product->setText("N/A");
@@ -39,7 +39,7 @@ void EnumDAP::dd_dev_clear()
 
 void EnumDAP::dd_dev_append(CMSIS_DAP_Base *dap)
 {
-    dev_list.append(dap);
+    device_list.append(dap);
 
     QString tmp_str;
 
@@ -54,7 +54,7 @@ void EnumDAP::dd_dev_append(CMSIS_DAP_Base *dap)
         //     qPrintable(dap->get_manufacturer_string()),
         //     qPrintable(dap->get_product_string()));
         tmp_str = QString::asprintf(
-            "%d | %s",
+            "%d | V1 | %s",
             ui->dd_dev->count(),
             qPrintable(dap->get_product_string()));
     }
@@ -64,7 +64,7 @@ void EnumDAP::dd_dev_append(CMSIS_DAP_Base *dap)
         CMSIS_DAP_V2 *tmp_dap_v2 = (CMSIS_DAP_V2 *)dap;
 
         tmp_str = QString::asprintf(
-            "%d | %s",
+            "%d | V2 | %s",
             ui->dd_dev->count(),
             qPrintable(tmp_dap_v2->get_interface_string()));
     }
@@ -110,18 +110,47 @@ void EnumDAP::set_info(CMSIS_DAP_Base *dap)
 
 void EnumDAP::set_info(int index)
 {
-    if (index >= dev_list.count())
+    if (index >= device_list.count())
     {
         set_info_empty();
         return;
     }
 
-    set_info(dev_list[index]);
+    set_info(device_list[index]);
 }
 
 int EnumDAP::count()
 {
-    return dev_list.count();
+    return device_list.count();
+}
+
+int EnumDAP::current_index()
+{
+    return ui->dd_dev->currentIndex();
+}
+
+void EnumDAP::set_current_index(int index)
+{
+    ui->dd_dev->setCurrentIndex(index);
+}
+
+Devices *EnumDAP::current_device()
+{
+    if (count() == 0)
+        return NULL;
+
+    if (current_index() < 0)
+        return NULL;
+
+    if (current_index() == 0)
+        return device_list[0];
+
+    return device_list[current_index() - 1];
+}
+
+int EnumDAP::set_current_device(Devices device)
+{
+    return -1;
 }
 
 // void EnumDAP::cb_devices_changed(QList<CMSIS_DAP_Base *> dev_list)

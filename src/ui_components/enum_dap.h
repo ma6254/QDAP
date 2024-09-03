@@ -26,6 +26,11 @@ public:
     void set_info(int index);
     void set_info_empty();
 
+    int current_index();
+    void set_current_index(int index);
+    Devices *current_device();
+    int set_current_device(Devices device);
+
     int count();
 
 public slots:
@@ -35,7 +40,7 @@ public slots:
 private:
     Ui::EnumDAP *ui;
 
-    QList<CMSIS_DAP_Base *> dev_list;
+    QList<CMSIS_DAP_Base *> device_list;
 };
 
 #endif // ENUM_DAP_H

@@ -61,8 +61,27 @@ enum_writer_list::~enum_writer_list()
     delete ui;
 }
 
-void enum_writer_list::cb_device_changed(QList<Devices *> dev_list)
+void enum_writer_list::set_auto_refresh(bool auto_refresh)
 {
+    is_auto_refresh_enum_devices = auto_refresh;
+    ui->btn_refresh_enum_devices->setEnabled(!auto_refresh);
+}
+
+void enum_writer_list::cb_device_changed(DeviceList dev_list, bool changed)
+{
+    if (is_auto_refresh_enum_devices == false)
+    {
+        ui->btn_refresh_enum_devices->setEnabled(true);
+    }
+
+    if (changed == false)
+    {
+        return;
+    }
+
+    device_list.clear();
+    device_list.append(dev_list);
+
     qDebug("[enum_writer_list] dev_changed count:%d", dev_list.count());
 
     // dap_hid_list_clear();
@@ -141,6 +160,11 @@ void enum_writer_list::cb_btn_ok(void)
 
 void enum_writer_list::cb_refresh_enum_devices()
 {
+    if (is_auto_refresh_enum_devices)
+        return;
+
+    ui->btn_refresh_enum_devices->setEnabled(false);
+
     emit refresh_enum_devides();
 }
 
@@ -161,7 +185,19 @@ int enum_writer_list::currentIndex(void)
 {
     // return ui->comboBox_daplink->currentIndex();
 
-    return 0;
+    if (device_list.count() == 0)
+        return -1;
+
+    switch (ui->collapse->currentIndex())
+    {
+    case 0:
+    {
+        return enum_dap->current_index();
+    }
+    break;
+    }
+
+    return -1;
 }
 
 void enum_writer_list::setCurrentIndex(int n)
@@ -172,7 +208,21 @@ void enum_writer_list::setCurrentIndex(int n)
 
 Devices *enum_writer_list::current_device()
 {
-    return tmp_current_device;
+    // return tmp_current_device;
+
+    if (device_list.count() == 0)
+        return NULL;
+
+    switch (ui->collapse->currentIndex())
+    {
+    case 0:
+    {
+        return enum_dap->current_device();
+    }
+    break;
+    }
+
+    return NULL;
 }
 
 void enum_writer_list::set_collapse_icon(uint32_t index)

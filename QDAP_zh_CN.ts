@@ -7,7 +7,14 @@
         <location filename="src/chip_selecter.ui" line="14"/>
         <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_chip_selecter.h" line="151"/>
         <source>芯片型号选择</source>
-        <oldsource>请选择想要烧录的芯片型号</oldsource>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/chip_selecter.ui" line="41"/>
+        <location filename="src/chip_selecter.ui" line="142"/>
+        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_chip_selecter.h" line="152"/>
+        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_chip_selecter.h" line="156"/>
+        <source>TextLabel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -32,14 +39,6 @@
         <location filename="src/chip_selecter.ui" line="152"/>
         <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_chip_selecter.h" line="157"/>
         <source>确定</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/chip_selecter.ui" line="41"/>
-        <location filename="src/chip_selecter.ui" line="142"/>
-        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_chip_selecter.h" line="152"/>
-        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_chip_selecter.h" line="156"/>
-        <source>TextLabel</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -79,39 +78,33 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/ui_components/enum_dap.ui" line="116"/>
-        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_enum_dap.h" line="173"/>
-        <source>厂商：</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/ui_components/enum_dap.ui" line="126"/>
-        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_enum_dap.h" line="174"/>
-        <source>版本号：</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/ui_components/enum_dap.ui" line="169"/>
-        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_enum_dap.h" line="177"/>
-        <source>产品：</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="src/ui_components/enum_dap.ui" line="77"/>
-        <location filename="src/ui_components/enum_dap.ui" line="100"/>
-        <location filename="src/ui_components/enum_dap.ui" line="143"/>
-        <location filename="src/ui_components/enum_dap.ui" line="186"/>
+        <location filename="src/ui_components/enum_dap.ui" line="120"/>
+        <location filename="src/ui_components/enum_dap.ui" line="155"/>
+        <location filename="src/ui_components/enum_dap.ui" line="178"/>
         <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_enum_dap.h" line="171"/>
-        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_enum_dap.h" line="172"/>
-        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_enum_dap.h" line="175"/>
-        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_enum_dap.h" line="178"/>
+        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_enum_dap.h" line="174"/>
+        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_enum_dap.h" line="176"/>
+        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_enum_dap.h" line="177"/>
         <source>N/A</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/ui_components/enum_dap.ui" line="159"/>
-        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_enum_dap.h" line="176"/>
+        <location filename="src/ui_components/enum_dap.ui" line="93"/>
+        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_enum_dap.h" line="172"/>
         <source>序列码：</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/ui_components/enum_dap.ui" line="103"/>
+        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_enum_dap.h" line="173"/>
+        <source>版本号：</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/ui_components/enum_dap.ui" line="136"/>
+        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_enum_dap.h" line="175"/>
+        <source>厂商/产品：</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -161,6 +154,14 @@
         <location filename="src/mainwindow.ui" line="126"/>
         <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_mainwindow.h" line="743"/>
         <source>视图</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/mainwindow.ui" line="163"/>
+        <location filename="src/mainwindow.ui" line="1131"/>
+        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_mainwindow.h" line="719"/>
+        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_mainwindow.h" line="744"/>
+        <source>信息视图</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -217,6 +218,12 @@
         <location filename="src/mainwindow.ui" line="389"/>
         <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_mainwindow.h" line="751"/>
         <source>USB_HID</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/mainwindow.ui" line="466"/>
+        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_mainwindow.h" line="753"/>
+        <source>Flash容量:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -286,63 +293,9 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.ui" line="1154"/>
-        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_mainwindow.h" line="726"/>
-        <source>取消</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/mainwindow.ui" line="1157"/>
-        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_mainwindow.h" line="728"/>
-        <source>Ctrl+C</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/mainwindow.ui" line="1162"/>
-        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_mainwindow.h" line="730"/>
-        <source>加载FLM算法文件</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/mainwindow.ui" line="1167"/>
-        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_mainwindow.h" line="731"/>
-        <source>清除记录</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/mainwindow.ui" line="1172"/>
-        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_mainwindow.h" line="732"/>
-        <source>芯片器件库</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/mainwindow.ui" line="1177"/>
-        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_mainwindow.h" line="733"/>
-        <source>刷新枚举</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/mainwindow.ui" line="1180"/>
-        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_mainwindow.h" line="735"/>
-        <source>F5</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/mainwindow.ui" line="1188"/>
-        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_mainwindow.h" line="737"/>
-        <source>自动刷新枚举</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="src/mainwindow.ui" line="1032"/>
         <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_mainwindow.h" line="686"/>
         <source>列出设备</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/mainwindow.ui" line="466"/>
-        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_mainwindow.h" line="753"/>
-        <source>Flash容量:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -466,26 +419,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.ui" line="1146"/>
-        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_mainwindow.h" line="722"/>
-        <source>清除日志</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/mainwindow.ui" line="1149"/>
-        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_mainwindow.h" line="724"/>
-        <source>Ctrl+L</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/mainwindow.ui" line="163"/>
-        <location filename="src/mainwindow.ui" line="1131"/>
-        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_mainwindow.h" line="719"/>
-        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_mainwindow.h" line="744"/>
-        <source>信息视图</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="src/mainwindow.ui" line="1136"/>
         <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_mainwindow.h" line="720"/>
         <source>块擦除</source>
@@ -498,32 +431,92 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.cpp" line="458"/>
+        <location filename="src/mainwindow.ui" line="1146"/>
+        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_mainwindow.h" line="722"/>
+        <source>清除日志</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/mainwindow.ui" line="1149"/>
+        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_mainwindow.h" line="724"/>
+        <source>Ctrl+L</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/mainwindow.ui" line="1154"/>
+        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_mainwindow.h" line="726"/>
+        <source>取消</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/mainwindow.ui" line="1157"/>
+        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_mainwindow.h" line="728"/>
+        <source>Ctrl+C</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/mainwindow.ui" line="1162"/>
+        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_mainwindow.h" line="730"/>
+        <source>加载FLM算法文件</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/mainwindow.ui" line="1167"/>
+        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_mainwindow.h" line="731"/>
+        <source>清除记录</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/mainwindow.ui" line="1172"/>
+        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_mainwindow.h" line="732"/>
+        <source>芯片器件库</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/mainwindow.ui" line="1177"/>
+        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_mainwindow.h" line="733"/>
+        <source>刷新枚举</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/mainwindow.ui" line="1180"/>
+        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_mainwindow.h" line="735"/>
+        <source>F5</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/mainwindow.ui" line="1188"/>
+        <location filename="build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include/ui_mainwindow.h" line="737"/>
+        <source>自动刷新枚举</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/mainwindow.cpp" line="462"/>
         <source>请选择一个烧录文件</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.cpp" line="460"/>
+        <location filename="src/mainwindow.cpp" line="464"/>
         <source>Firmware (*.hex *.bin)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.cpp" line="502"/>
+        <location filename="src/mainwindow.cpp" line="506"/>
         <source>请选择烧录文件保存路径</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.cpp" line="504"/>
+        <location filename="src/mainwindow.cpp" line="508"/>
         <source>Binary file (*.bin);;Intel HEX file (*.hex)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.cpp" line="813"/>
+        <location filename="src/mainwindow.cpp" line="825"/>
         <source>请选择一个算法</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.cpp" line="815"/>
+        <location filename="src/mainwindow.cpp" line="827"/>
         <source>flash algo (*.flm)</source>
         <translation type="unfinished"></translation>
     </message>

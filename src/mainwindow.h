@@ -75,7 +75,7 @@ private slots:
     void cb_verify_chip_process(uint32_t val, uint32_t max);
 
 signals:
-    void device_changed(QList<Devices *> dev_list);
+    void device_changed(DeviceList dev_list, bool changed);
 
     void program_worker_erase_chip(void);
     void program_worker_read_chip(QByteArray *data);
@@ -88,17 +88,17 @@ private:
     QElapsedTimer take_timer;
     QString firmware_file_path;
 
-    QList<DAP_HID *> dap_hid_device_list_prev;
-    QList<DAP_HID *> dap_hid_device_list;
+    DeviceList dap_hid_device_list_prev;
+    DeviceList dap_hid_device_list;
 
-    QList<CMSIS_DAP_V2 *> dap_v2_device_list_prev;
-    QList<CMSIS_DAP_V2 *> dap_v2_device_list;
+    DeviceList dap_v2_device_list_prev;
+    DeviceList dap_v2_device_list;
 
-    QList<Devices *> device_list;
+    DeviceList device_list;
 
     QLabel *label_log_ending;
 
-    int current_device;
+    int current_device_index;
 
     QByteArray firmware_buf;
     QByteArray read_back_buf;
@@ -123,7 +123,7 @@ private:
 
     bool auto_refresh_enum_devices;
 
-    bool dap_hid_device_list_compare(QList<DAP_HID *> *now_list, QList<DAP_HID *> *prev_list);
+    // bool dap_hid_device_list_compare(QList<DAP_HID *> *now_list, QList<DAP_HID *> *prev_list);
     int32_t load_flash_algo(QString file_path);
 };
 #endif // MAINWINDOW_H

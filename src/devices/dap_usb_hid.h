@@ -6,6 +6,7 @@
 #include "dap.h"
 #include "flash_algo.h"
 #include "devices.h"
+#include "device_list.h"
 
 #include <QList>
 #include <QThread>
@@ -20,11 +21,18 @@ class DAP_HID : public CMSIS_DAP_Base
 
 public:
     DAP_HID(QString usb_path);
+    DAP_HID(Devices *devices);
     ~DAP_HID();
-    static int32_t enum_device_id(QList<DAP_HID *> *dev_list, uint16_t vid = DAP_HID_VID, uint16_t pid = DAP_HID_PID);
-    static int32_t enum_device(QList<DAP_HID *> *dev_list);
 
-    device_type_t type() override { return DAP_USB_HID; }
+    static int32_t enum_device_id(DeviceList *dev_list, uint16_t vid = DAP_HID_VID, uint16_t pid = DAP_HID_PID);
+    static int32_t enum_device(DeviceList *dev_list);
+
+    bool equal(const Devices &device) override;
+
+    DeviceType type() const override
+    {
+        return DAP_USB_HID;
+    }
     QString get_manufacturer_string() override { return hid_manufacturer; }
     QString get_product_string() override { return hid_product; }
     QString get_serial_string() override { return hid_serial; }

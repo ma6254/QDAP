@@ -17,6 +17,7 @@ DAP_HID::DAP_HID(QString usb_path)
     {
         qDebug("[DAP_HID] open fail");
         err_code = -1;
+        close_device();
         return;
     }
 
@@ -29,7 +30,7 @@ DAP_HID::DAP_HID(QString usb_path)
     if (err < 0)
     {
         qDebug("[DAP_HID] dap_hid_get_info fail");
-        err_code = -1;
+        err_code = -2;
         close_device();
         return;
     }
@@ -45,7 +46,7 @@ DAP_HID::DAP_HID(QString usb_path)
     if (hid_version.isEmpty())
     {
         // qDebug("[enum_device] dap_hid_get_info fail");
-        err_code = -1;
+        err_code = -3;
         close_device();
         return;
     }
@@ -154,6 +155,14 @@ DAP_HID::DAP_HID(QString usb_path)
 
     // dap_disconnect();
     // close_device();
+}
+
+DAP_HID::DAP_HID(Devices *devices)
+{
+    if (devices->type() != type())
+    {
+        return;
+    }
 }
 
 DAP_HID::~DAP_HID()
@@ -300,9 +309,12 @@ int32_t DAP_HID::run()
  * @param None
  * @return None
  ******************************************************************************/
-int32_t DAP_HID::enum_device_id(QList<DAP_HID *> *dev_list, uint16_t vid, uint16_t pid)
+int32_t DAP_HID::enum_device_id(DeviceList *dev_list, uint16_t vid, uint16_t pid)
 {
     uint32_t i = 0;
+
+    if (dev_list == NULL)
+        return -1;
 
     dev_list->clear();
 
@@ -330,7 +342,7 @@ int32_t DAP_HID::enum_device_id(QList<DAP_HID *> *dev_list, uint16_t vid, uint16
 
         if (tmp_dev->error() < 0)
         {
-            qDebug("[DAP_HID] enum_devices index:%d init failed err:%d", i, tmp_dev->error());
+            // qDebug("[DAP_HID] enum_devices index:%d init failed err:%d", i, tmp_dev->error());
 
             delete tmp_dev;
 
@@ -358,29 +370,38 @@ int32_t DAP_HID::enum_device_id(QList<DAP_HID *> *dev_list, uint16_t vid, uint16
     // qDebug("[enum_device] count %d", dev_list->count());
 
     hid_free_enumeration(device_info);
-
     return i;
 }
 
-int32_t DAP_HID::enum_device(QList<DAP_HID *> *dev_list)
+int32_t DAP_HID::enum_device(DeviceList *dev_list)
 {
-    QList<DAP_HID *> tmp_list;
+    DeviceList tmp_total_list;
+    DeviceList tmp_list;
+    int err;
 
     if (dev_list == NULL)
         return -1;
     dev_list->clear();
 
-    if (enum_device_id(&tmp_list))
+    tmp_list.clear();
+    err = enum_device_id(&tmp_list);
+    if (err > 0)
         dev_list->append(tmp_list);
 
-    if (enum_device_id(&tmp_list, 0xC251, 0xF001))
+    tmp_list.clear();
+    err = enum_device_id(&tmp_list, 0xC251, 0xF001);
+    if (err > 0)
         dev_list->append(tmp_list);
 
-    if (enum_device_id(&tmp_list, 0xC251, 0xF002))
+    tmp_list.clear();
+    err = enum_device_id(&tmp_list, 0xC251, 0xF002);
+    if (err > 0)
         dev_list->append(tmp_list);
 
     // H7 Tool
-    if (enum_device_id(&tmp_list, 0xC251, 0xF00A))
+    tmp_list.clear();
+    err = enum_device_id(&tmp_list, 0xC251, 0xF00A);
+    if (err > 0)
         dev_list->append(tmp_list);
 
     // enum_device_id(&tmp_list, 0xC251, 0x2722);
@@ -390,6 +411,19 @@ int32_t DAP_HID::enum_device(QList<DAP_HID *> *dev_list)
     // dev_list->append(tmp_list);
 
     return dev_list->count();
+}
+
+bool DAP_HID::equal(const Devices &device)
+{
+    DAP_HID *dap = (DAP_HID *)&device;
+    bool result = usb_path == dap->usb_path;
+
+    // qDebug("[DAP_HID] equal resilt:%d this->[%s] another->[%s]", result, qPrintable(hid_product), qPrintable(dap->hid_product));
+
+    // if (CMSIS_DAP_Base::equal(device) == false)
+    //     return false;
+
+    return result;
 }
 
 int32_t DAP_HID::open_device()

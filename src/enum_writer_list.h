@@ -23,6 +23,8 @@ public:
     explicit enum_writer_list(QWidget *parent = nullptr);
     ~enum_writer_list();
 
+    void set_auto_refresh(bool auto_refresh);
+
     void dap_hid_list_clear(void);
     int currentIndex(void);
     void setCurrentIndex(int n);
@@ -36,7 +38,7 @@ signals:
     void refresh_enum_devides();
 
 public slots:
-    void cb_device_changed(QList<Devices *> dev_list);
+    void cb_device_changed(DeviceList dev_list, bool changed);
     void cb_collapse_currentChanged(int index);
     void cb_btn_ok(void);
     void cb_refresh_enum_devices();
@@ -44,6 +46,7 @@ public slots:
 private:
     Ui::enum_writer_list *ui;
 
+    DeviceList device_list;
     int current_device_index;
     Devices *tmp_current_device;
 
@@ -55,6 +58,8 @@ private:
 
     QIcon icon_arrow_right;
     QIcon icon_arrow_down;
+
+    bool is_auto_refresh_enum_devices;
 
     QStringList collapse_title_bak_list;
 };

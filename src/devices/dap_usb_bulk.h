@@ -16,8 +16,10 @@ public:
     CMSIS_DAP_V2(libusb_device *dev, int interface_number);
     ~CMSIS_DAP_V2();
 
-    static int32_t enum_device(QList<CMSIS_DAP_V2 *> *dev_list);
+    static int32_t enum_device(DeviceList *dev_list);
     static bool device_list_compare(QList<CMSIS_DAP_V2 *> *now_list, QList<CMSIS_DAP_V2 *> *prev_list);
+
+    bool equal(const Devices &device) override;
 
     int32_t open_device();
     void close_device();
@@ -28,18 +30,22 @@ public:
     QString get_manufacturer() { return manufacturer_str; }
     QString get_erial_number() { return serial_number_str; }
 
-    device_type_t type() override { return DAP_USB_Bulk; }
+    DeviceType type() const override { return DAP_USB_Bulk; }
     QString get_manufacturer_string() override { return manufacturer_str; }
     QString get_product_string() override { return product_str; }
     QString get_serial_string() override { return serial_number_str; }
     QString get_interface_string() { return interface_str; }
     // QString get_version_string() override { return hid_version; }
 
+    int32_t dap_hid_request(uint8_t *tx_data, uint8_t *rx_data);
+    int32_t dap_hid_resp_status_return(uint8_t *rx_data);
+
 private:
     libusb_context *context = NULL;
     libusb_device *dev = NULL;
     libusb_device_handle *handle = NULL;
     libusb_device_descriptor desc = {0};
+    int interface_number;
 
     QString product_str;
     QString manufacturer_str;
