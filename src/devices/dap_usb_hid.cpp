@@ -9,14 +9,14 @@ DAP_HID::DAP_HID(QString usb_path)
 {
     this->usb_path = usb_path;
     int32_t err;
+    err_code = 0;
     // uint32_t idcode;
 
     err = open_device();
     if (err < 0)
     {
-        qDebug("[enum_device] open fail");
+        qDebug("[DAP_HID] open fail");
         err_code = -1;
-        close_device();
         return;
     }
 
@@ -28,7 +28,7 @@ DAP_HID::DAP_HID(QString usb_path)
     err = dap_hid_get_info();
     if (err < 0)
     {
-        qDebug("[enum_device] dap_hid_get_info fail");
+        qDebug("[DAP_HID] dap_hid_get_info fail");
         err_code = -1;
         close_device();
         return;
@@ -330,6 +330,8 @@ int32_t DAP_HID::enum_device_id(QList<DAP_HID *> *dev_list, uint16_t vid, uint16
 
         if (tmp_dev->error() < 0)
         {
+            qDebug("[DAP_HID] enum_devices index:%d init failed err:%d", i, tmp_dev->error());
+
             delete tmp_dev;
 
             if (device_info->next == NULL)
