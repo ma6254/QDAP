@@ -53,6 +53,8 @@ public:
 
     uint32_t idcode() { return tmp_idcode; }
 
+    int32_t dap_request(uint8_t *tx_data, uint8_t *rx_data) override;
+
     int32_t dap_hid_request(uint8_t *tx_data, uint8_t *rx_data);
     int32_t dap_hid_resp_status_return(uint8_t *rx_data);
 

@@ -103,7 +103,23 @@ void EnumDAP::set_info(CMSIS_DAP_Base *dap)
     }
 
     ui->label_manufacturer->setText(dap->get_manufacturer_string());
-    ui->label_product->setText(dap->get_product_string());
+
+    switch (dap->type())
+    {
+    case Devices::DAP_USB_HID:
+    {
+        ui->label_product->setText(dap->get_product_string());
+    }
+    break;
+    case Devices::DAP_USB_Bulk:
+    {
+        CMSIS_DAP_V2 *tmp_dap_v2 = (CMSIS_DAP_V2 *)dap;
+
+        ui->label_product->setText(tmp_dap_v2->get_interface_string());
+    }
+    break;
+    }
+
     ui->label_serial->setText(dap->get_serial_string());
     ui->label_version->setText(dap->get_version_string());
 }

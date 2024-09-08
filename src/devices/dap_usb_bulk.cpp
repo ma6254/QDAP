@@ -1,6 +1,7 @@
 #include "dap_usb_bulk.h"
+#include "utils.h"
 
-CMSIS_DAP_V2::CMSIS_DAP_V2(libusb_device *dev, int interface_number)
+CMSIS_DAP_V2::CMSIS_DAP_V2(libusb_device *dev, int interface_number, uint8_t ep_in_addr, uint8_t ep_out_addr)
 {
     int32_t err;
     int rc = 0;
@@ -8,7 +9,11 @@ CMSIS_DAP_V2::CMSIS_DAP_V2(libusb_device *dev, int interface_number)
 
     this->dev = dev;
     this->interface_number = interface_number;
+    this->ep_in_addr = ep_in_addr;
+    this->ep_out_addr = ep_out_addr;
     err_code = 0;
+
+    qDebug("[CMSIS_DAP_V2] interface:%d ep_in:0x%02X ep_out:0x%02X", interface_number, ep_in_addr, ep_out_addr);
 
     rc = libusb_get_device_descriptor(this->dev, &desc);
     if (rc < LIBUSB_SUCCESS)
@@ -82,6 +87,17 @@ CMSIS_DAP_V2::CMSIS_DAP_V2(libusb_device *dev, int interface_number)
     }
     interface_str = QString::fromUtf8(interface_str_buf, sizeof(interface_str_buf));
 
+    err = get_info_cmsis_dap_protocol_version(&version_str);
+    if (err > 0)
+    {
+        qDebug("[CMSIS_DAP_V2] get_version fail");
+        err_code = -1;
+        close_device();
+        return;
+    }
+
+    // qDebug("[CMSIS_DAP_V2] get_version: %s", qPrintable(version_str));
+
     // qDebug("         iProduct: %s", qPrintable(product_str));
     // qDebug("    iManufacturer: %s", qPrintable(manufacturer_str));
     // qDebug("    iSerialNumber: %s", qPrintable(serial_number_str));
@@ -104,6 +120,8 @@ int32_t CMSIS_DAP_V2::enum_device(DeviceList *dev_list)
     ssize_t count = 0;
     char buf_product[1024];
     char buf_serial[1024];
+    uint8_t ep_out_addr;
+    uint8_t ep_in_addr;
     // char buf_manufacturer[1024];
     // char buf_serial_number[1024];
 
@@ -230,6 +248,9 @@ int32_t CMSIS_DAP_V2::enum_device(DeviceList *dev_list)
                         continue;
                     }
 
+                    ep_out_addr = intf_desc->endpoint[0].bEndpointAddress;
+                    ep_in_addr = intf_desc->endpoint[1].bEndpointAddress;
+
                     interface_number = intf_desc->bInterfaceNumber;
 
                     // qDebug("[CMSIS_DAP_V2] found interface %d string '%s'", intf_desc->bInterfaceNumber, interface_str);
@@ -241,7 +262,7 @@ int32_t CMSIS_DAP_V2::enum_device(DeviceList *dev_list)
         if (interface_number == -1)
             continue;
 
-        CMSIS_DAP_V2 *tmp_dev = new CMSIS_DAP_V2(device, interface_number);
+        CMSIS_DAP_V2 *tmp_dev = new CMSIS_DAP_V2(device, interface_number, ep_in_addr, ep_out_addr);
         if (tmp_dev->error() == -1)
         {
             delete tmp_dev;
@@ -287,11 +308,21 @@ bool CMSIS_DAP_V2::equal(const Devices &device)
 
 int32_t CMSIS_DAP_V2::open_device()
 {
-    int rc = 0;
+    int err;
 
-    rc = libusb_open(dev, &handle);
-    if (rc != LIBUSB_SUCCESS)
+    err = libusb_open(dev, &handle);
+    if (err != LIBUSB_SUCCESS)
     {
+        QString err_info = QString::fromUtf8(libusb_error_name(err));
+        qDebug("[CMSIS_DAP_V2] libusb_open fail: %s", qUtf8Printable(err_info));
+        return -1;
+    }
+
+    err = libusb_claim_interface(handle, interface_number);
+    if (err != LIBUSB_SUCCESS)
+    {
+        QString err_info = QString::fromUtf8(libusb_error_name(err));
+        qDebug("[CMSIS_DAP_V2] libusb_claim_interface fail: %s", qUtf8Printable(err_info));
         return -1;
     }
 
@@ -300,16 +331,39 @@ int32_t CMSIS_DAP_V2::open_device()
 
 void CMSIS_DAP_V2::close_device()
 {
+    libusb_release_interface(handle, interface_number);
     libusb_close(handle);
     handle = NULL;
 }
 
-int32_t request(uint8_t *tx_data, uint8_t *rx_data)
+int32_t CMSIS_DAP_V2::dap_request(uint8_t *tx_data, uint8_t *rx_data)
 {
-    return 0;
-}
+    int err;
+    // uint8_t tx_buf[512] = {0};
+    // uint8_t rx_buf[512] = {0};
+    int actual_length;
+    err = libusb_bulk_transfer(handle, ep_out_addr, tx_data, 512, &actual_length, 100);
+    if (err < 0)
+    {
+        QString err_info = QString::fromUtf8(libusb_error_name(err));
+        qDebug("[CMSIS_DAP_V2] dap_request out fail: %s", qUtf8Printable(err_info));
+        return err;
+    }
 
-int32_t respone_status_return(uint8_t *rx_data)
-{
+    err = libusb_bulk_transfer(handle, ep_in_addr, rx_data, 512, &actual_length, 100);
+    if (err < 0)
+    {
+        QString err_info = QString::fromUtf8(libusb_error_name(err));
+        qDebug("[CMSIS_DAP_V2] dap_request in fail: %s", qUtf8Printable(err_info));
+        return err;
+    }
+
+    // 首字节一定与发送相等
+    if (rx_data[0] != tx_data[0])
+    {
+        qDebug("[CMSIS_DAP_V2] dap_request out&in cmd not equal: 0x%02X 0x%02x", tx_data[0], rx_data[0]);
+        return -1;
+    }
+
     return 0;
 }

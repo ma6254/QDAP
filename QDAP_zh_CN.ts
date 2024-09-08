@@ -511,12 +511,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.cpp" line="825"/>
+        <location filename="src/mainwindow.cpp" line="828"/>
         <source>请选择一个算法</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/mainwindow.cpp" line="827"/>
+        <location filename="src/mainwindow.cpp" line="830"/>
         <source>flash algo (*.flm)</source>
         <translation type="unfinished"></translation>
     </message>

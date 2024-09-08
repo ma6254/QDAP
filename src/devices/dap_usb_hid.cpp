@@ -450,6 +450,47 @@ int32_t DAP_HID::close_device()
     return 0;
 }
 
+int32_t DAP_HID::dap_request(uint8_t *tx_data, uint8_t *rx_data)
+{
+    int32_t err;
+    uint8_t tx_buf[65] = {0};
+
+    tx_buf[0] = 0x00;
+    memcpy(tx_buf + 1, tx_data, 64);
+
+    if (dev == NULL)
+    {
+        qDebug("[DAP_HID] dev is NULL");
+        return -1;
+    }
+
+    err = hid_write(dev, tx_buf, 65);
+    if (err < 0)
+    {
+        QString err_info = QString::fromWCharArray(hid_error(dev));
+        qDebug("[DAP_HID] dap_hid_request fail: %s", qUtf8Printable(err_info));
+        return err;
+    }
+
+    err = hid_read_timeout(dev, rx_data, 64, 100);
+    if (err < 0)
+    {
+        QString err_info = QString::fromWCharArray(hid_error(dev));
+        qDebug("[DAP_HID] dap_hid_request fail: %s", qUtf8Printable(err_info));
+        return err;
+    }
+
+    // 首字节一定与发送相等
+    if (rx_data[0] != tx_data[0])
+    {
+        qDebug("[DAP_HID] dap_hid_request fail cmd not requls tx:0x%02X rx:0x%02X", tx_data[0], rx_data[0]);
+        hexdump(rx_data, 64);
+        return -1;
+    }
+
+    return 0;
+}
+
 int32_t DAP_HID::dap_hid_request(uint8_t *tx_data, uint8_t *rx_data)
 {
     int32_t err;

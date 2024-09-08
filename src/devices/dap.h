@@ -129,6 +129,10 @@ public:
     virtual QString get_product_string() { return "Unknow"; }
     virtual QString get_serial_string() { return "Unknow"; }
     virtual QString get_version_string() { return "Unknow"; }
+
+    virtual int32_t dap_request(uint8_t *tx_data, uint8_t *rx_data) = 0;
+
+    int get_info_cmsis_dap_protocol_version(QString *version);
 };
 
 #include "dap_usb_hid.h"
