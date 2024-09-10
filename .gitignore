@@ -40,6 +40,7 @@ Thumbs.db
 CMakeLists.txt.user
 CMakeLists.txt.user.*
 /build
+QDAP_*.ts
 
 # xemacs temporary files
 *.flc
