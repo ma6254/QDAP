@@ -1,7 +1,6 @@
+#include <QCoreApplication>
 #include "chip_selecter.h"
 #include "ui_chip_selecter.h"
-
-const QString config_dir_path = QDir::homePath() + QDir::separator() + ".qdap";
 
 ChipSelecter::ChipSelecter(QWidget *parent) : QDialog(parent),
                                               ui(new Ui::ChipSelecter)
@@ -429,7 +428,8 @@ void ChipSelecter::load_chips(QString chips_dir_path)
 {
     if (chips_dir_path.isEmpty())
     {
-        chips_dir_path = config_dir_path + QDir::separator() + "chips";
+
+        chips_dir_path = QCoreApplication::applicationDirPath() + QDir::separator() + "chips";
     }
 
     QDir dir_chips(chips_dir_path);

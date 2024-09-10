@@ -136,6 +136,7 @@
         "qelapsedtimer": "cpp",
         "qvboxlayout": "cpp",
         "qcombobox": "cpp",
-        "qgroupbox": "cpp"
+        "qgroupbox": "cpp",
+        "qcoreapplication": "cpp"
     }
 }

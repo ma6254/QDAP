@@ -1,4 +1,5 @@
-﻿#include <QFileDialog>
+﻿#include <QCoreApplication>
+#include <QFileDialog>
 #include <QTimer>
 #include <QDateTime>
 #include <QScrollBar>
@@ -9,15 +10,16 @@
 #include "utils.h"
 #include <yaml-cpp/yaml.h>
 
-const QString config_dir_path = QDir::homePath() + QDir::separator() + ".qdap";
-const QString config_file_path = config_dir_path + QDir::separator() + "config.yml";
-
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
     ram_start = 0x20000000;
     current_device_index = -1;
+
+    config_dir_path = QCoreApplication::applicationDirPath();
+    config_file_path = config_dir_path + QDir::separator() + "config.yml";
+
     ui->progressBar->setHidden(true);
 
     hex_viewer = new HexViewer(ui->centralwidget);
@@ -94,13 +96,11 @@ MainWindow::MainWindow(QWidget *parent)
     // load_flash_algo("devices/STM/STM32F4xx/STM32F4xx_256.FLM");
     load_flash_algo("C:\\Keil_v5\\ARM\\PACK\\Keil\\STM32F4xx_DFP\\2.17.1\\CMSIS\\Flash\\STM32F4xx\\STM32F4xx_128.FLM");
 
-    qDebug("config: %s", qPrintable(config_file_path));
-
     QFile file;
     file.setFileName(config_file_path);
     if (file.exists() == false)
     {
-        qDebug("[cfg] The config file does not exist and will be initialized");
+        qDebug("[cfg] The config file does not exist and will be initialized %s", qPrintable(config_file_path));
         config_save();
 
         // YAML::Node node;

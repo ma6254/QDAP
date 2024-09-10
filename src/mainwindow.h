@@ -103,6 +103,9 @@ private:
     QByteArray firmware_buf;
     QByteArray read_back_buf;
 
+    QString config_dir_path;
+    QString config_file_path;
+
     QString chip_vendor_name;
     QString chip_series_name;
     QString chip_name;
