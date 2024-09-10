@@ -137,6 +137,8 @@
         "qvboxlayout": "cpp",
         "qcombobox": "cpp",
         "qgroupbox": "cpp",
-        "qcoreapplication": "cpp"
+        "qcoreapplication": "cpp",
+        "qobject": "cpp",
+        "qfile": "cpp"
     }
 }

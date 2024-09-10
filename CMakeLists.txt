@@ -61,6 +61,8 @@ else()
     src/mainwindow.ui
     src/utils.cpp
     src/utils.h
+    src/config.cpp
+    src/config.h
     src/enum_writer_list.cpp
     src/enum_writer_list.h
     src/enum_writer_list.ui

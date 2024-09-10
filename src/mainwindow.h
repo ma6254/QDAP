@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QLabel>
 #include <QElapsedTimer>
+#include "config.h"
 #include "devices.h"
 #include "flash_algo.h"
 #include "hex_viewer.h"
@@ -34,8 +35,8 @@ public:
     void log_warn(QString str);
     void log_error(QString str);
 
-    void config_save(void);
-    int config_load(void);
+    // void config_save(void);
+    // int config_load(void);
 
     void set_dock_chip_info();
 
@@ -86,7 +87,7 @@ private:
     Ui::MainWindow *ui;
     QTimer *timer_enum_device;
     QElapsedTimer take_timer;
-    QString firmware_file_path;
+    Config *config;
 
     DeviceList dap_hid_device_list_prev;
     DeviceList dap_hid_device_list;
@@ -103,14 +104,6 @@ private:
     QByteArray firmware_buf;
     QByteArray read_back_buf;
 
-    QString config_dir_path;
-    QString config_file_path;
-
-    QString chip_vendor_name;
-    QString chip_series_name;
-    QString chip_name;
-    QString chips_url;
-
     bool force_update_device_list;
 
     FlashAlgo flash_algo;
@@ -123,8 +116,6 @@ private:
     ChipSelecter *dialog_chip_selecter;
     DialogChipsConfig *dialog_chips_config;
     enum_writer_list *dialog_enum_devices;
-
-    bool auto_refresh_enum_devices;
 
     // bool dap_hid_device_list_compare(QList<DAP_HID *> *now_list, QList<DAP_HID *> *prev_list);
     int32_t load_flash_algo(QString file_path);
