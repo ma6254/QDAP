@@ -40,8 +40,7 @@ git clone --recursive https://github.com/ma6254/QDAP.git
 - <https://github.com/openocd-org/openocd>
 - <https://arm-software.github.io/CMSIS_5/DAP/html/index.html>
 - <https://github.com/x893/CMSIS-DAP>
-- <https://gitee.com/synwit-co-ltd/SWMProg>
-- <https://gitee.com/synwit-co-ltd/DAPProg>
+- <https://github.com/XIVN1987/DAPProg>
 - <https://github.com/tthe207/DP-SW>
 - <https://www.keil.arm.com/devices/>
 - <https://en.wikipedia.org/wiki/Executable_and_Linkable_Format>
