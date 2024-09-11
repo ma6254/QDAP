@@ -26,6 +26,11 @@ Config *Config::get_default()
     config->chip_series_name = "";
     config->chip_name = "";
     config->chips_url = "https://github.com/ma6254/qdap_chips";
+    config->cmsis_dap_port_str = "swd";
+    config->cmsis_dap_swj = true;
+    config->cmsis_dap_clock_str = "1M";
+    config->cmsis_dap_clock = 1;
+    config->cmsis_dap_clock_unit = Devices::MHz;
 
     return config;
 }
@@ -130,6 +135,34 @@ int Config::from_node(YAML::Node node)
         return -1;
     chips_url = QString(tmp_node.as<std::string>().c_str());
 
+    YAML::Node node_devices = node["devices"];
+    if (node_devices.IsMap() == false)
+        return -1;
+
+    YAML::Node node_devices_dap = node_devices["cmsis_dap"];
+    if (node_devices_dap.IsMap() == false)
+        return -1;
+
+    tmp_node = node_devices_dap["port"];
+    if (tmp_node.IsScalar() == false)
+        return -1;
+    cmsis_dap_port_str = QString(tmp_node.as<std::string>().c_str());
+    CMSIS_DAP_Base::parse_port_str(cmsis_dap_port_str, &cmsis_dap_port);
+    // qDebug("[Config] port: %s", qPrintable(QVariant::fromValue(cmsis_dap_port).toString()));
+
+    tmp_node = node_devices_dap["swj"];
+    if (tmp_node.IsScalar() == false)
+        return -1;
+    cmsis_dap_swj = tmp_node.as<bool>();
+    // node_devices_dap["clock"] = "1M";
+
+    tmp_node = node_devices_dap["clock"];
+    if (tmp_node.IsScalar() == false)
+        return -1;
+    cmsis_dap_clock_str = QString(tmp_node.as<std::string>().c_str());
+    Devices::parse_clock_str(cmsis_dap_clock_str, &cmsis_dap_clock, &cmsis_dap_clock_unit);
+    // qDebug("[Config] clock: %d %s", cmsis_dap_clock, qPrintable(QVariant::fromValue(cmsis_dap_clock_unit).toString()));
+
     qDebug("[Config] load ok");
     return 0;
 }
@@ -200,7 +233,7 @@ int Config::to_node(YAML::Node *node)
     (*node)["auto_refresh_enum_devices"] = auto_refresh_enum_devices;
 
     // 已选中的芯片
-    qDebug("[cfg] node_chip_selected");
+    // qDebug("[cfg] node_chip_selected");
     YAML::Node node_chip_selected;
     node_chip_selected["vendor_name"] = qUtf8Printable(chip_vendor_name);
     node_chip_selected["series_name"] = qUtf8Printable(chip_series_name);
@@ -208,13 +241,13 @@ int Config::to_node(YAML::Node *node)
     (*node)["chip_selected"] = node_chip_selected;
 
     // 芯片器件库
-    qDebug("[cfg] node_chips_library");
+    // qDebug("[cfg] node_chips_library");
     YAML::Node node_chips_library;
     node_chips_library["url"] = qUtf8Printable(chips_url);
     (*node)["chips_library"] = node_chips_library;
 
     // 已选中的设备
-    qDebug("[cfg] node_devices_selected");
+    // qDebug("[cfg] node_devices_selected");
     YAML::Node node_devices_selected;
     node_devices_selected["any"] = "";
     node_devices_selected["type"] = "";
@@ -223,6 +256,19 @@ int Config::to_node(YAML::Node *node)
     node_devices_selected["serial"] = "";
     (*node)["devices_selected"] = node_devices_selected;
 
+    // 设备参数
+    // qDebug("[cfg] node_devices_selected");
+
+    YAML::Node node_devices;
+
+    YAML::Node node_devices_dap;
+    node_devices_dap["port"] = qPrintable(QVariant::fromValue(cmsis_dap_port).toString());
+    node_devices_dap["swj"] = cmsis_dap_swj;
+    node_devices_dap["clock"] = qPrintable(QString::number(cmsis_dap_clock) + Devices::get_clock_unit_str(cmsis_dap_clock_unit));
+    node_devices["cmsis_dap"] = node_devices_dap;
+
+    (*node)["devices"] = node_devices;
+
     // QDir dir_config(config_dir_path);
     // if (!dir_config.exists())
     // {
@@ -230,4 +276,21 @@ int Config::to_node(YAML::Node *node)
     // }
 
     return 0;
+}
+
+uint32_t Config::get_cmsis_dap_clock()
+{
+    switch (cmsis_dap_clock_unit)
+    {
+    case Devices::Hz:
+        return cmsis_dap_clock;
+    case Devices::KHz:
+        return cmsis_dap_clock * 1000;
+    case Devices::MHz:
+        return cmsis_dap_clock * 1000 * 1000;
+    case Devices::GHz:
+        return cmsis_dap_clock * 1000 * 1000 * 1000;
+    }
+
+    return cmsis_dap_clock;
 }

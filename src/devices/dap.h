@@ -122,8 +122,17 @@ class CMSIS_DAP_Base : public Devices
     Q_OBJECT
 
 public:
+    enum Port
+    {
+        SWD = 1,
+        JTAG = 2,
+    };
+    Q_ENUM(Port)
+
     CMSIS_DAP_Base();
     ~CMSIS_DAP_Base();
+
+    static int parse_port_str(QString str, Port *port);
 
     virtual QString get_manufacturer_string() { return "Unknow"; }
     virtual QString get_product_string() { return "Unknow"; }

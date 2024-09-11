@@ -5,7 +5,6 @@
 #include <QThread>
 #include <QDebug>
 
-
 class Devices;
 class DeviceList;
 class DAP_HID;
@@ -18,10 +17,6 @@ class Devices : public QObject
     Q_OBJECT
 
 public:
-    Devices();
-    Devices(const Devices &src_device);
-    ~Devices();
-
     enum DeviceType
     {
         UnknownDeviceType = 0,
@@ -34,8 +29,23 @@ public:
     };
     Q_ENUM(DeviceType)
 
+    enum ClockUnit
+    {
+        Hz,
+        KHz,
+        MHz,
+        GHz,
+    };
+    Q_ENUM(ClockUnit)
+
+    Devices();
+    Devices(const Devices &src_device);
+    ~Devices();
+
     static QString device_type_to_string(DeviceType t);
     static DeviceType string_to_device_type(QString str);
+    static int parse_clock_str(QString str, uint64_t *clock, ClockUnit *unit);
+    static QString get_clock_unit_str(ClockUnit unit);
 
     // typedef enum
     // {
@@ -47,11 +57,23 @@ public:
     // bool support_transport_jtag() { return support_transports(JTAG); }
     // bool support_transport_swd() { return support_transports(SWD); }
 
-    virtual DeviceType type() const { return UnknownDeviceType; }
-    QString type_str() { return device_type_to_string(type()); }
+    virtual DeviceType type() const
+    {
+        return UnknownDeviceType;
+    }
+    QString type_str()
+    {
+        return device_type_to_string(type());
+    }
 
-    virtual QString get_manufacturer_string() { return "Unknow"; }
-    virtual QString get_product_string() { return "Unknow"; }
+    virtual QString get_manufacturer_string()
+    {
+        return "Unknow";
+    }
+    virtual QString get_product_string()
+    {
+        return "Unknow";
+    }
 
     virtual bool equal(const Devices &device);
 

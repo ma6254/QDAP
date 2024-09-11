@@ -1,3 +1,4 @@
+#include <QRegExp>
 #include "devices.h"
 #include "dap_usb_hid.h"
 
@@ -36,6 +37,51 @@ Devices::DeviceType Devices::string_to_device_type(QString str)
         return DAP_USB_Bulk;
 
     return UnknownDeviceType;
+}
+
+int Devices::parse_clock_str(QString str, uint64_t *clock, ClockUnit *unit)
+{
+    str = str.toUpper();
+    QRegExp regexp = QRegExp("^(\\d+)([KMG]*)$");
+    int pos = regexp.indexIn(str);
+
+    if (pos == -1)
+        return -1;
+
+    *clock = regexp.cap(1).toULongLong();
+
+    QString uint_str = regexp.cap(2);
+    if (uint_str.isEmpty())
+        *unit = Hz;
+    else if (uint_str == "K")
+        *unit = KHz;
+    else if (uint_str == "M")
+        *unit = MHz;
+    else if (uint_str == "G")
+        *unit = GHz;
+    else
+    {
+        return -1;
+    }
+
+    return 0;
+}
+
+QString Devices::get_clock_unit_str(ClockUnit unit)
+{
+    switch (unit)
+    {
+    case Hz:
+        return "";
+    case KHz:
+        return "K";
+    case MHz:
+        return "M";
+    case GHz:
+        return "G";
+    }
+
+    return "";
 }
 
 bool Devices::equal(const Devices &device)

@@ -10,6 +10,10 @@ EnumDAP::EnumDAP(QWidget *parent)
     ui->dd_dev->setCurrentText(0);
 
     connect(ui->dd_dev, SIGNAL(currentIndexChanged(int)), this, SLOT(cb_dd_dev_currentIndexChanged(int)));
+
+    QRegExp regexp("\\d+");
+    QRegExpValidator *validator = new QRegExpValidator(regexp, this);
+    ui->lineEdit_clock->setValidator(validator);
 }
 
 EnumDAP::~EnumDAP()
@@ -92,6 +96,62 @@ void EnumDAP::set_info_empty()
     ui->label_product->setText("N/A");
     ui->label_serial->setText("N/A");
     ui->label_version->setText("N/A");
+}
+
+void EnumDAP::set_config_port(CMSIS_DAP_Base::Port port, bool swj)
+{
+    switch (port)
+    {
+    case CMSIS_DAP_Base::SWD:
+        ui->comboBox_port->setCurrentIndex(0);
+        break;
+    case CMSIS_DAP_Base::JTAG:
+        ui->comboBox_port->setCurrentIndex(1);
+        break;
+    default:
+        ui->comboBox_port->setCurrentIndex(-1);
+        break;
+    }
+
+    ui->checkBox_swj->setChecked(swj);
+}
+
+void EnumDAP::set_config_clock(uint64_t clock, Devices::ClockUnit unit)
+{
+    ui->lineEdit_clock->setText(QString::number(clock));
+    ui->comboBox_clock_unit->setCurrentIndex(unit);
+}
+
+CMSIS_DAP_Base::Port EnumDAP::get_config_port()
+{
+    switch (ui->comboBox_port->currentIndex())
+    {
+    case 0:
+        return CMSIS_DAP_Base::SWD;
+    default:
+        return CMSIS_DAP_Base::JTAG;
+    }
+}
+
+bool EnumDAP::get_config_swj()
+{
+    return ui->checkBox_swj->isChecked();
+}
+
+QString EnumDAP::get_config_clock_str()
+{
+    return ui->lineEdit_clock->text() +
+           Devices::get_clock_unit_str(static_cast<Devices::ClockUnit>(ui->comboBox_clock_unit->currentIndex()));
+}
+
+uint64_t EnumDAP::get_config_clock()
+{
+    return ui->lineEdit_clock->text().toULongLong();
+}
+
+Devices::ClockUnit EnumDAP::get_config_clock_unit()
+{
+    return static_cast<Devices::ClockUnit>(ui->comboBox_clock_unit->currentIndex());
 }
 
 void EnumDAP::set_info(CMSIS_DAP_Base *dap)

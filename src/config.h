@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <yaml-cpp/yaml.h>
+#include "devices.h"
 
 class Config : public QObject
 {
@@ -21,6 +22,8 @@ public:
     int to_file(QString file_path = "");
     int to_node(YAML::Node *node);
 
+    uint32_t get_cmsis_dap_clock();
+
     QString firmware_file_path;
     bool auto_refresh_enum_devices;
 
@@ -29,6 +32,13 @@ public:
     QString chip_name;
 
     QString chips_url;
+
+    QString cmsis_dap_port_str;
+    CMSIS_DAP_Base::Port cmsis_dap_port;
+    bool cmsis_dap_swj;
+    QString cmsis_dap_clock_str;
+    uint64_t cmsis_dap_clock;
+    Devices::ClockUnit cmsis_dap_clock_unit;
 
 private:
 };

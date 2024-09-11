@@ -53,6 +53,24 @@ CMSIS_DAP_Base::~CMSIS_DAP_Base()
 {
 }
 
+int CMSIS_DAP_Base::parse_port_str(QString str, Port *port)
+{
+    str = str.toUpper();
+
+    if (str == "SWD")
+    {
+        *port = SWD;
+        return 0;
+    }
+    else if (str == "JTAG")
+    {
+        *port = JTAG;
+        return 0;
+    }
+
+    return -1;
+}
+
 int CMSIS_DAP_Base::get_info_cmsis_dap_protocol_version(QString *version)
 {
     uint8_t tx_buf[512] = {0};

@@ -25,6 +25,14 @@ public:
     void set_info(CMSIS_DAP_Base *dap);
     void set_info(int index);
     void set_info_empty();
+    void set_config_port(CMSIS_DAP_Base::Port port, bool swj);
+    void set_config_clock(uint64_t clock, Devices::ClockUnit unit);
+
+    CMSIS_DAP_Base::Port get_config_port();
+    bool get_config_swj();
+    QString get_config_clock_str();
+    uint64_t get_config_clock();
+    Devices::ClockUnit get_config_clock_unit();
 
     int current_index();
     void set_current_index(int index);

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>260</width>
-    <height>342</height>
+    <width>402</width>
+    <height>770</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -48,7 +48,7 @@
       </item>
       <item>
        <widget class="QWidget" name="widget" native="true">
-        <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0" columnstretch="0,0">
+        <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0,0" columnstretch="0,0" rowminimumheight="0,0,0,0,0">
          <property name="leftMargin">
           <number>10</number>
          </property>
@@ -64,6 +64,16 @@
          <property name="spacing">
           <number>10</number>
          </property>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_title_serial">
+           <property name="text">
+            <string>序列码：</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
          <item row="1" column="1">
           <widget class="QLabel" name="label_serial">
            <property name="styleSheet">
@@ -84,26 +94,6 @@
            </property>
            <property name="textInteractionFlags">
             <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_title_serial">
-           <property name="text">
-            <string>序列码：</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_title_version">
-           <property name="text">
-            <string>版本号：</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -138,6 +128,224 @@
            <property name="alignment">
             <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
            </property>
+          </widget>
+         </item>
+         <item row="4" column="0" colspan="2">
+          <widget class="QWidget" name="widget_config" native="true">
+           <property name="styleSheet">
+            <string notr="true">QWidget#widget_config {
+	background-color: rgba(50,50,50,1.0);
+    border-radius: 5px;
+};
+</string>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_3">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <item row="0" column="0" colspan="2">
+             <widget class="QLabel" name="label_4">
+              <property name="styleSheet">
+               <string notr="true">QLabel {
+    background-color: rgb(50,50,50);
+    color: rgba(255, 255, 255, 1);
+    border-radius: 5px;
+}</string>
+              </property>
+              <property name="text">
+               <string>  参数配置</string>
+              </property>
+              <property name="margin">
+               <number>5</number>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0" colspan="2">
+             <widget class="QWidget" name="widget_config_content" native="true">
+              <property name="styleSheet">
+               <string notr="true">QWidget#widget_config_content {
+	background-color: rgba(240,240,240,1.0);
+	border-color: rgba(50,50,50,1.0);
+    border: 2px solid;
+    border-radius: 5px;
+};
+</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_2" columnstretch="0,0">
+               <property name="leftMargin">
+                <number>9</number>
+               </property>
+               <property name="topMargin">
+                <number>9</number>
+               </property>
+               <property name="rightMargin">
+                <number>9</number>
+               </property>
+               <property name="bottomMargin">
+                <number>9</number>
+               </property>
+               <property name="spacing">
+                <number>6</number>
+               </property>
+               <item row="0" column="0">
+                <widget class="QLabel" name="label">
+                 <property name="text">
+                  <string>端口：</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLabel" name="label_2">
+                 <property name="text">
+                  <string>时钟：</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="0">
+                <widget class="QLabel" name="label_3">
+                 <property name="text">
+                  <string>复位方式：</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="35,35,30">
+                 <item>
+                  <widget class="QComboBox" name="comboBox_port">
+                   <item>
+                    <property name="text">
+                     <string>SWD</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>JTAG</string>
+                    </property>
+                   </item>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBox_swj">
+                   <property name="text">
+                    <string>SWJ</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_3">
+                   <property name="orientation">
+                    <enum>Qt::Orientation::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+               <item row="1" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="35,35,30">
+                 <item>
+                  <widget class="QLineEdit" name="lineEdit_clock"/>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="comboBox_clock_unit">
+                   <item>
+                    <property name="text">
+                     <string>Hz</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>KHz</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>MHz</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>GHz</string>
+                    </property>
+                   </item>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer">
+                   <property name="orientation">
+                    <enum>Qt::Orientation::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+               <item row="2" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="70,30">
+                 <item>
+                  <widget class="QComboBox" name="comboBox">
+                   <item>
+                    <property name="text">
+                     <string>硬件：复位引脚</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>软件：AIRCR寄存器</string>
+                    </property>
+                   </item>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_2">
+                   <property name="orientation">
+                    <enum>Qt::Orientation::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
           </widget>
          </item>
          <item row="0" column="1">
@@ -189,6 +397,16 @@
             </widget>
            </item>
           </layout>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_title_version">
+           <property name="text">
+            <string>版本号：</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+           </property>
+          </widget>
          </item>
         </layout>
        </widget>

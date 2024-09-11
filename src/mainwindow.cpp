@@ -170,6 +170,11 @@ MainWindow::MainWindow(QWidget *parent)
             this,
             SLOT(cb_action_auto_refresh_enum_devices(bool)));
 
+    EnumDAP *tmp_enum_dap;
+    tmp_enum_dap = dialog_enum_devices->get_enum_dap();
+    tmp_enum_dap->set_config_port(config->cmsis_dap_port, config->cmsis_dap_swj);
+    tmp_enum_dap->set_config_clock(config->cmsis_dap_clock, config->cmsis_dap_clock_unit);
+
     cb_tick_enum_device();
 }
 
@@ -460,6 +465,13 @@ void MainWindow::cb_action_enum_device_list(void)
     ui->label_info_dev_name->setText(tmp_str);
 
     ui->label_device_type->setText(tmp_dev->type_str());
+
+    EnumDAP *tmp_enum_dap = dialog_enum_devices->get_enum_dap();
+    config->cmsis_dap_port = tmp_enum_dap->get_config_port();
+    config->cmsis_dap_swj = tmp_enum_dap->get_config_swj();
+    config->cmsis_dap_clock = tmp_enum_dap->get_config_clock();
+    config->cmsis_dap_clock_unit = tmp_enum_dap->get_config_clock_unit();
+    config->to_file();
 
     // current_device = dialog_enum_devices->currentIndex();
 

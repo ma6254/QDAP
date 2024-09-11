@@ -34,6 +34,8 @@ public:
     void set_collapse_icon(uint32_t index);
     void set_btn_manual_refresh_enabled(bool enabled);
 
+    EnumDAP *get_enum_dap() { return enum_dap; }
+
 signals:
     void refresh_enum_devides();
 
