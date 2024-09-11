@@ -84,6 +84,7 @@ else()
     src/devices/dap_usb_bulk.cpp src/devices/dap_usb_bulk.h
     src/ui_components/enum_dap.h src/ui_components/enum_dap.cpp src/ui_components/enum_dap.ui
     ${TS_FILES}
+    main.qrc
   )
 endif()
   

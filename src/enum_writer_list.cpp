@@ -11,8 +11,8 @@ enum_writer_list::enum_writer_list(QWidget *parent) : QDialog(parent),
 
     tmp_current_device = NULL;
 
-    icon_arrow_right = QIcon("assert/chevron_right_24dp_FFFFFF_FILL0_wght400_GRAD0_opsz24.png");
-    icon_arrow_down = QIcon("assert/keyboard_arrow_down_24dp_FFFFFF_FILL0_wght400_GRAD0_opsz24.png");
+    icon_arrow_right = QIcon(":/assets/chevron_right_24dp_FFFFFF_FILL0_wght400_GRAD0_opsz24.png");
+    icon_arrow_down = QIcon(":/assets/keyboard_arrow_down_24dp_FFFFFF_FILL0_wght400_GRAD0_opsz24.png");
 
     // widget_dap = new QWidget(this);
     // vbox_dap = new QVBoxLayout(widget_dap);

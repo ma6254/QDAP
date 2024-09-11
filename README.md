@@ -45,6 +45,8 @@ git clone --recursive https://github.com/ma6254/QDAP.git
 - <https://www.keil.arm.com/devices/>
 - <https://en.wikipedia.org/wiki/Executable_and_Linkable_Format>
 
+assets icons: <https://fonts.google.com/icons>
+
 [glic_elf.h](./src/glibc_elf.h) from <https://github.com/lattera/glibc/blob/master/elf/elf.h>
 
 [FlashOS.h](./src/FlashOS.h) from <https://github.com/ARM-software/CMSIS_4/blob/master/Device/_Template_Flash/FlashOS.h>
