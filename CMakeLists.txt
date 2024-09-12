@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 3.5)
 project(QDAP LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -24,76 +23,110 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #    endif()
 #endif()
 
-find_package(Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
+find_package(
+  Qt5
+  COMPONENTS Widgets LinguistTools
+  REQUIRED)
 
-set(TS_FILES QDAP_zh_CN.ts)
+include_directories(${QT_INCLUDE_DIRS})
 
-add_subdirectory("yaml-cpp")
+set(TS_FILES ${CMAKE_SOURCE_DIR} QDAP_zh_CN.ts)
 
-include_directories(
-  libusb_hid_api/include
-  libusb/include
-  yaml-cpp/include
-  src/DAP
-  src/components
-  src/ui_components
-  src/devices
-  src
+qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
+
+set(QM_FILES
+    main.qrc
+)
+
+find_program(GIT_EXECUTABLE git DOC "Git executable path")
+
+if(GIT_EXECUTABLE)
+  message(STATUS "Found Git executable at: ${GIT_EXECUTABLE}")
+else()
+  message(WARNING "Git executable not found. Submodule operations will be skipped.")
+endif()
+
+if(WIN32 AND GIT_EXECUTABLE)
+  message(STATUS "Initializing and updating submodules on Windows...")
+
+  execute_process(
+    COMMAND "${GIT_EXECUTABLE}" submodule update --init --recursive
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    RESULT_VARIABLE GIT_SUBMODULE_RESULT
+  )
+
+  if(NOT GIT_SUBMODULE_RESULT EQUAL 0)
+    message(FATAL_ERROR "Failed to initialize and update submodules.")
+  endif()
+
+  add_custom_target(update_submodules)
+  add_custom_command(
+    TARGET update_submodules POSTBUILD
+    COMMAND "${GIT_EXECUTABLE}" submodule update --recursive
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  )
+else()
+  message(STATUS "Skipping submodule initialization and update.")
+endif()
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(YAML_CPP REQUIRED yaml-cpp)
+
+if(NOT YAML_CPP_FOUND)
+  add_subdirectory(yaml-cpp)
+  include_directories(yaml-cpp/src)
+  set(yaml-cpp_LIBRARIES yaml-cpp)
+else()
+  include_directories(${YAML_CPP_INCLUDE_DIRS})
+  set(yaml-cpp_LIBRARIES ${YAML_CPP_LIBRARIES})
+endif()
+
+
+include_directories(src/DAP src/components src/ui_components src/devices src)
+
+file(GLOB SRC_FILES
+    src/*.cpp
+    src/DAP/*.cpp
+    src/components/*.cpp
+    src/ui_components/*.cpp
+    src/devices/*.cpp
 )
 
 if(ANDROID)
-  add_library(QDAP SHARED
-    main.cpp
-    mainwindow.cpp
-    mainwindow.h
-    mainwindow.ui
-    ${TS_FILES}
-  )
-else()
-  add_executable(QDAP
-    libusb_hid_api/include/hidapi.h
-    libusb_hid_api/include/hidapi_winapi.h
-    libusb/include/libusb.h
-    src/DAP/debug_cm.h
-    src/main.cpp
-    src/mainwindow.cpp
-    src/mainwindow.h
-    src/mainwindow.ui
-    src/utils.cpp
-    src/utils.h
-    src/config.cpp
-    src/config.h
-    src/enum_writer_list.cpp
-    src/enum_writer_list.h
-    src/enum_writer_list.ui
-    src/chip_selecter.cpp
-    src/chip_selecter.h
-    src/chip_selecter.ui
-    src/components/hex_viewer.cpp
-    src/components/hex_viewer.h
-    src/components/hex_viewer.ui
-    src/flash_algo.cpp
-    src/flash_algo.h
-    src/program_worker.cpp
-    src/program_worker.h
-    src/dialog_chips_config.h src/dialog_chips_config.cpp src/dialog_chips_config.ui
-    src/devices/devices.cpp src/devices/devices.h
-    src/devices/device_list.cpp src/devices/device_list.h
-    src/devices/dap.cpp src/devices/dap.h
-    src/devices/dap_usb_hid.cpp src/devices/dap_usb_hid.h
-    src/devices/dap_usb_bulk.cpp src/devices/dap_usb_bulk.h
-    src/ui_components/enum_dap.h src/ui_components/enum_dap.cpp src/ui_components/enum_dap.ui
-    ${TS_FILES}
-    main.qrc
-  )
-endif()
-  
-target_link_libraries(
-  QDAP
-  PRIVATE Qt5::Widgets
-  ${CMAKE_SOURCE_DIR}/libusb_hid_api/x64/hidapi.lib
-  ${CMAKE_SOURCE_DIR}/libusb/MinGW64/static/libusb-1.0.a
-  yaml-cpp
-)
+  message(STATUS "Building for Android")
+  add_library(QDAP SHARED ${SRC_FILES} ${QM_FILES})
+elseif(WIN32)
+  message(STATUS "Building for Windows")
+  include_directories(libusb_hid_api/include libusb/include yaml-cpp/include)
+  add_executable(QDAP ${SRC_FILES} ${QM_FILES})
+  target_link_libraries(
+    QDAP
+    PRIVATE Qt5::Widgets ${CMAKE_SOURCE_DIR}/libusb_hid_api/x64/hidapi.lib
+            ${CMAKE_SOURCE_DIR}/libusb/MinGW64/static/libusb-1.0.a yaml-cpp)
+elseif(UNIX AND NOT APPLE)
+  message(STATUS "Building for Linux")
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(LIBUSB REQUIRED libusb-1.0)
+  pkg_check_modules(LIBHIDAPI REQUIRED hidapi-hidraw)
 
-qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
+  include_directories(${LIBUSB_INCLUDE_DIRS} ${YAML_CPP_INCLUDE_DIRS}
+                      ${LIBHIDAPI_LIBRARIES})
+
+  add_executable(QDAP ${SRC_FILES} ${QM_FILES})
+  target_link_libraries(
+    QDAP PRIVATE Qt5::Widgets ${LIBUSB_LIBRARIES} ${YAML_CPP_LIBRARIES}
+                 ${LIBHIDAPI_LIBRARIES})
+
+  target_include_directories(QDAP PRIVATE ${QT_INCLUDE_DIRS})
+  # 添加 Linux 特定的安装规则
+  install(TARGETS QDAP DESTINATION bin)
+  install(DIRECTORY resources/ DESTINATION share/applications)
+  # install(FILES qdap.desktop DESTINATION share/applications)
+  # install(FILES qdap.png DESTINATION share/icons)
+  # install(FILES qdap.service DESTINATION etc/systemd/system)
+  # install(DIRECTORY contrib/icons/ DESTINATION share/icons/hicolor)
+else()
+  message(FATAL_ERROR "Unsupported platform")
+endif()
+
+add_definitions(-DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB)

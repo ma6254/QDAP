@@ -1,18 +1,20 @@
 #ifndef CHIP_SELECTER_H
 #define CHIP_SELECTER_H
 
-#include <yaml-cpp/yaml.h>
 #include <QDialog>
+#include <yaml-cpp/yaml.h>
+#ifdef _WIN32
 #include <QDIR>
+#else
+#include <QDir>
+#endif // _WIN32
 #include <QComboBox>
 
-namespace Ui
-{
-    class ChipSelecter;
+namespace Ui {
+class ChipSelecter;
 }
 
-class ChipInfo
-{
+class ChipInfo {
 public:
     ChipInfo()
     {
@@ -32,8 +34,7 @@ public:
 private:
 };
 
-class Series
-{
+class Series {
 public:
     Series()
     {
@@ -49,8 +50,7 @@ public:
     QList<QString> chips_name_list() const
     {
         QList<QString> ret;
-        for (int i = 0; i < chip_info_list.count(); i++)
-        {
+        for (int i = 0; i < chip_info_list.count(); i++) {
             if (chip_info_list[i])
                 ret.push_back(QString("%1 | %2").arg(i).arg(chip_info_list[i]->name));
             else
@@ -63,7 +63,7 @@ public:
     QString name;
     QString homepage;
     QString log_text;
-    QList<ChipInfo *> chip_info_list;
+    QList<ChipInfo*> chip_info_list;
     QString core;
     QString algo;
     QString ram_size_str;
@@ -72,8 +72,7 @@ public:
 private:
 };
 
-class Vendor
-{
+class Vendor {
 public:
     Vendor()
     {
@@ -90,8 +89,7 @@ public:
     QList<QString> series_name_list() const
     {
         QList<QString> ret;
-        for (int i = 0; i < series_list.count(); i++)
-        {
+        for (int i = 0; i < series_list.count(); i++) {
             if (series_list[i]->chip_count())
                 ret.push_back(QString("%1 | %2").arg(i).arg(series_list[i]->name));
             else
@@ -107,20 +105,19 @@ public:
     QString name;
     QString log_text;
     QString homepage;
-    QList<Series *> series_list;
+    QList<Series*> series_list;
 
 private:
 };
 
-class ChipSelecter : public QDialog
-{
+class ChipSelecter : public QDialog {
     Q_OBJECT
 
 public:
-    explicit ChipSelecter(QWidget *parent = nullptr);
+    explicit ChipSelecter(QWidget* parent = nullptr);
     ~ChipSelecter();
     void load_chips(QString chips_dir_path = "");
-    int load_chip_vendor(QString vendor_file_path, Vendor *vendor);
+    int load_chip_vendor(QString vendor_file_path, Vendor* vendor);
 
     void log_clear();
     void log_output();
@@ -141,17 +138,17 @@ public:
 
     QString core_homepage(QString core);
 
-    Vendor *current_vendor()
+    Vendor* current_vendor()
     {
         return vendor_list[current_vendor_index];
     }
 
-    Series *current_series()
+    Series* current_series()
     {
         return current_vendor()->series_list[current_series_index];
     }
 
-    ChipInfo *current_chip_info()
+    ChipInfo* current_chip_info()
     {
         return current_series()->chip_info_list[current_chip_index];
     }
@@ -236,11 +233,11 @@ public slots:
     void cb_btn_ok();
 
 private:
-    Ui::ChipSelecter *ui;
+    Ui::ChipSelecter* ui;
 
     // QList<QList<QString>> series_name_list;
     // QList<QList<QList<QString>>> chip_name_list;
-    QList<Vendor *> vendor_list;
+    QList<Vendor*> vendor_list;
     int current_vendor_index;
     int current_series_index;
     int current_chip_index;

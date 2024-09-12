@@ -40,7 +40,8 @@ Thumbs.db
 CMakeLists.txt.user
 CMakeLists.txt.user.*
 /build
-QDAP_*.ts
+# 忽略 ts 会影响工程编译
+# QDAP_*.ts
 
 # xemacs temporary files
 *.flc

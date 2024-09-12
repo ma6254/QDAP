@@ -18,12 +18,13 @@ bool is_visible_char(char a)
     return false;
 }
 
-HexViewer::HexViewer(QWidget *parent) : QWidget(parent),
-                                        ui(new Ui::hex_viewer)
+HexViewer::HexViewer(QWidget* parent)
+    : QWidget(parent)
+    , ui(new Ui::hex_viewer)
 {
     ui->setupUi(this);
 
-    parent_layout = (QGridLayout *)(ui->scrollAreaWidgetContents->layout());
+    parent_layout = (QGridLayout*)(ui->scrollAreaWidgetContents->layout());
 
     // thread_loader = new QThread();
     // loader = new HexViewerLoader(parent_layout);
@@ -39,11 +40,10 @@ HexViewer::HexViewer(QWidget *parent) : QWidget(parent),
     init_data.fill(0x00, 42);
     // init_data.fill(0x00, 1024);
 
-    qsrand(clock());
+    auto generator = QRandomGenerator::global();
 
-    for (uint32_t i = 0; i < init_data.length(); i++)
-    {
-        init_data[i] = char(qrand() % 256);
+    for (uint32_t i = 0; i < init_data.length(); i++) {
+        init_data[i] = static_cast<char>(QRandomGenerator::global()->bounded(256));
     }
 
     load(init_data);
@@ -57,10 +57,9 @@ HexViewer::~HexViewer()
 void HexViewer::clear_layout(void)
 {
     uint32_t remove_count = 0;
-    QLayoutItem *tmp_item;
+    QLayoutItem* tmp_item;
 
-    while ((tmp_item = parent_layout->takeAt(0)) != NULL)
-    {
+    while ((tmp_item = parent_layout->takeAt(0)) != NULL) {
         if (tmp_item->widget() != NULL)
             delete tmp_item->widget();
 
@@ -78,7 +77,7 @@ void HexViewer::add_title(void)
 {
     uint32_t line_i = 0;
     QFont newFont_title("Courier New", 10, QFont::Bold, false);
-    QLabel *tmp_label;
+    QLabel* tmp_label;
 
     tmp_label = new QLabel();
     tmp_label->setTextFormat(Qt::PlainText);
@@ -87,8 +86,7 @@ void HexViewer::add_title(void)
     tmp_label->setStyleSheet("QLabel{ color: blue;}");
     ui->gridLayout_title->addWidget(tmp_label, 0, 0);
 
-    for (line_i = 0; line_i < 0x10; line_i++)
-    {
+    for (line_i = 0; line_i < 0x10; line_i++) {
 
         tmp_label = new QLabel();
         tmp_label->setTextFormat(Qt::PlainText);
@@ -128,18 +126,18 @@ void HexViewer::add_title(void)
 //     emit loader_load(data, size);
 // }
 
-void HexViewer::loader_finished(QGridLayout *parent_layout)
+void HexViewer::loader_finished(QGridLayout* parent_layout)
 {
     qDebug("[HexViewer] loader_finished");
 
     ui->scrollAreaWidgetContents->setLayout(parent_layout);
 }
 
-void HexViewer::load(uint8_t *data, uint32_t size)
+void HexViewer::load(uint8_t* data, uint32_t size)
 {
     uint32_t i = 0;
     uint32_t line_i = 0;
-    QLabel *tmp_label;
+    QLabel* tmp_label;
 
     qDebug("[HexViewer] load: %d", size);
     hexdump(data, size);
@@ -156,19 +154,17 @@ void HexViewer::load(uint8_t *data, uint32_t size)
     QFont newFont("Courier New", 10, QFont::Normal, false);
     QFont newFont_title("Courier New", 10, QFont::Bold, false);
 
-    for (i = 0; i < size; i += 0x10)
-    {
+    for (i = 0; i < size; i += 0x10) {
         uint32_t rowIndex = i / 0x10;
 
-        QLabel *tmp_addr_label = new QLabel();
+        QLabel* tmp_addr_label = new QLabel();
         tmp_addr_label->setTextFormat(Qt::PlainText);
         tmp_addr_label->setFont(newFont_title);
         tmp_addr_label->setText(QString("%1_%2").arg(i >> 16, 4, 16, QChar('0')).arg(i & 0xFFFF, 4, 16, QChar('0')).toUpper());
         tmp_addr_label->setStyleSheet("QLabel{ color: blue;}");
         parent_layout->addWidget(tmp_addr_label, rowIndex, 0);
 
-        for (line_i = 0; line_i < 0x10; line_i++)
-        {
+        for (line_i = 0; line_i < 0x10; line_i++) {
 
             tmp_label = new QLabel();
             tmp_label->setTextFormat(Qt::PlainText);
@@ -176,7 +172,7 @@ void HexViewer::load(uint8_t *data, uint32_t size)
             tmp_label->setText(QString(" "));
             parent_layout->addWidget(tmp_label, rowIndex, 1UL + line_i * 2);
 
-            QLabel *tmp_byte_label = new QLabel();
+            QLabel* tmp_byte_label = new QLabel();
             tmp_byte_label->setTextFormat(Qt::PlainText);
             tmp_byte_label->setFont(newFont);
             // tmp_byte_label->setAlignment(Qt::AlignCenter);
@@ -184,20 +180,16 @@ void HexViewer::load(uint8_t *data, uint32_t size)
 
             parent_layout->addWidget(tmp_byte_label, rowIndex, 1UL + line_i * 2 + 1);
 
-            if (line_i % 2)
-            {
+            if (line_i % 2) {
                 // tmp_byte_label->setPa
                 QPalette tmp_palette = tmp_byte_label->palette();
                 tmp_palette.setColor(QPalette::WindowText, QColor(128, 96, 96));
                 tmp_byte_label->setPalette(tmp_palette);
             }
 
-            if ((i + line_i) >= size)
-            {
+            if ((i + line_i) >= size) {
                 tmp_byte_label->setText("  ");
-            }
-            else
-            {
+            } else {
                 tmp_byte_label->setText(QString("%1").arg(data[i + line_i] & 0xFF, 2, 16, QChar('0')).toUpper());
             }
 
@@ -214,9 +206,8 @@ void HexViewer::load(uint8_t *data, uint32_t size)
 
         uint8_t lineIndexBase = 1UL + 0x10 * 2 + 1;
 
-        for (line_i = 0; line_i < 0x10; line_i++)
-        {
-            QLabel *tmp_ascii_label = new QLabel();
+        for (line_i = 0; line_i < 0x10; line_i++) {
+            QLabel* tmp_ascii_label = new QLabel();
             tmp_ascii_label->setTextFormat(Qt::PlainText);
             tmp_ascii_label->setFont(newFont);
             tmp_ascii_label->setAlignment(Qt::AlignCenter);
@@ -264,7 +255,7 @@ void HexViewer::load(uint8_t *data, uint32_t size)
     // }
 }
 
-HexViewerLoader::HexViewerLoader(QGridLayout *parent_layout)
+HexViewerLoader::HexViewerLoader(QGridLayout* parent_layout)
 {
     this->parent_layout = parent_layout;
 }
@@ -276,10 +267,9 @@ HexViewerLoader::~HexViewerLoader()
 void HexViewerLoader::clear_layout(void)
 {
     uint32_t remove_count = 0;
-    QLayoutItem *tmp_item;
+    QLayoutItem* tmp_item;
 
-    while ((tmp_item = parent_layout->takeAt(0)) != NULL)
-    {
+    while ((tmp_item = parent_layout->takeAt(0)) != NULL) {
         if (tmp_item->widget() != NULL)
             delete tmp_item->widget();
 
@@ -293,13 +283,13 @@ void HexViewerLoader::clear_layout(void)
     qDebug("[HexViewerLoader] clear_layout remove_count: %d", remove_count);
 }
 
-void HexViewerLoader::load(uint8_t *data, uint32_t len)
+void HexViewerLoader::load(uint8_t* data, uint32_t len)
 {
     uint32_t i = 0;
     uint32_t line_i = 0;
-    QLabel *tmp_label;
+    QLabel* tmp_label;
 
-    QGridLayout *parent_layout = new QGridLayout();
+    QGridLayout* parent_layout = new QGridLayout();
 
     qDebug("[HexViewerLoader] load: %d", len);
     // hexdump((uint8_t *)data, len);
@@ -315,19 +305,17 @@ void HexViewerLoader::load(uint8_t *data, uint32_t len)
     qDebug("[HexViewerLoader] rowCount:%d", parent_layout->rowCount());
     QFont newFont("Courier New", 10, QFont::Normal, false);
 
-    for (i = 0; i < len; i += 0x10)
-    {
+    for (i = 0; i < len; i += 0x10) {
         uint32_t rowIndex = i / 0x10;
 
-        QLabel *tmp_addr_label = new QLabel();
+        QLabel* tmp_addr_label = new QLabel();
         tmp_addr_label->setTextFormat(Qt::PlainText);
         tmp_addr_label->setFont(newFont);
         tmp_addr_label->setText(QString("%1_%2").arg(i >> 16, 4, 16, QChar('0')).arg(i & 0xFFFF, 4, 16, QChar('0')).toUpper());
         tmp_addr_label->setStyleSheet("QLabel{ color: blue;}");
         parent_layout->addWidget(tmp_addr_label, rowIndex, 0);
 
-        for (line_i = 0; line_i < 0x10; line_i++)
-        {
+        for (line_i = 0; line_i < 0x10; line_i++) {
 
             tmp_label = new QLabel();
             tmp_label->setTextFormat(Qt::PlainText);
@@ -335,7 +323,7 @@ void HexViewerLoader::load(uint8_t *data, uint32_t len)
             tmp_label->setText(QString(" "));
             parent_layout->addWidget(tmp_label, rowIndex, 1UL + line_i * 2);
 
-            QLabel *tmp_byte_label = new QLabel();
+            QLabel* tmp_byte_label = new QLabel();
             tmp_byte_label->setTextFormat(Qt::PlainText);
             tmp_byte_label->setFont(newFont);
             // tmp_byte_label->setAlignment(Qt::AlignCenter);
@@ -343,20 +331,16 @@ void HexViewerLoader::load(uint8_t *data, uint32_t len)
 
             parent_layout->addWidget(tmp_byte_label, rowIndex, 1UL + line_i * 2 + 1);
 
-            if (line_i % 2)
-            {
+            if (line_i % 2) {
                 // tmp_byte_label->setPa
                 QPalette tmp_palette = tmp_byte_label->palette();
                 tmp_palette.setColor(QPalette::WindowText, QColor(128, 96, 96));
                 tmp_byte_label->setPalette(tmp_palette);
             }
 
-            if ((i + line_i) >= len)
-            {
+            if ((i + line_i) >= len) {
                 tmp_byte_label->setText("  ");
-            }
-            else
-            {
+            } else {
                 tmp_byte_label->setText(QString("%1").arg(data[i + line_i] & 0xFF, 2, 16, QChar('0')).toUpper());
             }
 
@@ -373,9 +357,8 @@ void HexViewerLoader::load(uint8_t *data, uint32_t len)
 
         uint8_t lineIndexBase = 1UL + 0x10 * 2 + 1;
 
-        for (line_i = 0; line_i < 0x10; line_i++)
-        {
-            QLabel *tmp_ascii_label = new QLabel();
+        for (line_i = 0; line_i < 0x10; line_i++) {
+            QLabel* tmp_ascii_label = new QLabel();
             tmp_ascii_label->setTextFormat(Qt::PlainText);
             tmp_ascii_label->setFont(newFont);
             tmp_ascii_label->setAlignment(Qt::AlignCenter);

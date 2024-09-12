@@ -1,10 +1,11 @@
 #ifndef HEX_VIEWER_H
 #define HEX_VIEWER_H
 
-#include <QWidget>
 #include <QByteArray>
 #include <QGridLayout>
+#include <QRandomGenerator>
 #include <QThread>
+#include <QWidget>
 
 namespace Ui
 {
