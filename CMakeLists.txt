@@ -59,18 +59,18 @@ if(WIN32 AND GIT_EXECUTABLE)
     message(FATAL_ERROR "Failed to initialize and update submodules.")
   endif()
 
-  add_custom_target(update_submodules)
-  add_custom_command(
-    TARGET update_submodules POSTBUILD
-    COMMAND "${GIT_EXECUTABLE}" submodule update --recursive
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-  )
+  # add_custom_target(update_submodules)
+  # add_custom_command(
+  #   TARGET update_submodules POSTBUILD
+  #   COMMAND "${GIT_EXECUTABLE}" submodule update --recursive
+  #   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  # )
 else()
   message(STATUS "Skipping submodule initialization and update.")
 endif()
 
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(YAML_CPP REQUIRED yaml-cpp)
+# pkg_check_modules(YAML_CPP REQUIRED yaml-cpp)
 
 if(NOT YAML_CPP_FOUND)
   add_subdirectory(yaml-cpp)
