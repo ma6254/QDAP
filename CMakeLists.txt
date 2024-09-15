@@ -10,18 +10,15 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# QtCreator supports the following variables for Android, which are identical to qmake Android variables.
-# Check http://doc.qt.io/qt-5/deployment-android.html for more information.
-# They need to be set before the find_package(Qt5 ...) call.
+# QtCreator supports the following variables for Android, which are identical to
+# qmake Android variables. Check http://doc.qt.io/qt-5/deployment-android.html
+# for more information. They need to be set before the find_package(Qt5 ...)
+# call.
 
-#if(ANDROID)
-#    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
-#    if (ANDROID_ABI STREQUAL "armeabi-v7a")
-#        set(ANDROID_EXTRA_LIBS
-#            ${CMAKE_CURRENT_SOURCE_DIR}/path/to/libcrypto.so
-#            ${CMAKE_CURRENT_SOURCE_DIR}/path/to/libssl.so)
-#    endif()
-#endif()
+# if(ANDROID) set(ANDROID_PACKAGE_SOURCE_DIR
+# "${CMAKE_CURRENT_SOURCE_DIR}/android") if (ANDROID_ABI STREQUAL "armeabi-v7a")
+# set(ANDROID_EXTRA_LIBS ${CMAKE_CURRENT_SOURCE_DIR}/path/to/libcrypto.so
+# ${CMAKE_CURRENT_SOURCE_DIR}/path/to/libssl.so) endif() endif()
 
 find_package(
   Qt5
@@ -34,16 +31,15 @@ set(TS_FILES ${CMAKE_SOURCE_DIR} QDAP_zh_CN.ts)
 
 qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 
-set(QM_FILES
-    main.qrc
-)
+set(QM_FILES main.qrc)
 
 find_program(GIT_EXECUTABLE git DOC "Git executable path")
 
 if(GIT_EXECUTABLE)
   message(STATUS "Found Git executable at: ${GIT_EXECUTABLE}")
 else()
-  message(WARNING "Git executable not found. Submodule operations will be skipped.")
+  message(
+    WARNING "Git executable not found. Submodule operations will be skipped.")
 endif()
 
 if(WIN32 AND GIT_EXECUTABLE)
@@ -52,51 +48,36 @@ if(WIN32 AND GIT_EXECUTABLE)
   execute_process(
     COMMAND "${GIT_EXECUTABLE}" submodule update --init --recursive
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    RESULT_VARIABLE GIT_SUBMODULE_RESULT
-  )
+    RESULT_VARIABLE GIT_SUBMODULE_RESULT)
 
   if(NOT GIT_SUBMODULE_RESULT EQUAL 0)
     message(FATAL_ERROR "Failed to initialize and update submodules.")
   endif()
 
-  # add_custom_target(update_submodules)
-  # add_custom_command(
-  #   TARGET update_submodules POSTBUILD
-  #   COMMAND "${GIT_EXECUTABLE}" submodule update --recursive
-  #   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-  # )
+  # add_custom_target(update_submodules) add_custom_command( TARGET
+  # update_submodules POSTBUILD COMMAND "${GIT_EXECUTABLE}" submodule update
+  # --recursive WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} )
 else()
   message(STATUS "Skipping submodule initialization and update.")
 endif()
 
-find_package(PkgConfig REQUIRED)
-# pkg_check_modules(YAML_CPP REQUIRED yaml-cpp)
-
-if(NOT YAML_CPP_FOUND)
-  add_subdirectory(yaml-cpp)
-  include_directories(yaml-cpp/src)
-  set(yaml-cpp_LIBRARIES yaml-cpp)
-else()
-  include_directories(${YAML_CPP_INCLUDE_DIRS})
-  set(yaml-cpp_LIBRARIES ${YAML_CPP_LIBRARIES})
-endif()
-
-
 include_directories(src/DAP src/components src/ui_components src/devices src)
 
-file(GLOB SRC_FILES
-    src/*.cpp
-    src/DAP/*.cpp
-    src/components/*.cpp
-    src/ui_components/*.cpp
-    src/devices/*.cpp
-)
+file(
+  GLOB
+  SRC_FILES
+  src/*.cpp
+  src/DAP/*.cpp
+  src/components/*.cpp
+  src/ui_components/*.cpp
+  src/devices/*.cpp)
 
 if(ANDROID)
   message(STATUS "Building for Android")
   add_library(QDAP SHARED ${SRC_FILES} ${QM_FILES})
 elseif(WIN32)
   message(STATUS "Building for Windows")
+  set(yaml-cpp_LIBRARIES yaml-cpp)
   include_directories(libusb_hid_api/include libusb/include yaml-cpp/include)
   add_executable(QDAP ${SRC_FILES} ${QM_FILES})
   target_link_libraries(
@@ -106,6 +87,7 @@ elseif(WIN32)
 elseif(UNIX AND NOT APPLE)
   message(STATUS "Building for Linux")
   find_package(PkgConfig REQUIRED)
+  pkg_check_modules(YAML_CPP REQUIRED yaml-cpp)
   pkg_check_modules(LIBUSB REQUIRED libusb-1.0)
   pkg_check_modules(LIBHIDAPI REQUIRED hidapi-hidraw)
 
@@ -121,10 +103,10 @@ elseif(UNIX AND NOT APPLE)
   # 添加 Linux 特定的安装规则
   install(TARGETS QDAP DESTINATION bin)
   install(DIRECTORY resources/ DESTINATION share/applications)
-  # install(FILES qdap.desktop DESTINATION share/applications)
-  # install(FILES qdap.png DESTINATION share/icons)
-  # install(FILES qdap.service DESTINATION etc/systemd/system)
-  # install(DIRECTORY contrib/icons/ DESTINATION share/icons/hicolor)
+  # install(FILES qdap.desktop DESTINATION share/applications) install(FILES
+  # qdap.png DESTINATION share/icons) install(FILES qdap.service DESTINATION
+  # etc/systemd/system) install(DIRECTORY contrib/icons/ DESTINATION
+  # share/icons/hicolor)
 else()
   message(FATAL_ERROR "Unsupported platform")
 endif()
