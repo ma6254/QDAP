@@ -3,7 +3,7 @@
 
 #include <yaml-cpp/yaml.h>
 #include <QDialog>
-#include <QDIR>
+#include <QDir>
 #include <QComboBox>
 
 namespace Ui

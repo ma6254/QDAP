@@ -1,6 +1,6 @@
-#include "flash_algo.h"
 #include <QFile>
 #include "utils.h"
+#include "flash_algo.h"
 
 flash_func_def_t func_symbol_list[FLASH_FUNC_COUNT] = {
     {"Init", 1},
@@ -38,7 +38,7 @@ int32_t FlashAlgo::load(QString file_path, uint32_t ram_start)
     memcpy(&elf_header, file_buf.data(), sizeof(elf_header));
 
     if ((memcmp(elf_header.e_ident, ELFMAG, SELFMAG) != 0) &&
-        (elf_header.e_type == 0x7f))
+        (elf_header.e_type == 0x7F))
     {
         qDebug("[main] not ELF file");
         return -1;
@@ -195,9 +195,9 @@ int32_t FlashAlgo::load(QString file_path, uint32_t ram_start)
     qDebug("[FlashAlgo] Ver: 0x%04X", flash_device_info.Vers);
     qDebug("[FlashAlgo] DevName: %s", flash_device_info.DevName);
     qDebug("[FlashAlgo] DevType: %s", qPrintable(FlashDevice_type_to_str(flash_device_info.DevType)));
-    qDebug("[FlashAlgo] DevAdr: 0x%08X", flash_device_info.DevAdr);
-    qDebug("[FlashAlgo] szDev: 0x%08X", flash_device_info.szDev);
-    qDebug("[FlashAlgo] szPage: 0x%08X", flash_device_info.szPage);
+    qDebug("[FlashAlgo] DevAdr: 0x%08lX", static_cast<uint64_t>(flash_device_info.DevAdr));
+    qDebug("[FlashAlgo] szDev: 0x%08lX", static_cast<uint64_t>(flash_device_info.szDev));
+    qDebug("[FlashAlgo] szPage: 0x%08lX", static_cast<uint64_t>(flash_device_info.szPage));
 
     if (FLASH_DRV_VERS != flash_device_info.Vers)
     {
@@ -214,7 +214,6 @@ int32_t FlashAlgo::load(QString file_path, uint32_t ram_start)
 
     for (uint32_t i = 0; i < FLASH_FUNC_COUNT; i++)
     {
-
         if ((is_find_flash_func_symbol[i] == false) && (func_symbol_list[i].must == true))
         {
             is_func_symbol_all_done = false;

@@ -1,8 +1,13 @@
 #ifndef DAP_USB_HID_H
 #define DAP_USB_HID_H
 
-#include "hidapi.h"
-#include "hidapi_winapi.h"
+#ifdef _WIN32
+#include <hidapi.h>
+#include <hidapi_winapi.h>
+#else
+#include <hidapi/hidapi.h>
+#include <hidapi/hidapi_libusb.h>
+#endif // _WIN32
 #include "dap.h"
 #include "flash_algo.h"
 #include "devices.h"

@@ -25,6 +25,8 @@ chip device libray: <https://github.com/ma6254/qdap_chips>
 
 ## Build
 
+### Windows
+
 ```bash
 git clone --recursive https://github.com/ma6254/QDAP.git
 ```
@@ -33,6 +35,35 @@ git clone --recursive https://github.com/ma6254/QDAP.git
 2. 文件 -> 打开文件或项目 -> CMakeLists.txt
 3. 等待工程加载完成
 4. 点击`运行(Ctrl+R)`
+
+### Linux
+
+1. 项目依赖：`git` `qt5` `libusb` `hidapi (hidraw)` `yaml-cpp` `cmake` `ninja`
+2. 编译和安装
+
+```bash
+git clone https://github.com/ma6254/QDAP.git
+
+cmake -S QDAP \
+    -DCMAKE_BUILD_TYPE=None \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -B build \
+    -G Ninja
+
+ninja -C build
+
+ninja -C build install
+```
+
+### Arch Linux 或衍生版
+
+1. 可以通过 [AUR 仓库](https://aur.archlinux.org/packages/qdap-git)或[自建源](https://github.com/taotieren/aur-repo)安装 `qdap`
+
+```bash
+yay -Syu qdap
+```
+
+注意： 包名 `qdap-git` 是开发版 `qdap` 是发行版
 
 ## Reference
 

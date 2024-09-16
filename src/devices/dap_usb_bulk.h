@@ -2,7 +2,7 @@
 #define DAP_USB_BULK_H
 
 #include <QWidget>
-#include "libusb.h"
+#include <libusb.h>
 #include "devices.h"
 
 /*******************************************************************************

@@ -1,7 +1,8 @@
+#include <QLabel>
+#include <QRandomGenerator>
 #include "hex_viewer.h"
 #include "ui_hex_viewer.h"
 #include "utils.h"
-#include <QLabel>
 
 bool is_visible_char(char a)
 {
@@ -39,11 +40,11 @@ HexViewer::HexViewer(QWidget *parent) : QWidget(parent),
     init_data.fill(0x00, 42);
     // init_data.fill(0x00, 1024);
 
-    qsrand(clock());
+    QRandomGenerator *generator = QRandomGenerator::global();
 
     for (uint32_t i = 0; i < init_data.length(); i++)
     {
-        init_data[i] = char(qrand() % 256);
+        init_data[i] = static_cast<uint8_t>(QRandomGenerator::global()->bounded(256));
     }
 
     load(init_data);
