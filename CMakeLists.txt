@@ -61,7 +61,7 @@ else()
   message(STATUS "Skipping submodule initialization and update.")
 endif()
 
-include_directories(src/DAP src/components src/ui_components src/devices src)
+include_directories(src/DAP src/components src/ui_components src/device_selector src/devices src)
 
 file(
   GLOB
@@ -70,6 +70,7 @@ file(
   src/DAP/*.cpp
   src/components/*.cpp
   src/ui_components/*.cpp
+  src/device_selector/*.cpp
   src/devices/*.cpp)
 
 if(ANDROID)

@@ -80,3 +80,6 @@ QDAP_*.ts
 # /libusb_hid_api/x86
 # /libusb_hid_api/x64
 /libusb
+
+# WCH ch341 ch347
+/ch341_ch347_lib
