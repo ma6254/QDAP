@@ -73,19 +73,31 @@ file(
   src/device_selector/*.cpp
   src/devices/*.cpp)
 
+file(
+  GLOB
+  UI_FILES
+  src/*.ui
+  src/ui_components/*.ui
+  src/device_selector/*.ui
+)
+
 if(ANDROID)
   message(STATUS "Building for Android")
-  add_library(QDAP SHARED ${SRC_FILES} ${QM_FILES})
+  add_library(QDAP SHARED ${SRC_FILES} ${UI_FILES} ${QM_FILES})
 elseif(WIN32)
   message(STATUS "Building for Windows")
   add_subdirectory("yaml-cpp")
   set(yaml-cpp_LIBRARIES yaml-cpp)
   include_directories(libusb_hid_api/include libusb/include yaml-cpp/include)
-  add_executable(QDAP ${SRC_FILES} ${QM_FILES})
+  include_directories(ch341_ch347_lib/CH341PAR/LIB/CH347)
+  add_executable(QDAP ${SRC_FILES} ${UI_FILES} ${QM_FILES})
   target_link_libraries(
     QDAP
-    PRIVATE Qt5::Widgets ${CMAKE_SOURCE_DIR}/libusb_hid_api/x64/hidapi.lib
-            ${CMAKE_SOURCE_DIR}/libusb/MinGW64/static/libusb-1.0.a yaml-cpp)
+    PRIVATE Qt5::Widgets
+    ${CMAKE_SOURCE_DIR}/libusb_hid_api/x64/hidapi.lib
+    ${CMAKE_SOURCE_DIR}/libusb/MinGW64/static/libusb-1.0.a
+    yaml-cpp
+  )
 elseif(UNIX AND NOT APPLE)
   message(STATUS "Building for Linux")
   find_package(PkgConfig REQUIRED)
@@ -93,10 +105,13 @@ elseif(UNIX AND NOT APPLE)
   pkg_check_modules(LIBUSB REQUIRED libusb-1.0)
   pkg_check_modules(LIBHIDAPI REQUIRED hidapi-hidraw)
 
-  include_directories(${LIBUSB_INCLUDE_DIRS} ${YAML_CPP_INCLUDE_DIRS}
-                      ${LIBHIDAPI_LIBRARIES})
+  include_directories(
+    ${LIBUSB_INCLUDE_DIRS}
+    ${YAML_CPP_INCLUDE_DIRS}
+    ${LIBHIDAPI_LIBRARIES}
+  )
 
-  add_executable(QDAP ${SRC_FILES} ${QM_FILES})
+  add_executable(QDAP ${SRC_FILES} ${UI_FILES} ${QM_FILES})
   target_link_libraries(
     QDAP PRIVATE Qt5::Widgets ${LIBUSB_LIBRARIES} ${YAML_CPP_LIBRARIES}
                  ${LIBHIDAPI_LIBRARIES})
