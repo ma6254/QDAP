@@ -9,11 +9,26 @@
 ![qt_version](https://img.shields.io/badge/Qt-5.15.2_MinGW_64Bit-41cd52.svg)
 ![qt_make](https://img.shields.io/badge/Qt-cmake-green.svg)
 
-[![QQ 群](https://img.shields.io/badge/QQ%E7%BE%A4-495477288-orange.svg)](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=DkzYlCZ9VSQEq6CqUtqGiqYBZh1V5CKK&authKey=btu30mBqaqx6GSVS3futp%2BhYitMfhtAltmp%2B84Kob9xS%2F6J5yQkd0dSeozzxbclT&noverify=0&group_code=495477288)
+[![QQ群](https://img.shields.io/badge/QQ%E7%BE%A4-495477288-orange.svg)](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=DkzYlCZ9VSQEq6CqUtqGiqYBZh1V5CKK&authKey=btu30mBqaqx6GSVS3futp%2BhYitMfhtAltmp%2B84Kob9xS%2F6J5yQkd0dSeozzxbclT&noverify=0&group_code=495477288)
 
 [DAP-Link](https://github.com/ARM-software/CMSIS-DAP) upper by [Qt](http://qt.io)
  
 chip device libray: <https://github.com/ma6254/qdap_chips>
+
+## Development Progress
+
+| 名称                     | Status  | 介绍                             |
+| ------------------------ | ------- | -------------------------------- |
+| 设备驱动 DAP_V1 usb_hid  | ✅已完成 |                                  |
+| 设备驱动 DAP_V2 usb_bulk | 🚧开发中 | 设备枚举已完成，通讯未完成       |
+| 设备驱动 CH347 usb       | 📦搁置   | 等WCH开放CH347的SWD相关的API接口 |
+| 设备驱动 FT2232          | 📦搁置   |                                  |
+| 设备驱动 JLink           | 📦搁置   | JLink有Segger全套上位机支持      |
+| 芯片器件库的加载         | ✅已完成 |                                  |
+| 芯片器件库的同步         | 🚧开发中 |                                  |
+| 芯片型号选择界面         | ✅已完成 |                                  |
+| RTT Viewer界面           | 📦搁置   |                                  |
+| HexEdit界面              | 🚧开发中 |                                  |
 
 ## UI Preview
 
@@ -29,6 +44,7 @@ chip device libray: <https://github.com/ma6254/qdap_chips>
 
 ```bash
 git clone --recursive https://github.com/ma6254/QDAP.git
+python vendor.py download
 ```
 
 1. Download and install QT: [qt-unified-windows-x64-online.exe](https://qtproject.mirror.liquidtelecom.com/official_releases/online_installers/qt-unified-windows-x64-online.exe)

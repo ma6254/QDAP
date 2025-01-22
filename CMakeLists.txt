@@ -86,16 +86,16 @@ if(ANDROID)
   add_library(QDAP SHARED ${SRC_FILES} ${UI_FILES} ${QM_FILES})
 elseif(WIN32)
   message(STATUS "Building for Windows")
-  add_subdirectory("yaml-cpp")
+  add_subdirectory("vendor/yaml-cpp")
   set(yaml-cpp_LIBRARIES yaml-cpp)
-  include_directories(libusb_hid_api/include libusb/include yaml-cpp/include)
+  include_directories(vendor/libusb_hid_api/include vendor/libusb/include yaml-cpp/include)
   include_directories(ch341_ch347_lib/CH341PAR/LIB/CH347)
   add_executable(QDAP ${SRC_FILES} ${UI_FILES} ${QM_FILES})
   target_link_libraries(
     QDAP
     PRIVATE Qt5::Widgets
-    ${CMAKE_SOURCE_DIR}/libusb_hid_api/x64/hidapi.lib
-    ${CMAKE_SOURCE_DIR}/libusb/MinGW64/static/libusb-1.0.a
+    ${CMAKE_SOURCE_DIR}/vendor/libusb_hid_api/x64/hidapi.lib
+    ${CMAKE_SOURCE_DIR}/vendor/libusb/MinGW64/static/libusb-1.0.a
     yaml-cpp
   )
 elseif(UNIX AND NOT APPLE)

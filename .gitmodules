@@ -1,3 +1,4 @@
-[submodule "yaml-cpp"]
-	path = yaml-cpp
+[submodule "vendor/yaml-cpp"]
+	path = vendor/yaml-cpp
 	url = https://github.com/jbeder/yaml-cpp.git
+	branch = yaml-cpp-0.7.0
