@@ -2,3 +2,11 @@
 	path = vendor/yaml-cpp
 	url = https://github.com/jbeder/yaml-cpp.git
 	branch = yaml-cpp-0.7.0
+[submodule "vendor/QHexView"]
+	path = vendor/QHexView
+	url = https://github.com/Dax89/QHexView.git
+	branch = v5.0.0
+[submodule "vendor/libgit2"]
+	path = vendor/libgit2
+	url = https://github.com/libgit2/libgit2.git
+	branch = v1.9.0
