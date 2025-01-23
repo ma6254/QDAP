@@ -29,6 +29,7 @@ chip device libray: <https://github.com/ma6254/qdap_chips>
 | 芯片型号选择界面         | ✅已完成 |                                  |
 | RTT Viewer界面           | 📦搁置   |                                  |
 | HexEdit界面              | ✅已完成 |                                  |
+| 固件打开历史记录         | 📦搁置   |                                  |
 
 ## UI Preview
 
