@@ -28,7 +28,7 @@ chip device libray: <https://github.com/ma6254/qdap_chips>
 | 芯片器件库的同步         | 🚧开发中 |                                  |
 | 芯片型号选择界面         | ✅已完成 |                                  |
 | RTT Viewer界面           | 📦搁置   |                                  |
-| HexEdit界面              | 🚧开发中 |                                  |
+| HexEdit界面              | ✅已完成 |                                  |
 
 ## UI Preview
 

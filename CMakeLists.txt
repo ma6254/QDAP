@@ -19,7 +19,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # "${CMAKE_CURRENT_SOURCE_DIR}/android") if (ANDROID_ABI STREQUAL "armeabi-v7a")
 # set(ANDROID_EXTRA_LIBS ${CMAKE_CURRENT_SOURCE_DIR}/path/to/libcrypto.so
 # ${CMAKE_CURRENT_SOURCE_DIR}/path/to/libssl.so) endif() endif()
-
 find_package(
   Qt5
   COMPONENTS Widgets LinguistTools
@@ -54,14 +53,22 @@ if(WIN32 AND GIT_EXECUTABLE)
     message(FATAL_ERROR "Failed to initialize and update submodules.")
   endif()
 
-  # add_custom_target(update_submodules) add_custom_command( TARGET
-  # update_submodules POSTBUILD COMMAND "${GIT_EXECUTABLE}" submodule update
-  # --recursive WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} )
+# add_custom_target(update_submodules) add_custom_command( TARGET
+# update_submodules POSTBUILD COMMAND "${GIT_EXECUTABLE}" submodule update
+# --recursive WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} )
 else()
   message(STATUS "Skipping submodule initialization and update.")
 endif()
 
-include_directories(src/DAP src/components src/ui_components src/device_selector src/devices src)
+include_directories(
+  src
+  src/DAP
+  src/components
+  src/ui_components
+  src/device_selector
+  src/devices
+  src/views/input_box_dialog
+)
 
 file(
   GLOB
@@ -71,7 +78,9 @@ file(
   src/components/*.cpp
   src/ui_components/*.cpp
   src/device_selector/*.cpp
-  src/devices/*.cpp)
+  src/devices/*.cpp
+  src/views/input_box_dialog/*.cpp
+)
 
 file(
   GLOB
@@ -79,17 +88,40 @@ file(
   src/*.ui
   src/ui_components/*.ui
   src/device_selector/*.ui
+  src/views/input_box_dialog/*.ui
 )
 
 if(ANDROID)
+  # ############################################################################
+  # ANDROID
+  # ############################################################################
+
   message(STATUS "Building for Android")
   add_library(QDAP SHARED ${SRC_FILES} ${UI_FILES} ${QM_FILES})
 elseif(WIN32)
+  # ############################################################################
+  # Windows
+  # ############################################################################
+
   message(STATUS "Building for Windows")
+
+  # yaml-cpp
   add_subdirectory("vendor/yaml-cpp")
   set(yaml-cpp_LIBRARIES yaml-cpp)
-  include_directories(vendor/libusb_hid_api/include vendor/libusb/include yaml-cpp/include)
+
+  # QHexView
+  add_subdirectory("vendor/QHexView")
+  set(QHexView_LIBRARIES QHexView)
+
+  include_directories(
+    vendor/libusb_hid_api/include
+    vendor/libusb/include
+    vendor/yaml-cpp/include
+    vendor/QHexView/include
+  )
+
   include_directories(ch341_ch347_lib/CH341PAR/LIB/CH347)
+
   add_executable(QDAP ${SRC_FILES} ${UI_FILES} ${QM_FILES})
   target_link_libraries(
     QDAP
@@ -97,8 +129,12 @@ elseif(WIN32)
     ${CMAKE_SOURCE_DIR}/vendor/libusb_hid_api/x64/hidapi.lib
     ${CMAKE_SOURCE_DIR}/vendor/libusb/MinGW64/static/libusb-1.0.a
     yaml-cpp
+    QHexView
   )
 elseif(UNIX AND NOT APPLE)
+  # ############################################################################
+  # UNIX
+  # ############################################################################
   message(STATUS "Building for Linux")
   find_package(PkgConfig REQUIRED)
   pkg_check_modules(YAML_CPP REQUIRED yaml-cpp)
@@ -114,17 +150,22 @@ elseif(UNIX AND NOT APPLE)
   add_executable(QDAP ${SRC_FILES} ${UI_FILES} ${QM_FILES})
   target_link_libraries(
     QDAP PRIVATE Qt5::Widgets ${LIBUSB_LIBRARIES} ${YAML_CPP_LIBRARIES}
-                 ${LIBHIDAPI_LIBRARIES})
+    ${LIBHIDAPI_LIBRARIES})
 
   target_include_directories(QDAP PRIVATE ${QT_INCLUDE_DIRS})
+
   # 添加 Linux 特定的安装规则
   install(TARGETS QDAP DESTINATION bin)
   install(DIRECTORY resources/ DESTINATION share/applications)
-  # install(FILES qdap.desktop DESTINATION share/applications) install(FILES
-  # qdap.png DESTINATION share/icons) install(FILES qdap.service DESTINATION
-  # etc/systemd/system) install(DIRECTORY contrib/icons/ DESTINATION
-  # share/icons/hicolor)
+
+# install(FILES qdap.desktop DESTINATION share/applications) install(FILES
+# qdap.png DESTINATION share/icons) install(FILES qdap.service DESTINATION
+# etc/systemd/system) install(DIRECTORY contrib/icons/ DESTINATION
+# share/icons/hicolor)
 else()
+  # ############################################################################
+  # Unsupported
+  # ############################################################################
   message(FATAL_ERROR "Unsupported platform")
 endif()
 

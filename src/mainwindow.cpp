@@ -4,11 +4,14 @@
 #include <QDateTime>
 #include <QScrollBar>
 #include <QMessageBox>
+#include <QBuffer>
+#include <QByteArray>
+#include <yaml-cpp/yaml.h>
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 #include "devices.h"
 #include "utils.h"
-#include <yaml-cpp/yaml.h>
+#include "input_box_dialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
@@ -20,14 +23,38 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->progressBar->setHidden(true);
 
-    hex_viewer = new HexViewer(ui->centralwidget);
-    ui->centralwidget->layout()->addWidget(hex_viewer);
+    // hex_viewer = new HexViewer(ui->centralwidget);
+
+    QFont font_hexview("Courier New", 10, QFont::Bold, false);
+
+    hexview = new QHexView();
+    hexview->setFont(font_hexview);
+    ui->centralwidget->layout()->addWidget(hexview);
+    hexview_doc = NULL;
+
+    // QByteArray data = QByteArray();
+    // hexview_doc = QHexDocument::fromMemory<QMemoryRefBuffer>(data);
+    // // QHexDocument *document = QHexDocument::fromFile("TA_TFT700_B01_V02.bin");
+    // hexview->setDocument(hexview_doc);
 
     connect(ui->action_file_open, SIGNAL(triggered()), this, SLOT(cb_action_open_firmware_file(void)));
     connect(ui->action_file_save, SIGNAL(triggered()), this, SLOT(cb_action_save_firmware_file(void)));
 
     connect(ui->action_view_info, SIGNAL(triggered()), this, SLOT(cb_action_view_info(void)));
     connect(ui->action_log_clear, SIGNAL(triggered()), this, SLOT(cb_action_log_clear(void)));
+
+    connect(ui->action_hexview_goto_addr, SIGNAL(triggered()), this, SLOT(cb_action_hexview_goto_addr(void)));
+    connect(ui->action_hexview_goto_start, SIGNAL(triggered()), this, SLOT(cb_action_hexview_goto_start(void)));
+    connect(ui->action_hexview_goto_end, SIGNAL(triggered()), this, SLOT(cb_action_hexview_goto_end(void)));
+
+    connect(ui->action_hexview_line_bytes_16, SIGNAL(triggered()), this, SLOT(cb_action_hexview_line_bytes(void)));
+    connect(ui->action_hexview_line_bytes_32, SIGNAL(triggered()), this, SLOT(cb_action_hexview_line_bytes(void)));
+    connect(ui->action_hexview_line_bytes_48, SIGNAL(triggered()), this, SLOT(cb_action_hexview_line_bytes(void)));
+    connect(ui->action_hexview_line_bytes_64, SIGNAL(triggered()), this, SLOT(cb_action_hexview_line_bytes(void)));
+
+    connect(ui->action_hexview_group_bytes_1, SIGNAL(triggered()), this, SLOT(cb_action_hexview_group_bytes(void)));
+    connect(ui->action_hexview_group_bytes_2, SIGNAL(triggered()), this, SLOT(cb_action_hexview_group_bytes(void)));
+    connect(ui->action_hexview_group_bytes_4, SIGNAL(triggered()), this, SLOT(cb_action_hexview_group_bytes(void)));
 
     connect(ui->action_enum_device_list, SIGNAL(triggered()), this, SLOT(cb_action_enum_device_list(void)));
     connect(ui->action_refresh_enum_devices, SIGNAL(triggered()), this, SLOT(cb_tick_enum_device(void)));
@@ -127,9 +154,26 @@ MainWindow::MainWindow(QWidget *parent)
         config->from_file();
     }
 
+    set_hexview_group_bytes(config->hexview_group_bytes);
+    set_hexview_line_bytes(config->hexview_line_bytes);
+    hexview->setReadOnly(true);
+
+    // log_info(QString("firmware_file_path: %1").arg(config->firmware_file_path));
     if (config->firmware_file_path.isEmpty() == false)
     {
-        log_info(QString("firmware_file_path: %1").arg(config->firmware_file_path));
+
+        if (config->firmware_file_path.startsWith(QCoreApplication::applicationDirPath()))
+        {
+            QDir baseDir = QDir(QCoreApplication::applicationDirPath());
+            QString firmware_file_rel_path = baseDir.relativeFilePath(config->firmware_file_path);
+            log_info(QString("firmware_file_path: %1").arg(firmware_file_rel_path));
+        }
+        else
+        {
+            log_info(QString("firmware_file_path: %1").arg(config->firmware_file_path));
+        }
+
+        open_firmware_file(config->firmware_file_path);
     }
 
     dialog_chip_selecter = new ChipSelecter(this);
@@ -303,6 +347,80 @@ void MainWindow::set_dock_chip_info()
     }
 }
 
+void MainWindow::set_hexview_line_bytes(int bytes)
+{
+    if ((bytes != 16) && (bytes != 32) && (bytes != 48) && (bytes != 64))
+        bytes = 1;
+
+    config->hexview_line_bytes = bytes;
+    hexview->setLineLength(config->hexview_line_bytes);
+
+    ui->action_hexview_line_bytes_16->setChecked(bytes == 16);
+    ui->action_hexview_line_bytes_32->setChecked(bytes == 32);
+    ui->action_hexview_line_bytes_48->setChecked(bytes == 48);
+    ui->action_hexview_line_bytes_64->setChecked(bytes == 64);
+}
+
+void MainWindow::set_hexview_group_bytes(int bytes)
+{
+    if ((bytes != 1) && (bytes != 2) && (bytes != 4))
+        bytes = 1;
+
+    config->hexview_group_bytes = bytes;
+    hexview->setGroupLength(config->hexview_group_bytes);
+
+    ui->action_hexview_group_bytes_1->setChecked(bytes == 1);
+    ui->action_hexview_group_bytes_2->setChecked(bytes == 2);
+    ui->action_hexview_group_bytes_4->setChecked(bytes == 4);
+}
+
+void MainWindow::open_firmware_file(QString file_name)
+{
+    QFileInfo fileInfo(file_name);
+
+    if (file_name.toLower().endsWith(".bin"))
+    {
+        QFile file(file_name);
+        if (!file.open(QIODevice::ReadOnly))
+            return;
+
+        firmware_buf = file.readAll();
+        file.close();
+
+        QLocale locale = this->locale();
+        QString valueText = locale.formattedDataSize(firmware_buf.count());
+
+        // hex_viewer->load();
+        // hex_viewer->load(firmware_buf);
+
+        ui->label_info_file_name->setText(fileInfo.fileName());
+
+        ui->label_info_data_size->setText(valueText);
+        qDebug("[main] file_load %s", qPrintable(valueText));
+
+        QDateTime current_date_time = QDateTime::currentDateTime();
+        QString current_date = current_date_time.toString("yyyy-MM-dd hh:mm::ss");
+        ui->label_latest_load_time->setText(current_date);
+
+        if (hexview_doc == NULL)
+        {
+            hexview_doc = QHexDocument::fromMemory<QMemoryRefBuffer>(firmware_buf);
+            hexview->setDocument(hexview_doc);
+        }
+        else
+        {
+            QHexDocument *new_hexview_doc = QHexDocument::fromMemory<QMemoryRefBuffer>(firmware_buf);
+            hexview->setDocument(new_hexview_doc);
+
+            delete hexview_doc;
+            hexview_doc = new_hexview_doc;
+        }
+    }
+    else if (file_name.toLower().endsWith(".hex"))
+    {
+    }
+}
+
 int32_t MainWindow::load_flash_algo(QString file_path)
 {
     int32_t err;
@@ -344,38 +462,17 @@ void MainWindow::cb_action_open_firmware_file(void)
     if (file_name.count() == 0)
         return;
 
+    if (file_name.startsWith(QCoreApplication::applicationDirPath()))
+    {
+        QDir baseDir = QDir(QCoreApplication::applicationDirPath());
+        file_name = baseDir.relativeFilePath(file_name);
+    }
+
     qDebug("[main] select a file %s", qPrintable(file_name));
     config->firmware_file_path = file_name;
     config->to_file();
-    QFileInfo fileInfo(file_name);
 
-    if (file_name.toLower().endsWith(".bin"))
-    {
-        QFile file(file_name);
-        if (!file.open(QIODevice::ReadOnly))
-            return;
-
-        firmware_buf = file.readAll();
-        file.close();
-
-        QLocale locale = this->locale();
-        QString valueText = locale.formattedDataSize(firmware_buf.count());
-
-        // hex_viewer->load();
-        // hex_viewer->load(firmware_buf);
-
-        ui->label_info_file_name->setText(fileInfo.fileName());
-
-        ui->label_info_data_size->setText(valueText);
-        qDebug("[main] file_load %s", qPrintable(valueText));
-
-        QDateTime current_date_time = QDateTime::currentDateTime();
-        QString current_date = current_date_time.toString("yyyy-MM-dd hh:mm::ss");
-        ui->label_latest_load_time->setText(current_date);
-    }
-    else if (file_name.toLower().endsWith(".hex"))
-    {
-    }
+    open_firmware_file(file_name);
 }
 
 void MainWindow::cb_action_save_firmware_file(void)
@@ -429,6 +526,125 @@ void MainWindow::cb_action_log_clear(void)
         if (tmp_item == NULL)
             break;
         delete tmp_item->widget();
+    }
+}
+
+void MainWindow::cb_action_hexview_goto_addr(void)
+{
+    InputBoxDialog *dialog = new InputBoxDialog();
+
+    dialog->set_description_text("跳转到地址: ");
+    dialog->set_default_value("1");
+
+    dialog->exec();
+
+    // 取消了
+    if (dialog->result() == QDialog::Rejected)
+    {
+        delete dialog;
+        return;
+    }
+
+    qDebug("[hexview] goto_addr: %s", qPrintable(dialog->get_value()));
+
+    QString addr_str = dialog->get_value();
+    delete dialog;
+
+    int addr = 0;
+    bool is_negative = false;
+    bool is_hex = false;
+    bool ok = false;
+
+    if (addr_str.startsWith("-"))
+    {
+        is_negative = true;
+        addr_str = addr_str.mid(1);
+    }
+
+    if (addr_str.toLower().startsWith("0x"))
+    {
+        is_hex = true;
+        addr_str = addr_str.mid(2);
+    }
+
+    if (is_hex)
+    {
+        addr = addr_str.toInt(&ok, 16);
+    }
+    else
+    {
+        addr = addr_str.toInt(&ok, 10);
+    }
+
+    if (ok == false)
+        return;
+
+    if (is_negative)
+    {
+        addr = firmware_buf.length() - addr;
+
+        qDebug("[hexview] goto_addr 0x%X", addr);
+    }
+
+    QHexPosition pos = hexview->positionFromAddress(addr);
+    qDebug("hexview_pos: %d %d", pos.line, pos.column);
+    hexview->verticalScrollBar()->setValue(pos.line);
+}
+
+void MainWindow::cb_action_hexview_goto_start(void)
+{
+    hexview->verticalScrollBar()->setValue(0);
+}
+
+void MainWindow::cb_action_hexview_goto_end(void)
+{
+    hexview->verticalScrollBar()->setValue(hexview->lines());
+}
+
+void MainWindow::cb_action_hexview_line_bytes(void)
+{
+    QAction *sender_action = qobject_cast<QAction *>(sender());
+
+    if (sender_action == ui->action_hexview_line_bytes_16)
+    {
+        set_hexview_line_bytes(16);
+        config->to_file();
+    }
+    else if (sender_action == ui->action_hexview_line_bytes_32)
+    {
+        set_hexview_line_bytes(32);
+        config->to_file();
+    }
+    else if (sender_action == ui->action_hexview_line_bytes_48)
+    {
+        set_hexview_line_bytes(48);
+        config->to_file();
+    }
+    else if (sender_action == ui->action_hexview_line_bytes_64)
+    {
+        set_hexview_line_bytes(64);
+        config->to_file();
+    }
+}
+
+void MainWindow::cb_action_hexview_group_bytes(void)
+{
+    QAction *sender_action = qobject_cast<QAction *>(sender());
+
+    if (sender_action == ui->action_hexview_group_bytes_1)
+    {
+        set_hexview_group_bytes(1);
+        config->to_file();
+    }
+    else if (sender_action == ui->action_hexview_group_bytes_2)
+    {
+        set_hexview_group_bytes(2);
+        config->to_file();
+    }
+    else if (sender_action == ui->action_hexview_group_bytes_4)
+    {
+        set_hexview_group_bytes(4);
+        config->to_file();
     }
 }
 

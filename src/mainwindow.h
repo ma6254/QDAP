@@ -4,10 +4,12 @@
 #include <QMainWindow>
 #include <QLabel>
 #include <QElapsedTimer>
+#include <QHexView/qhexview.h>
+#include <QHexView/model/buffer/qmemoryrefbuffer.h>
 #include "config.h"
 #include "devices.h"
 #include "flash_algo.h"
-#include "hex_viewer.h"
+// #include "hex_viewer.h"
 #include "program_worker.h"
 #include "chip_selecter.h"
 #include "dialog_chips_config.h"
@@ -42,12 +44,22 @@ public:
 
     bool detect_git();
 
+    void set_hexview_line_bytes(int bytes);
+    void set_hexview_group_bytes(int bytes);
+    void open_firmware_file(QString file_path);
+
 private slots:
     void cb_action_open_firmware_file(void);
     void cb_action_save_firmware_file(void);
 
     void cb_action_view_info(void);
     void cb_action_log_clear(void);
+
+    void cb_action_hexview_goto_addr(void);
+    void cb_action_hexview_goto_start(void);
+    void cb_action_hexview_goto_end(void);
+    void cb_action_hexview_line_bytes(void);
+    void cb_action_hexview_group_bytes(void);
 
     void cb_action_chips(void);
     void cb_action_chip_select(void);
@@ -109,7 +121,9 @@ private:
     FlashAlgo flash_algo;
     uint32_t ram_start;
 
-    HexViewer *hex_viewer;
+    // HexViewer *hex_viewer;
+    QHexView *hexview;
+    QHexDocument *hexview_doc;
 
     ProgramWorker *program_worker;
 

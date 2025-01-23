@@ -40,6 +40,9 @@ public:
     uint64_t cmsis_dap_clock;
     Devices::ClockUnit cmsis_dap_clock_unit;
 
+    int hexview_line_bytes;  // 每行字节数
+    int hexview_group_bytes; // 分组字节数
+
 private:
 };
 
