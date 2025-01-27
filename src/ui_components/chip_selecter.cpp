@@ -31,7 +31,7 @@ ChipSelecter::ChipSelecter(QWidget *parent) : QDialog(parent),
     chip_core_homepage_map.insert("Cortex-M4", "https://developer.arm.com/Processors/Cortex-M4");
     chip_core_homepage_map.insert("Cortex-M33", "https://developer.arm.com/Processors/Cortex-M33");
 
-    load_chips();
+    _load_chip_err = load_chips();
 }
 
 ChipSelecter::~ChipSelecter()
@@ -371,18 +371,21 @@ bool ChipSelecter::switch_chip(QString vendor_name, QString series_name, QString
     ok = switch_vendor(vendor_name);
     if (ok == false)
     {
+        qDebug("[ChipSelecter] switch_vendor failed");
         return false;
     }
 
     ok = switch_series(series_name);
     if (ok == false)
     {
+        qDebug("[ChipSelecter] switch_series failed");
         return false;
     }
 
     ok = switch_chip(chip_name);
     if (ok == false)
     {
+        qDebug("[ChipSelecter] switch_chip failed");
         return false;
     }
 
@@ -424,7 +427,7 @@ QString ChipSelecter::core_homepage(QString core)
     return chip_core_homepage_map[core];
 }
 
-void ChipSelecter::load_chips(QString chips_dir_path)
+int ChipSelecter::load_chips(QString chips_dir_path)
 {
     if (chips_dir_path.isEmpty())
     {
@@ -436,7 +439,7 @@ void ChipSelecter::load_chips(QString chips_dir_path)
     if (!dir_chips.exists())
     {
         qDebug("[chips] chips_dir_path is not exists");
-        return;
+        return -1;
     }
 
     dir_chips.setNameFilters(QStringList("*.yml"));
@@ -474,6 +477,8 @@ void ChipSelecter::load_chips(QString chips_dir_path)
     }
 
     switch_vendor(0);
+
+    return file_list.count();
 }
 
 int ChipSelecter::load_chip_vendor(QString vendor_file_path, Vendor *vendor)

@@ -6,6 +6,7 @@
 
 Config::Config()
 {
+    chips = NULL;
 }
 
 Config::~Config()
@@ -25,7 +26,14 @@ Config *Config::get_default()
     config->chip_vendor_name = "";
     config->chip_series_name = "";
     config->chip_name = "";
-    config->chips_url = "https://github.com/ma6254/qdap_chips";
+
+    if (config->chips)
+    {
+        delete config->chips;
+        config->chips = NULL;
+    }
+    config->chips = ChipsConfig::get_default();
+
     config->cmsis_dap_port_str = "swd";
     config->cmsis_dap_swj = true;
     config->cmsis_dap_clock_str = "1M";
@@ -87,6 +95,7 @@ int Config::from_file(QString file_path)
 int Config::from_node(YAML::Node node)
 {
     YAML::Node tmp_node;
+    int err;
 
     if (node.IsMap() == false)
         return -1;
@@ -112,13 +121,14 @@ int Config::from_node(YAML::Node node)
     YAML::Node node_hex_view = node["hex_view"];
     if (node_hex_view.IsMap() == false)
         return -1;
+    // qDebug("[cfg] from_node hex_view");
 
     tmp_node = node_hex_view["line_bytes"];
     if (tmp_node.IsScalar() == false)
         return -1;
     hexview_line_bytes = tmp_node.as<int>();
 
-    tmp_node = node_hex_view["hexview_gpoup_bytes"];
+    tmp_node = node_hex_view["group_bytes"];
     if (tmp_node.IsScalar() == false)
         return -1;
     hexview_group_bytes = tmp_node.as<int>();
@@ -126,6 +136,7 @@ int Config::from_node(YAML::Node node)
     YAML::Node node_chip_selected = node["chip_selected"];
     if (node_chip_selected.IsMap() == false)
         return -1;
+    // qDebug("[cfg] from_node chip_selected");
 
     tmp_node = node_chip_selected["vendor_name"];
     if (tmp_node.IsScalar() == false)
@@ -142,27 +153,32 @@ int Config::from_node(YAML::Node node)
         return -1;
     chip_name = QString(tmp_node.as<std::string>().c_str());
 
-    qDebug("[cfg] chip_selected: [%s] [%s] [%s]",
-           qUtf8Printable(chip_vendor_name),
-           qUtf8Printable(chip_series_name),
-           qUtf8Printable(chip_name));
+    // qDebug("[cfg] chip_selected: [%s] [%s] [%s]",
+    //        qUtf8Printable(chip_vendor_name),
+    //        qUtf8Printable(chip_series_name),
+    //        qUtf8Printable(chip_name));
 
     YAML::Node node_chips_library = node["chips_library"];
     if (node_chips_library.IsMap() == false)
         return -1;
+    // qDebug("[cfg] from_node chips_library");
 
-    tmp_node = node_chips_library["url"];
-    if (tmp_node.IsScalar() == false)
+    if (chips)
+        delete chips;
+    chips = ChipsConfig::get_default();
+    err = chips->from_node(node_chips_library);
+    if (err < 0)
         return -1;
-    chips_url = QString(tmp_node.as<std::string>().c_str());
 
     YAML::Node node_devices = node["devices"];
     if (node_devices.IsMap() == false)
         return -1;
+    // qDebug("[cfg] from_node devices");
 
     YAML::Node node_devices_dap = node_devices["cmsis_dap"];
     if (node_devices_dap.IsMap() == false)
         return -1;
+    // qDebug("[cfg] from_node devices>> cmsis_dap");
 
     tmp_node = node_devices_dap["port"];
     if (tmp_node.IsScalar() == false)
@@ -184,7 +200,7 @@ int Config::from_node(YAML::Node node)
     Devices::parse_clock_str(cmsis_dap_clock_str, &cmsis_dap_clock, &cmsis_dap_clock_unit);
     // qDebug("[Config] clock: %d %s", cmsis_dap_clock, qPrintable(QVariant::fromValue(cmsis_dap_clock_unit).toString()));
 
-    qDebug("[Config] load ok");
+    // qDebug("[Config] load ok");
     return 0;
 }
 
@@ -233,6 +249,8 @@ int Config::to_file(QString file_path)
  ******************************************************************************/
 int Config::to_node(YAML::Node *node)
 {
+    int err;
+
     if (node == nullptr)
         return -1;
 
@@ -280,8 +298,12 @@ int Config::to_node(YAML::Node *node)
 
     // 芯片器件库
     // qDebug("[cfg] node_chips_library");
+    if (chips == NULL)
+        return -1;
     YAML::Node node_chips_library;
-    node_chips_library["url"] = qUtf8Printable(chips_url);
+    err = chips->to_node(&node_chips_library);
+    if (err < 0)
+        return -1;
     (*node)["chips_library"] = node_chips_library;
 
     // 已选中的设备

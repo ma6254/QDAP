@@ -12,7 +12,9 @@
 // #include "hex_viewer.h"
 #include "program_worker.h"
 #include "chip_selecter.h"
-#include "dialog_chips_config.h"
+
+// views
+#include "chips_config_dialog.h"
 #include "enum_writer_list.h"
 
 QT_BEGIN_NAMESPACE
@@ -46,7 +48,7 @@ public:
 
     void set_hexview_line_bytes(int bytes);
     void set_hexview_group_bytes(int bytes);
-    void open_firmware_file(QString file_path);
+    int open_firmware_file(QString file_path);
 
 private slots:
     void cb_action_open_firmware_file(void);
@@ -128,7 +130,6 @@ private:
     ProgramWorker *program_worker;
 
     ChipSelecter *dialog_chip_selecter;
-    DialogChipsConfig *dialog_chips_config;
     enum_writer_list *dialog_enum_devices;
 
     // bool dap_hid_device_list_compare(QList<DAP_HID *> *now_list, QList<DAP_HID *> *prev_list);

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>chips_config_dialog</class>
+ <widget class="QDialog" name="chips_config_dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>842</width>
+    <height>435</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>QDAP 芯片器件库管理</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,1,0" columnstretch="0,0">
+   <item row="0" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>器件库地址：</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="1" column="0" colspan="2">
+    <layout class="QHBoxLayout" name="hbox_addr">
+     <item>
+      <widget class="QComboBox" name="comboBox">
+       <item>
+        <property name="text">
+         <string>Github</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../../../main.qrc">
+          <normaloff>:/assets/github_favicon.png</normaloff>:/assets/github_favicon.png</iconset>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Gitee</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../../../main.qrc">
+          <normaloff>:/assets/gitee_favicon.ico</normaloff>:/assets/gitee_favicon.ico</iconset>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Gitea</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../../../main.qrc">
+          <normaloff>:/assets/gitea_favicon.png</normaloff>:/assets/gitea_favicon.png</iconset>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="lineEdit_chips_url"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btn_refresh">
+       <property name="text">
+        <string>刷新</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="2" column="0" colspan="2">
+    <widget class="QProgressBar" name="progressBar">
+     <property name="value">
+      <number>24</number>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0" colspan="2">
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1,0,0">
+     <item>
+      <widget class="QLabel" name="label_msg">
+       <property name="text">
+        <string>消息</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btn_abort">
+       <property name="text">
+        <string>中止</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btn_ok">
+       <property name="text">
+        <string>应用</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="../../../main.qrc"/>
+ </resources>
+ <connections/>
+</ui>

@@ -21,7 +21,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # ${CMAKE_CURRENT_SOURCE_DIR}/path/to/libssl.so) endif() endif()
 find_package(
   Qt5
-  COMPONENTS Widgets LinguistTools
+  COMPONENTS
+  Gui
+  Widgets
+  Network
+  LinguistTools
   REQUIRED)
 
 include_directories(${QT_INCLUDE_DIRS})
@@ -63,11 +67,12 @@ endif()
 include_directories(
   src
   src/DAP
-  src/components
+  src/config
   src/ui_components
   src/device_selector
   src/devices
   src/views/input_box_dialog
+  src/views/chips_config_dialog
 )
 
 file(
@@ -75,11 +80,12 @@ file(
   SRC_FILES
   src/*.cpp
   src/DAP/*.cpp
-  src/components/*.cpp
+  src/config/*.cpp
   src/ui_components/*.cpp
   src/device_selector/*.cpp
   src/devices/*.cpp
   src/views/input_box_dialog/*.cpp
+  src/views/chips_config_dialog/*.cpp
 )
 
 file(
@@ -89,20 +95,19 @@ file(
   src/ui_components/*.ui
   src/device_selector/*.ui
   src/views/input_box_dialog/*.ui
+  src/views/chips_config_dialog/*.ui
 )
 
 if(ANDROID)
   # ############################################################################
   # ANDROID
   # ############################################################################
-
   message(STATUS "Building for Android")
   add_library(QDAP SHARED ${SRC_FILES} ${UI_FILES} ${QM_FILES})
 elseif(WIN32)
   # ############################################################################
   # Windows
   # ############################################################################
-
   message(STATUS "Building for Windows")
 
   # yaml-cpp
@@ -113,11 +118,15 @@ elseif(WIN32)
   add_subdirectory("vendor/QHexView")
   set(QHexView_LIBRARIES QHexView)
 
+
   include_directories(
+    ${Qt5Core_INCLUDE_DIRS}
+    ${Qt5Widgets_INCLUDE_DIRS}
+    ${Qt5Gui_PRIVATE_INCLUDE_DIRS}
     vendor/libusb_hid_api/include
     vendor/libusb/include
     vendor/yaml-cpp/include
-    vendor/QHexView/include
+    vendor/QHexView/include=
   )
 
   include_directories(ch341_ch347_lib/CH341PAR/LIB/CH347)
@@ -125,7 +134,12 @@ elseif(WIN32)
   add_executable(QDAP ${SRC_FILES} ${UI_FILES} ${QM_FILES})
   target_link_libraries(
     QDAP
-    PRIVATE Qt5::Widgets
+    PRIVATE
+    Qt5::Core
+    Qt5::Gui
+    Qt5::Widgets
+    Qt5::Network
+    # OpenSSL::SSL OpenSSL::Crypto
     ${CMAKE_SOURCE_DIR}/vendor/libusb_hid_api/x64/hidapi.lib
     ${CMAKE_SOURCE_DIR}/vendor/libusb/MinGW64/static/libusb-1.0.a
     yaml-cpp

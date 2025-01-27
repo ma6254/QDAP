@@ -9,7 +9,6 @@
         "build": true,
     },
     "files.associations": {
-        "*.A51": "a51",
         "*.H": "c",
         "Caddyfile": "caddyfile",
         "*.j2": "jinja",
@@ -139,6 +138,9 @@
         "qgroupbox": "cpp",
         "qcoreapplication": "cpp",
         "qobject": "cpp",
-        "qfile": "cpp"
-    }
+        "qfile": "cpp",
+        "qlabel": "c",
+        "qhboxlayout": "c"
+    },
+    "git.ignoreLimitWarning": true
 }

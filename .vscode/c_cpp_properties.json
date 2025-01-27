@@ -13,11 +13,12 @@
                 "${workspaceFolder}/vendor/yaml-cpp/include",
                 "${workspaceFolder}/vendor/QHexView/include",
                 "${workspaceFolder}/src/DAP",
-                "${workspaceFolder}/src/components",
+                "${workspaceFolder}/src/config",
                 "${workspaceFolder}/src/ui_components",
                 "${workspaceFolder}/src/devices",
                 "${workspaceFolder}/src/device_selector",
                 "${workspaceFolder}/src/views/input_box_dialog",
+                "${workspaceFolder}/src/views/chips_config_dialog",
                 "${workspaceFolder}/build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/QDAP_autogen/include"
                 // "${workspaceFolder}/../build-QDAP-(2)-Desktop_Qt_5_14_2_MinGW_64_bit-Debug/QDAP_autogen/include"
             ],

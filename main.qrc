@@ -2,5 +2,8 @@
     <qresource prefix="/">
         <file>assets/chevron_right_24dp_FFFFFF_FILL0_wght400_GRAD0_opsz24.png</file>
         <file>assets/keyboard_arrow_down_24dp_FFFFFF_FILL0_wght400_GRAD0_opsz24.png</file>
+        <file>assets/github_favicon.png</file>
+        <file>assets/gitea_favicon.png</file>
+        <file>assets/gitee_favicon.ico</file>
     </qresource>
 </RCC>

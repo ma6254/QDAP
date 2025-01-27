@@ -4,6 +4,7 @@
 #include <QObject>
 #include <yaml-cpp/yaml.h>
 #include "devices.h"
+#include "chips_config.h"
 
 class Config : public QObject
 {
@@ -31,7 +32,8 @@ public:
     QString chip_series_name;
     QString chip_name;
 
-    QString chips_url;
+    // QString chips_url;
+    ChipsConfig *chips;
 
     QString cmsis_dap_port_str;
     CMSIS_DAP_Base::Port cmsis_dap_port;
@@ -43,7 +45,7 @@ public:
     int hexview_line_bytes;  // 每行字节数
     int hexview_group_bytes; // 分组字节数
 
-private:
+    // private:
 };
 
 #endif // QDAP_CONFIG_H

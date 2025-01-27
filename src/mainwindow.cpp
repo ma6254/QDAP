@@ -151,7 +151,17 @@ MainWindow::MainWindow(QWidget *parent)
     }
     else
     {
-        config->from_file();
+        int err = config->from_file();
+
+        if (err < 0)
+        {
+            QMessageBox msgBox;
+            msgBox.setText("配置文件加载失败");
+            msgBox.setIcon(QMessageBox::Critical);
+            msgBox.exec();
+            exit(1);
+            return;
+        }
     }
 
     set_hexview_group_bytes(config->hexview_group_bytes);
@@ -173,13 +183,58 @@ MainWindow::MainWindow(QWidget *parent)
             log_info(QString("firmware_file_path: %1").arg(config->firmware_file_path));
         }
 
-        open_firmware_file(config->firmware_file_path);
+        int err = open_firmware_file(config->firmware_file_path);
+        if (err < 0)
+        {
+            QMessageBox msgBox;
+            msgBox.setText("烧录文件打开失败：" + config->firmware_file_path);
+            msgBox.setIcon(QMessageBox::Critical);
+            msgBox.exec();
+        }
     }
 
     dialog_chip_selecter = new ChipSelecter(this);
 
-    bool ok;
-    ok = dialog_chip_selecter->switch_chip(config->chip_vendor_name, config->chip_series_name, config->chip_name);
+    if (dialog_chip_selecter->error() <= 0)
+    {
+        QMessageBox msgBox;
+        msgBox.setText("芯片器件库加载失败");
+        msgBox.setIcon(QMessageBox::Critical);
+        msgBox.exec();
+        // exit(1);
+        // return;
+
+        while (1)
+        {
+            ChipsConfigDialog *chips_config_dialog = new ChipsConfigDialog(this);
+            chips_config_dialog->set_chips_url(config->chips->url);
+            chips_config_dialog->exec();
+
+            // 取消了
+            if (chips_config_dialog->result() == QDialog::Rejected)
+            {
+                delete chips_config_dialog;
+                exit(1);
+                return;
+            }
+
+            int err = dialog_chip_selecter->load_chips();
+            if (err > 0)
+            {
+                delete chips_config_dialog;
+                break;
+            }
+
+            delete chips_config_dialog;
+        }
+    }
+
+    qDebug("[main] chip_selected: [%s] [%s] [%s]",
+           qUtf8Printable(config->chip_vendor_name),
+           qUtf8Printable(config->chip_series_name),
+           qUtf8Printable(config->chip_name));
+
+    bool ok = dialog_chip_selecter->switch_chip(config->chip_vendor_name, config->chip_series_name, config->chip_name);
     if (ok == false)
     {
         QMessageBox msgBox;
@@ -188,12 +243,40 @@ MainWindow::MainWindow(QWidget *parent)
         msgBox.exec();
         // exit(1);
         // return;
+
+        dialog_chip_selecter->exec();
+
+        // 取消了
+        if (dialog_chip_selecter->result() == QDialog::Rejected)
+        {
+            exit(1);
+            return;
+        }
+
+        qDebug("[main] chip_select %s %s %s",
+               qUtf8Printable(dialog_chip_selecter->vendor_name()),
+               qUtf8Printable(dialog_chip_selecter->series_name()),
+               qUtf8Printable(dialog_chip_selecter->chip_name()));
+
+        config->chip_vendor_name = dialog_chip_selecter->vendor_name();
+        config->chip_series_name = dialog_chip_selecter->series_name();
+        config->chip_name = dialog_chip_selecter->chip_name();
+
+        // ui->label_info_chip_vendor->setText(chip_vendor_name);
+        // ui->label_info_chip_series->setText(chip_series_name);
+        // ui->label_info_chip_name->setText(chip_name);
+
+        ChipInfo chip_info = dialog_chip_selecter->chip_info();
+        // ui->label_info_chip_flash_size->setText(chip_info.flash_size_str);
+        // ui->label_info_core_type->setText(chip_info.core);
+
+        set_dock_chip_info();
+        config->to_file();
     }
 
-    dialog_chips_config = new DialogChipsConfig(this);
-    dialog_chips_config->set_chips_url(config->chips_url);
-
+    qDebug("[main] set_dock_chip_info start");
     set_dock_chip_info();
+    qDebug("[main] set_dock_chip_info end");
 
     dialog_enum_devices = new enum_writer_list(this);
     connect(this, SIGNAL(device_changed(DeviceList, bool)),
@@ -226,7 +309,6 @@ MainWindow::~MainWindow()
 {
     delete ui;
     delete dialog_chip_selecter;
-    delete dialog_chips_config;
 }
 
 QString MainWindow::now_time(void)
@@ -291,6 +373,7 @@ void MainWindow::log_error(QString str)
 
 void MainWindow::set_dock_chip_info()
 {
+    qDebug("[main] set_dock_chip_info chip_vendor_name");
 
     if (dialog_chip_selecter->vendor_homepage().isEmpty() == false)
     {
@@ -303,6 +386,8 @@ void MainWindow::set_dock_chip_info()
         ui->label_info_chip_vendor->setText(config->chip_vendor_name);
     }
 
+    qDebug("[main] set_dock_chip_info chip_series_name");
+
     if (dialog_chip_selecter->series_homepage().isEmpty() == false)
     {
         ui->label_info_chip_series->setText(QString::asprintf("[%s](%s)",
@@ -314,12 +399,16 @@ void MainWindow::set_dock_chip_info()
         ui->label_info_chip_series->setText(config->chip_series_name);
     }
 
+    qDebug("[main] set_dock_chip_info chip_name");
+
     ui->label_info_chip_name->setText(config->chip_name);
 
     log_info(QString::asprintf("[cfg] chip_selected: [%s] [%s] [%s]",
                                qUtf8Printable(config->chip_vendor_name),
                                qUtf8Printable(config->chip_series_name),
                                qUtf8Printable(config->chip_name)));
+
+    qDebug("[main] set_dock_chip_info chip_info");
 
     ChipInfo chip_info = dialog_chip_selecter->chip_info();
     ui->label_info_chip_flash_size->setText(chip_info.flash_size_str);
@@ -374,15 +463,15 @@ void MainWindow::set_hexview_group_bytes(int bytes)
     ui->action_hexview_group_bytes_4->setChecked(bytes == 4);
 }
 
-void MainWindow::open_firmware_file(QString file_name)
+int MainWindow::open_firmware_file(QString file_name)
 {
     QFileInfo fileInfo(file_name);
 
     if (file_name.toLower().endsWith(".bin"))
     {
         QFile file(file_name);
-        if (!file.open(QIODevice::ReadOnly))
-            return;
+        if (file.open(QIODevice::ReadOnly) == false)
+            return -1;
 
         firmware_buf = file.readAll();
         file.close();
@@ -418,7 +507,10 @@ void MainWindow::open_firmware_file(QString file_name)
     }
     else if (file_name.toLower().endsWith(".hex"))
     {
+        return -1;
     }
+
+    return -1;
 }
 
 int32_t MainWindow::load_flash_algo(QString file_path)
@@ -882,14 +974,18 @@ void MainWindow::cb_action_auto_refresh_enum_devices(bool checked)
 
 void MainWindow::cb_action_chips(void)
 {
-    dialog_chips_config->exec();
-    int result = dialog_chips_config->result();
+    ChipsConfigDialog *chips_config_dialog = new ChipsConfigDialog(this);
+    chips_config_dialog->set_chips_url(config->chips->url);
+    chips_config_dialog->exec();
+    int result = chips_config_dialog->result();
 
     if (result == QDialog::Rejected)
     {
+        delete chips_config_dialog;
         return;
     }
 
+    delete chips_config_dialog;
     config->to_file();
 }
 

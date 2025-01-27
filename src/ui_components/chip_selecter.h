@@ -119,8 +119,10 @@ class ChipSelecter : public QDialog
 public:
     explicit ChipSelecter(QWidget *parent = nullptr);
     ~ChipSelecter();
-    void load_chips(QString chips_dir_path = "");
+    int load_chips(QString chips_dir_path = "");
     int load_chip_vendor(QString vendor_file_path, Vendor *vendor);
+
+    int error() { return _load_chip_err; }
 
     void log_clear();
     void log_output();
@@ -244,6 +246,8 @@ private:
     int current_vendor_index;
     int current_series_index;
     int current_chip_index;
+
+    int _load_chip_err;
 
     QString log_vendor;
     QString log_series;

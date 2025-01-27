@@ -81,6 +81,7 @@ QDAP_*.ts
 # /libusb_hid_api/x64
 /vendor/libusb/
 /vendor/libusb_hid_api/
+/vendor/openssl/
 
 # WCH ch341 ch347
 /ch341_ch347_lib

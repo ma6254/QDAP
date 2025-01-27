@@ -1199,7 +1199,7 @@
   </action>
   <action name="action_chips">
    <property name="text">
-    <string>芯片器件库</string>
+    <string>芯片器件库管理</string>
    </property>
   </action>
   <action name="action_refresh_enum_devices">
