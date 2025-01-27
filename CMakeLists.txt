@@ -71,6 +71,7 @@ include_directories(
   src/ui_components
   src/device_selector
   src/devices
+  src/devices/cmsis-dap
   src/views/input_box_dialog
   src/views/chips_config_dialog
 )
@@ -84,6 +85,7 @@ file(
   src/ui_components/*.cpp
   src/device_selector/*.cpp
   src/devices/*.cpp
+  src/devices/cmsis-dap/*.cpp
   src/views/input_box_dialog/*.cpp
   src/views/chips_config_dialog/*.cpp
 )
