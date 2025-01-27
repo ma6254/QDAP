@@ -25,7 +25,7 @@ chip device libray: <https://github.com/ma6254/qdap_chips>
 | 设备驱动 FT2232          | 📦搁置   |                                  |
 | 设备驱动 JLink           | 📦搁置   | JLink有Segger全套上位机支持      |
 | 芯片器件库的加载         | ✅已完成 |                                  |
-| 芯片器件库的同步         | 🚧开发中 |                                  |
+| 芯片器件库的同步         | 🚧开发中 | 已完成zip的下载和解压            |
 | 芯片型号选择界面         | ✅已完成 |                                  |
 | RTT Viewer界面           | 📦搁置   |                                  |
 | HexEdit界面              | ✅已完成 |                                  |
