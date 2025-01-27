@@ -5,4 +5,4 @@
 [submodule "vendor/QHexView"]
 	path = vendor/QHexView
 	url = https://github.com/Dax89/QHexView.git
-	branch = v5.0.0
+	branch = 5.0

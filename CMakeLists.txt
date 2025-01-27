@@ -126,7 +126,7 @@ elseif(WIN32)
     vendor/libusb_hid_api/include
     vendor/libusb/include
     vendor/yaml-cpp/include
-    vendor/QHexView/include=
+    vendor/QHexView/include
   )
 
   include_directories(ch341_ch347_lib/CH341PAR/LIB/CH347)
