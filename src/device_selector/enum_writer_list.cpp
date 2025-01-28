@@ -74,15 +74,13 @@ void enum_writer_list::cb_device_changed(DeviceList dev_list, bool changed)
         ui->btn_refresh_enum_devices->setEnabled(true);
     }
 
-    if (changed == false)
+    if (changed)
     {
-        return;
+        qDebug("[enum_writer_list] dev_changed count:%d", dev_list.count());
     }
 
     device_list.clear();
     device_list.append(dev_list);
-
-    qDebug("[enum_writer_list] dev_changed count:%d", dev_list.count());
 
     // dap_hid_list_clear();
     enum_dap->dd_dev_clear();
@@ -200,8 +198,9 @@ int enum_writer_list::currentIndex(void)
     return -1;
 }
 
-void enum_writer_list::setCurrentIndex(int n)
+void enum_writer_list::setCurrentIndex(int index)
 {
+
     // current_device_index = n;
     // ui->comboBox_daplink->setCurrentIndex(n);
 }

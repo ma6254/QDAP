@@ -26,6 +26,8 @@ public:
 
     bool contains(const Devices &value) const;
 
+    void release_all();
+
 private:
     QStringList aaa;
 };

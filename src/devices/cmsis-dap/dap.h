@@ -6,9 +6,6 @@
 #include <QWidget>
 #include "devices.h"
 
-#define DAP_HID_VID 0x0D28
-#define DAP_HID_PID 0x0204
-
 typedef struct
 {
     uint32_t select;
@@ -132,6 +129,8 @@ public:
     CMSIS_DAP_Base();
     ~CMSIS_DAP_Base();
 
+    int32_t connect() override;
+
     static int parse_port_str(QString str, Port *port);
 
     virtual QString get_manufacturer_string() { return "Unknow"; }
@@ -139,9 +138,37 @@ public:
     virtual QString get_serial_string() { return "Unknow"; }
     virtual QString get_version_string() { return "Unknow"; }
 
-    virtual int32_t dap_request(uint8_t *tx_data, uint8_t *rx_data) = 0;
+    virtual int32_t open_device() = 0;
+    virtual int32_t close_device() = 0;
+
+    virtual int32_t dap_request(uint8_t *tx_data, uint32_t tx_len, uint8_t *rx_data, uint32_t rx_buf_size, uint32_t *rx_len) = 0;
 
     int get_info_cmsis_dap_protocol_version(QString *version);
+
+    int32_t dap_connect(uint8_t port);
+    int32_t dap_disconnect();
+    int32_t dap_reset_target();
+
+    int32_t dap_swj_sequence(uint8_t bit_count, uint8_t *data);
+    int32_t dap_swd_config(uint8_t cfg);
+    int32_t dap_swd_sequence_write(uint8_t count, uint8_t *tx_data);
+
+    int32_t dap_transfer_config(uint8_t idle_cyless, uint16_t wait_retry, uint16_t match_retry);
+    int32_t dap_swd_transfer(uint8_t req, uint32_t tx_data, uint8_t *resp, uint32_t *rx_data);
+    int32_t dap_swd_transfer_retry(uint8_t req, uint32_t tx_data, uint8_t *resp, uint32_t *rx_data);
+    int32_t dap_swd_transfer_block(uint8_t req, uint32_t tx_data, uint8_t *resp, uint32_t *timestamp, uint32_t *rx_data);
+
+    int32_t dap_swd_reset();
+    int32_t dap_swd_switch(uint16_t val);
+
+    int32_t dap_swd_read_dp(uint8_t addr, uint32_t *val);
+
+    int32_t dap_swd_read_idcode(uint32_t *idcode);
+
+private:
+    int32_t dap_hid_resp_status_return(uint8_t *rx_data);
+
+    uint32_t tmp_idcode;
 };
 
 #include "dap_usb_hid.h"

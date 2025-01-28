@@ -17,6 +17,9 @@
 #include <QThread>
 #include <QDebug>
 
+#define DAP_HID_VID 0x0D28
+#define DAP_HID_PID 0x0204
+
 /*******************************************************************************
  * @brief HID设备
  ******************************************************************************/
@@ -46,8 +49,8 @@ public:
     int32_t error() { return err_code; }
     QString get_usb_path() { return usb_path; }
 
-    int32_t open_device();
-    int32_t close_device();
+    int32_t open_device() override;
+    int32_t close_device() override;
 
     int32_t connect();
     int32_t run();
@@ -58,7 +61,7 @@ public:
 
     uint32_t idcode() { return tmp_idcode; }
 
-    int32_t dap_request(uint8_t *tx_data, uint8_t *rx_data) override;
+    int32_t dap_request(uint8_t *tx_data, uint32_t tx_len, uint8_t *rx_data, uint32_t rx_buf_size, uint32_t *rx_len) override;
 
     int32_t dap_hid_request(uint8_t *tx_data, uint8_t *rx_data);
     int32_t dap_hid_resp_status_return(uint8_t *rx_data);

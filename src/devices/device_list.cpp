@@ -137,3 +137,23 @@ bool DeviceList::contains(const Devices &value) const
 
     return false;
 }
+
+void DeviceList::release_all()
+{
+
+    // qDebug("[DeviceList] release_all count:%d", count());
+
+    for (int i = 0; i < count(); i++)
+    {
+        Devices *tmp_dev = this->at(i);
+
+        if (tmp_dev == NULL)
+            continue;
+
+        delete tmp_dev;
+    }
+
+    this->clear();
+
+    // qDebug("[DeviceList] release_all done");
+}

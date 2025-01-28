@@ -42,6 +42,8 @@ public:
     Devices(const Devices &src_device);
     ~Devices();
 
+    virtual int32_t connect() = 0;
+
     static QString device_type_to_string(DeviceType t);
     static DeviceType string_to_device_type(QString str);
     static int parse_clock_str(QString str, uint64_t *clock, ClockUnit *unit);

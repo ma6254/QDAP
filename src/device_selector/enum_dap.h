@@ -37,7 +37,7 @@ public:
     int current_index();
     void set_current_index(int index);
     Devices *current_device();
-    int set_current_device(Devices device);
+    int set_current_device(Devices *device);
 
     int count();
 

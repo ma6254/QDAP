@@ -746,14 +746,13 @@ void MainWindow::cb_action_enum_device_list(void)
 
     // force_update_device_list = true;
 
-    cb_tick_enum_device();
+    // cb_tick_enum_device();
 
     // emit device_changed(device_list);
     dialog_enum_devices->setCurrentIndex(current_device_index + 1);
     dialog_enum_devices->set_auto_refresh(config->auto_refresh_enum_devices);
 
     dialog_enum_devices->exec();
-
     if (dialog_enum_devices->result() == QDialog::Rejected)
     {
         return;
@@ -781,7 +780,7 @@ void MainWindow::cb_action_enum_device_list(void)
     config->cmsis_dap_clock_unit = tmp_enum_dap->get_config_clock_unit();
     config->to_file();
 
-    // current_device = dialog_enum_devices->currentIndex();
+    current_device_index = dialog_enum_devices->currentIndex();
 
     // qDebug("[main] enum_device_list %d", current_device);
 
@@ -819,7 +818,8 @@ void MainWindow::cb_tick_enum_device()
         is_changed = true;
     }
 
-    dap_hid_device_list_prev.clear();
+    // dap_hid_device_list_prev.clear();
+    dap_hid_device_list_prev.release_all();
     dap_hid_device_list_prev.append(dap_hid_device_list);
 
     // if (dap_hid_device_list.count() == 0)
@@ -851,7 +851,8 @@ void MainWindow::cb_tick_enum_device()
         is_changed = true;
     }
 
-    dap_v2_device_list_prev.clear();
+    dap_v2_device_list_prev.release_all();
+    // dap_v2_device_list_prev.clear();
     dap_v2_device_list_prev.append(dap_v2_device_list);
 
     // dap_v2_device_list.clear();
@@ -887,23 +888,12 @@ void MainWindow::cb_tick_enum_device()
     // dap_v2_device_list_prev.clear();
     // dap_v2_device_list_prev.append(dap_v2_device_list);
 
+    device_list.clear();
+    device_list.append(dap_hid_device_list);
+    device_list.append(dap_v2_device_list);
+
     if (is_changed)
     {
-
-        // while (device_list.count())
-        // {
-        //     delete device_list[0];
-        //     device_list.removeFirst();
-        // }
-        device_list.clear();
-        device_list.append(dap_hid_device_list);
-        device_list.append(dap_v2_device_list);
-
-        // foreach (CMSIS_DAP_V2 *tmp_bulk_dev, dap_v2_device_list)
-        // {
-        //     device_list.append((Devices *)tmp_bulk_dev);
-        // }
-
         // qDebug("device_list is changed len:%d", device_list.count());
         log_info(QString::asprintf("device_list is changed len:%d", device_list.count()));
     }
@@ -1040,21 +1030,27 @@ void MainWindow::cb_action_connect(void)
     int32_t err;
     Devices *tmp_dev;
 
-    if (dap_hid_device_list.count() == 0)
+    if (device_list.count() == 0)
+    {
+        log_info("no devices");
         return;
+    }
 
-    qDebug("[main] cb_action_connect current_device: %d", current_device_index);
+    qDebug("[main] cb_action_connect current_device: inedx:%d len:%d", current_device_index, device_list.count());
 
     if (current_device_index < 0)
+        tmp_dev = device_list[0];
+    else
+        tmp_dev = device_list[current_device_index];
+
+    err = tmp_dev->connect();
+    if (err < 0)
+    {
+        qDebug("[main] connect fail");
         return;
+    }
 
-    tmp_dev = dap_hid_device_list[current_device_index];
-
-    // err = tmp_dev->connect();
-    // if (err < 0)
-    // {
-    //     qDebug("[main] connect fail");
-    // }
+    qDebug("[main] connect ok");
 
     // ui->label_info_idcode->setText(QString("%1").arg(tmp_dev->idcode(), 8, 16, QChar('0')).toUpper());
 

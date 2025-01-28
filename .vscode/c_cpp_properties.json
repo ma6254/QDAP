@@ -16,6 +16,7 @@
                 "${workspaceFolder}/src/config",
                 "${workspaceFolder}/src/ui_components",
                 "${workspaceFolder}/src/devices",
+                "${workspaceFolder}/src/devices/cmsis-dap",
                 "${workspaceFolder}/src/device_selector",
                 "${workspaceFolder}/src/views/input_box_dialog",
                 "${workspaceFolder}/src/views/chips_config_dialog",

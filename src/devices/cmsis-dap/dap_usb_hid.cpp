@@ -450,13 +450,16 @@ int32_t DAP_HID::close_device()
     return 0;
 }
 
-int32_t DAP_HID::dap_request(uint8_t *tx_data, uint8_t *rx_data)
+int32_t DAP_HID::dap_request(uint8_t *tx_data, uint32_t tx_len, uint8_t *rx_data, uint32_t rx_buf_size, uint32_t *rx_len)
 {
     int32_t err;
     uint8_t tx_buf[65] = {0};
 
+    if (tx_len > 64)
+        return -1;
+
     tx_buf[0] = 0x00;
-    memcpy(tx_buf + 1, tx_data, 64);
+    memcpy(tx_buf + 1, tx_data, tx_len);
 
     if (dev == NULL)
     {
@@ -472,7 +475,7 @@ int32_t DAP_HID::dap_request(uint8_t *tx_data, uint8_t *rx_data)
         return err;
     }
 
-    err = hid_read_timeout(dev, rx_data, 64, 100);
+    err = hid_read_timeout(dev, rx_data, rx_buf_size, 100);
     if (err < 0)
     {
         QString err_info = QString::fromWCharArray(hid_error(dev));
@@ -488,6 +491,7 @@ int32_t DAP_HID::dap_request(uint8_t *tx_data, uint8_t *rx_data)
         return -1;
     }
 
+    *rx_len = err;
     return 0;
 }
 

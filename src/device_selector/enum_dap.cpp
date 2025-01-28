@@ -202,7 +202,12 @@ int EnumDAP::count()
 
 int EnumDAP::current_index()
 {
-    return ui->dd_dev->currentIndex();
+    int i = ui->dd_dev->currentIndex();
+
+    if (i == 0)
+        return -1;
+
+    return ui->dd_dev->currentIndex() - 1;
 }
 
 void EnumDAP::set_current_index(int index)
@@ -224,7 +229,7 @@ Devices *EnumDAP::current_device()
     return device_list[current_index() - 1];
 }
 
-int EnumDAP::set_current_device(Devices device)
+int EnumDAP::set_current_device(Devices *device)
 {
     return -1;
 }

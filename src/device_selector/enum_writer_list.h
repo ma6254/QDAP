@@ -27,7 +27,7 @@ public:
 
     void dap_hid_list_clear(void);
     int currentIndex(void);
-    void setCurrentIndex(int n);
+    void setCurrentIndex(int index);
 
     Devices *current_device();
 

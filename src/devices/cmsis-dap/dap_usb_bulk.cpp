@@ -1,6 +1,9 @@
 #include "dap_usb_bulk.h"
 #include "utils.h"
 
+extern libusb_context *g_libusb_context;
+libusb_device **CMSIS_DAP_V2::libusb_device_list = NULL;
+
 CMSIS_DAP_V2::CMSIS_DAP_V2(libusb_device *dev, int interface_number, uint8_t ep_in_addr, uint8_t ep_out_addr)
 {
     int32_t err;
@@ -13,7 +16,7 @@ CMSIS_DAP_V2::CMSIS_DAP_V2(libusb_device *dev, int interface_number, uint8_t ep_
     this->ep_out_addr = ep_out_addr;
     err_code = 0;
 
-    qDebug("[CMSIS_DAP_V2] interface:%d ep_in:0x%02X ep_out:0x%02X", interface_number, ep_in_addr, ep_out_addr);
+    // qDebug("[CMSIS_DAP_V2] interface:%d ep_in:0x%02X ep_out:0x%02X", interface_number, ep_in_addr, ep_out_addr);
 
     rc = libusb_get_device_descriptor(this->dev, &desc);
     if (rc < LIBUSB_SUCCESS)
@@ -23,6 +26,7 @@ CMSIS_DAP_V2::CMSIS_DAP_V2(libusb_device *dev, int interface_number, uint8_t ep_
         return;
     }
 
+    close_device();
     err = open_device();
     if (err < 0)
     {
@@ -32,7 +36,6 @@ CMSIS_DAP_V2::CMSIS_DAP_V2(libusb_device *dev, int interface_number, uint8_t ep_
     }
 
     memset(buf_str_descriptor, 0, sizeof(buf_str_descriptor));
-
     rc = libusb_get_string_descriptor_ascii(handle, desc.iProduct, (unsigned char *)buf_str_descriptor, sizeof(buf_str_descriptor));
     if (rc < LIBUSB_SUCCESS)
     {
@@ -107,13 +110,11 @@ CMSIS_DAP_V2::CMSIS_DAP_V2(libusb_device *dev, int interface_number, uint8_t ep_
 
 CMSIS_DAP_V2::~CMSIS_DAP_V2()
 {
-    // close_device();
+    close_device();
 }
 
 int32_t CMSIS_DAP_V2::enum_device(DeviceList *dev_list)
 {
-    libusb_context *context = NULL;
-    libusb_device **list = NULL;
     libusb_device_handle *handle = NULL;
     int rc = 0;
     int err;
@@ -130,22 +131,21 @@ int32_t CMSIS_DAP_V2::enum_device(DeviceList *dev_list)
 
     dev_list->clear();
 
-    rc = libusb_init(&context);
-    if (rc != 0)
+    if (libusb_device_list)
     {
-        qDebug("[CMSIS_DAP_V2] libusb_init fail %d", rc);
-        libusb_exit(context);
-        return -1;
+        libusb_free_device_list(libusb_device_list, 1);
+        libusb_device_list = NULL;
     }
 
-    count = libusb_get_device_list(context, &list);
+    // count = libusb_get_device_list(context, &list);
+    count = libusb_get_device_list(g_libusb_context, &libusb_device_list);
 
     // qDebug("[CMSIS_DAP_V2] =====================================================");
     // qDebug("[CMSIS_DAP_V2] libusb_get_device_list %d", count);
 
     for (size_t idx = 0; idx < count; ++idx)
     {
-        libusb_device *device = list[idx];
+        libusb_device *device = libusb_device_list[idx];
         libusb_device_descriptor dev_desc = {0};
         int interface_number = -1;
 
@@ -278,9 +278,6 @@ int32_t CMSIS_DAP_V2::enum_device(DeviceList *dev_list)
     //     qDebug("[CMSIS_DAP_V2] dev_list %d", dev_list->count());
     // }
 
-    libusb_free_device_list(list, 1);
-    libusb_exit(context);
-
     return dev_list->count();
 }
 
@@ -310,6 +307,7 @@ int32_t CMSIS_DAP_V2::open_device()
 {
     int err;
 
+    close_device();
     err = libusb_open(dev, &handle);
     if (err != LIBUSB_SUCCESS)
     {
@@ -329,20 +327,28 @@ int32_t CMSIS_DAP_V2::open_device()
     return 0;
 }
 
-void CMSIS_DAP_V2::close_device()
+int32_t CMSIS_DAP_V2::close_device()
 {
+
+    if (handle == NULL)
+        return -1;
+
     libusb_release_interface(handle, interface_number);
     libusb_close(handle);
     handle = NULL;
+
+    return 0;
 }
 
-int32_t CMSIS_DAP_V2::dap_request(uint8_t *tx_data, uint8_t *rx_data)
+int32_t CMSIS_DAP_V2::dap_request(uint8_t *tx_data, uint32_t tx_len, uint8_t *rx_data, uint32_t rx_buf_size, uint32_t *rx_len)
 {
     int err;
+    int actual_length;
     // uint8_t tx_buf[512] = {0};
     // uint8_t rx_buf[512] = {0};
-    int actual_length;
-    err = libusb_bulk_transfer(handle, ep_out_addr, tx_data, 512, &actual_length, 100);
+
+    // 输出端点
+    err = libusb_bulk_transfer(handle, ep_out_addr, tx_data, tx_len, &actual_length, 100);
     if (err < 0)
     {
         QString err_info = QString::fromUtf8(libusb_error_name(err));
@@ -350,7 +356,8 @@ int32_t CMSIS_DAP_V2::dap_request(uint8_t *tx_data, uint8_t *rx_data)
         return err;
     }
 
-    err = libusb_bulk_transfer(handle, ep_in_addr, rx_data, 512, &actual_length, 100);
+    // 输入端点
+    err = libusb_bulk_transfer(handle, ep_in_addr, rx_data, rx_buf_size, &actual_length, 100);
     if (err < 0)
     {
         QString err_info = QString::fromUtf8(libusb_error_name(err));
@@ -365,5 +372,6 @@ int32_t CMSIS_DAP_V2::dap_request(uint8_t *tx_data, uint8_t *rx_data)
         return -1;
     }
 
+    *rx_len = actual_length;
     return 0;
 }

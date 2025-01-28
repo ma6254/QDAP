@@ -21,8 +21,8 @@ public:
 
     bool equal(const Devices &device) override;
 
-    int32_t open_device();
-    void close_device();
+    int32_t open_device() override;
+    int32_t close_device() override;
 
     int32_t error() { return err_code; }
 
@@ -34,10 +34,11 @@ public:
     QString get_interface_string() { return interface_str; }
     // QString get_version_string() override { return hid_version; }
 
-    int32_t dap_request(uint8_t *tx_data, uint8_t *rx_data) override;
+    int32_t dap_request(uint8_t *tx_data, uint32_t tx_len, uint8_t *rx_data, uint32_t rx_buf_size, uint32_t *rx_len) override;
 
 private:
-    libusb_context *context = NULL;
+    static libusb_device **libusb_device_list;
+
     libusb_device *dev = NULL;
     libusb_device_handle *handle = NULL;
     libusb_device_descriptor desc = {0};
