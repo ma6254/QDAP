@@ -68,10 +68,11 @@ include_directories(
   src
   src/DAP
   src/config
-  src/ui_components
-  src/device_selector
   src/devices
   src/devices/cmsis-dap
+  src/ui_components
+  src/views/device_selector/cmsis-dap
+  src/views/device_selector
   src/views/input_box_dialog
   src/views/chips_config_dialog
 )
@@ -82,10 +83,11 @@ file(
   src/*.cpp
   src/DAP/*.cpp
   src/config/*.cpp
-  src/ui_components/*.cpp
-  src/device_selector/*.cpp
   src/devices/*.cpp
   src/devices/cmsis-dap/*.cpp
+  src/ui_components/*.cpp
+  src/views/device_selector/*.cpp
+  src/views/device_selector/cmsis-dap/*.cpp
   src/views/input_box_dialog/*.cpp
   src/views/chips_config_dialog/*.cpp
 )
@@ -95,7 +97,8 @@ file(
   UI_FILES
   src/*.ui
   src/ui_components/*.ui
-  src/device_selector/*.ui
+  src/views/device_selector/*.ui
+  src/views/device_selector/cmsis-dap/*.ui
   src/views/input_box_dialog/*.ui
   src/views/chips_config_dialog/*.ui
 )
