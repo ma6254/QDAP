@@ -22,7 +22,7 @@ Config *Config::get_default()
 {
     Config *config = new Config();
     config->firmware_file_path = "";
-    config->auto_refresh_enum_devices = true;
+    config->auto_refresh_enum_devices = false;
     config->chip_vendor_name = "";
     config->chip_series_name = "";
     config->chip_name = "";

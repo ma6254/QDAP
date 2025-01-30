@@ -161,7 +161,7 @@ void enum_writer_list::cb_refresh_enum_devices()
     if (is_auto_refresh_enum_devices)
         return;
 
-    ui->btn_refresh_enum_devices->setEnabled(false);
+    // ui->btn_refresh_enum_devices->setEnabled(false);
 
     emit refresh_enum_devides();
 }

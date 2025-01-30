@@ -13,6 +13,10 @@
 #include "program_worker.h"
 #include "chip_selecter.h"
 
+#if _WIN32
+#include "win_hotplug_notify.h"
+#endif // _WIN32
+
 // views
 #include "chips_config_dialog.h"
 #include "enum_writer_list.h"
@@ -89,6 +93,8 @@ private slots:
     void cb_write_chip_process(uint32_t val, uint32_t max);
     void cb_verify_chip_process(uint32_t val, uint32_t max);
 
+    void cb_usb_device_changed();
+
 signals:
     void device_changed(DeviceList dev_list, bool changed);
 
@@ -100,8 +106,13 @@ signals:
 private:
     Ui::MainWindow *ui;
     QTimer *timer_enum_device;
+    QTimer *device_change_delay_enum_timer;
     QElapsedTimer take_timer;
     Config *config;
+
+#if _WIN32
+    WinHotplugNotify *win_hotplug_notify;
+#endif // _WIN32
 
     DeviceList dap_hid_device_list_prev;
     DeviceList dap_hid_device_list;

@@ -25,6 +25,11 @@ MainWindow::MainWindow(QWidget *parent)
 
     // hex_viewer = new HexViewer(ui->centralwidget);
 
+#if _WIN32
+    win_hotplug_notify = new WinHotplugNotify(this);
+    connect(win_hotplug_notify, SIGNAL(device_change()), this, SLOT(cb_usb_device_changed()));
+#endif // _WIN32
+
     QFont font_hexview("Courier New", 10, QFont::Bold, false);
 
     hexview = new QHexView();
@@ -57,7 +62,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->action_hexview_group_bytes_4, SIGNAL(triggered()), this, SLOT(cb_action_hexview_group_bytes(void)));
 
     connect(ui->action_enum_device_list, SIGNAL(triggered()), this, SLOT(cb_action_enum_device_list(void)));
-    connect(ui->action_refresh_enum_devices, SIGNAL(triggered()), this, SLOT(cb_tick_enum_device(void)));
+    connect(ui->action_refresh_enum_devices, SIGNAL(triggered()), this, SLOT(cb_action_manual_refresh_enum_devices(void)));
 
     connect(ui->action_chips, SIGNAL(triggered()), this, SLOT(cb_action_chips(void)));
     connect(ui->action_chip_select, SIGNAL(triggered()), this, SLOT(cb_action_chip_select(void)));
@@ -92,6 +97,12 @@ MainWindow::MainWindow(QWidget *parent)
                 
                 // qDebug("log_ver_scroll max:%d", log_ver_scroll->maximum());
                 log_ver_scroll->setValue(log_ver_scroll->maximum()); });
+
+    device_change_delay_enum_timer = new QTimer();
+    connect(device_change_delay_enum_timer, SIGNAL(timeout()), this, SLOT(cb_tick_enum_device()));
+    device_change_delay_enum_timer->setInterval(1000);
+    device_change_delay_enum_timer->setSingleShot(true);
+    // timer_enum_device->start();
 
     timer_enum_device = new QTimer();
     connect(timer_enum_device, SIGNAL(timeout()), this, SLOT(cb_tick_enum_device()));
@@ -284,18 +295,21 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(dialog_enum_devices, SIGNAL(refresh_enum_devides()), this, SLOT(cb_action_manual_refresh_enum_devices()));
 
-    if (config->auto_refresh_enum_devices)
-    {
-        log_info("[cfg] enum devices auto refresh Enabled");
-        timer_enum_device->start();
-        dialog_enum_devices->set_btn_manual_refresh_enabled(false);
-        ui->action_refresh_enum_devices->setDisabled(true);
-    }
-    ui->action_auto_refresh_enum_devices->setChecked(config->auto_refresh_enum_devices);
-    connect(ui->action_auto_refresh_enum_devices,
-            SIGNAL(toggled(bool)),
-            this,
-            SLOT(cb_action_auto_refresh_enum_devices(bool)));
+    // if (config->auto_refresh_enum_devices)
+    // {
+    //     log_info("[cfg] enum devices auto refresh Enabled");
+    //     timer_enum_device->start();
+    //     dialog_enum_devices->set_btn_manual_refresh_enabled(false);
+    //     ui->action_refresh_enum_devices->setDisabled(true);
+    // }
+
+    // 禁用轮询枚举
+    ui->action_auto_refresh_enum_devices->setVisible(false);
+    // ui->action_auto_refresh_enum_devices->setChecked(config->auto_refresh_enum_devices);
+    // connect(ui->action_auto_refresh_enum_devices,
+    //         SIGNAL(toggled(bool)),
+    //         this,
+    //         SLOT(cb_action_auto_refresh_enum_devices(bool)));
 
     EnumDAP *tmp_enum_dap;
     tmp_enum_dap = dialog_enum_devices->get_enum_dap();
@@ -797,6 +811,8 @@ void MainWindow::cb_tick_enum_device()
 {
     // qDebug("[tick_enum_device] tick");
 
+    ui->action_refresh_enum_devices->setEnabled(true);
+
     bool is_changed = false;
     // for (uint32_t i = 0; i < dap_hid_device_list.count(); i++)
     // {
@@ -903,7 +919,10 @@ void MainWindow::cb_tick_enum_device()
 
 void MainWindow::cb_action_manual_refresh_enum_devices()
 {
-    cb_tick_enum_device();
+    device_change_delay_enum_timer->start();
+    ui->action_refresh_enum_devices->setEnabled(false);
+
+    // cb_tick_enum_device();
 }
 
 void MainWindow::cb_action_auto_refresh_enum_devices(bool checked)
@@ -1561,4 +1580,12 @@ void MainWindow::cb_verify_chip_process(uint32_t val, uint32_t max)
 {
     ui->progressBar->setValue(val);
     // qDebug("%d/%d", val, max);
+}
+
+void MainWindow::cb_usb_device_changed()
+{
+    qDebug("[main] cb_usb_device_changed");
+
+    // cb_tick_enum_device();
+    device_change_delay_enum_timer->start();
 }

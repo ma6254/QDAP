@@ -140,7 +140,8 @@
         "qobject": "cpp",
         "qfile": "cpp",
         "qlabel": "c",
-        "qhboxlayout": "c"
+        "qhboxlayout": "c",
+        "qsharedpointer": "c"
     },
     "git.ignoreLimitWarning": true
 }

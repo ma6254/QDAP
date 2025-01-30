@@ -112,6 +112,16 @@ elseif(WIN32)
   # ############################################################################
   message(STATUS "Building for Windows")
 
+include_directories(
+  src/win_hotplug_notify
+)
+
+file(
+  GLOB
+  WIN_SRC_FILES
+  src/win_hotplug_notify/*.cpp
+)
+
   # yaml-cpp
   add_subdirectory("vendor/yaml-cpp")
   set(yaml-cpp_LIBRARIES yaml-cpp)
@@ -133,7 +143,7 @@ elseif(WIN32)
 
   include_directories(ch341_ch347_lib/CH341PAR/LIB/CH347)
 
-  add_executable(QDAP ${SRC_FILES} ${UI_FILES} ${QM_FILES})
+  add_executable(QDAP ${SRC_FILES} ${WIN_SRC_FILES} ${UI_FILES} ${QM_FILES})
   target_link_libraries(
     QDAP
     PRIVATE

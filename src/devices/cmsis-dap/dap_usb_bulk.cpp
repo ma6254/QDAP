@@ -143,7 +143,7 @@ int32_t CMSIS_DAP_V2::enum_device(DeviceList *dev_list)
     // qDebug("[CMSIS_DAP_V2] =====================================================");
     // qDebug("[CMSIS_DAP_V2] libusb_get_device_list %d", count);
 
-    for (size_t idx = 0; idx < count; ++idx)
+    for (size_t idx = 0; idx < count; idx++)
     {
         libusb_device *device = libusb_device_list[idx];
         libusb_device_descriptor dev_desc = {0};
@@ -160,7 +160,10 @@ int32_t CMSIS_DAP_V2::enum_device(DeviceList *dev_list)
         rc = libusb_open(device, &handle);
         if (rc != LIBUSB_SUCCESS)
         {
-            // qDebug("[CMSIS_DAP_V2] libusb_open fail %d", rc);
+            if (rc == LIBUSB_ERROR_NOT_SUPPORTED)
+                continue;
+
+            qDebug("[CMSIS_DAP_V2] libusb_open fail %d %s", rc, libusb_error_name(rc));
             continue;
         }
 

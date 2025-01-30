@@ -92,6 +92,7 @@ yay -Syu qdap
 - <https://github.com/tthe207/DP-SW>
 - <https://www.keil.arm.com/devices/>
 - <https://en.wikipedia.org/wiki/Executable_and_Linkable_Format>
+- <https://github.com/gongjianbo/MyTestCode/blob/master/Qt/DeviceHotplug_Win/>
 
 assets icons: <https://fonts.google.com/icons>
 

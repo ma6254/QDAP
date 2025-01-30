@@ -28,10 +28,12 @@ EnumDAP::~EnumDAP()
 
 void EnumDAP::dd_dev_clear()
 {
+    ui->dd_dev->blockSignals(true);
     while (ui->dd_dev->count() > 1)
     {
         ui->dd_dev->removeItem(1);
     }
+    ui->dd_dev->blockSignals(false);
 
     device_list.clear();
 
@@ -78,16 +80,18 @@ void EnumDAP::dd_dev_append(CMSIS_DAP_Base *dap)
         break;
     }
 
+    ui->dd_dev->blockSignals(true);
     ui->dd_dev->addItem(tmp_str);
+    ui->dd_dev->blockSignals(false);
 
-    if (ui->dd_dev->currentIndex() == 0)
-    {
-        set_info(0);
-    }
-    else
-    {
-        set_info(ui->dd_dev->currentIndex() - 1);
-    }
+    // if (ui->dd_dev->currentIndex() == 0)
+    // {
+    //     set_info(0);
+    // }
+    // else
+    // {
+    //     set_info(ui->dd_dev->currentIndex() - 1);
+    // }
 }
 
 void EnumDAP::set_info_empty()
@@ -156,6 +160,8 @@ Devices::ClockUnit EnumDAP::get_config_clock_unit()
 
 void EnumDAP::set_info(CMSIS_DAP_Base *dap)
 {
+    qDebug("[EnumDAP] set_info device");
+
     if (dap == NULL)
     {
         set_info_empty();
@@ -202,17 +208,31 @@ int EnumDAP::count()
 
 int EnumDAP::current_index()
 {
-    int i = ui->dd_dev->currentIndex();
+    int curent_index = ui->dd_dev->currentIndex();
 
-    if (i == 0)
+    if (curent_index == 0)
         return -1;
 
-    return ui->dd_dev->currentIndex() - 1;
+    if (device_list.count() == 0)
+        return -1;
+
+    if ((curent_index - 1) >= device_list.count())
+    {
+        return device_list.count() - 1;
+    }
+
+    return curent_index - 1;
 }
 
 void EnumDAP::set_current_index(int index)
 {
-    ui->dd_dev->setCurrentIndex(index);
+    if (index == -1)
+    {
+        ui->dd_dev->setCurrentIndex(0);
+        return;
+    }
+
+    ui->dd_dev->setCurrentIndex(index + 1);
 }
 
 Devices *EnumDAP::current_device()
