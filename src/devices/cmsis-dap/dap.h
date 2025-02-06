@@ -5,6 +5,7 @@
 #include <QString>
 #include <QWidget>
 #include "devices.h"
+#include "dap.h"
 
 typedef struct
 {
@@ -130,6 +131,8 @@ public:
     ~CMSIS_DAP_Base();
 
     int32_t connect() override;
+    int32_t run() override;
+    int chip_read_memory(uint32_t addr, uint8_t *data, uint32_t size) override;
 
     static int parse_port_str(QString str, Port *port);
 
@@ -148,6 +151,9 @@ public:
     int32_t dap_connect(uint8_t port);
     int32_t dap_disconnect();
     int32_t dap_reset_target();
+    int32_t dap_set_swj_clock(uint32_t clock);
+    int32_t dap_set_target_state_hw(dap_target_reset_state_t state);
+    int32_t dap_set_target_reset(uint8_t asserted);
 
     int32_t dap_swj_sequence(uint8_t bit_count, uint8_t *data);
     int32_t dap_swd_config(uint8_t cfg);
@@ -162,13 +168,29 @@ public:
     int32_t dap_swd_switch(uint16_t val);
 
     int32_t dap_swd_read_dp(uint8_t addr, uint32_t *val);
+    int32_t dap_swd_write_dp(uint8_t addr, uint32_t val);
+    int32_t dap_swd_read_ap(uint8_t addr, uint32_t *val);
+    int32_t dap_swd_write_ap(uint8_t addr, uint32_t val);
+
+    int32_t dap_read_data(uint32_t addr, uint32_t *data);
+    int32_t dap_write_data(uint32_t addr, uint32_t data);
+    int32_t dap_read_word(uint32_t addr, uint32_t *val);
+    int32_t dap_write_word(uint32_t addr, uint32_t val);
+
+    int32_t dap_read_byte(uint32_t addr, uint8_t *val);
+    int32_t dap_write_byte(uint32_t addr, uint8_t val);
+
+    int32_t dap_read_block(uint32_t addr, uint8_t *data, uint32_t size);
+    int32_t dap_write_block(uint32_t addr, uint8_t *data, uint32_t size);
 
     int32_t dap_swd_read_idcode(uint32_t *idcode);
+    int32_t dap_jtag_2_swd();
+    int32_t swd_init_debug();
 
 private:
     int32_t dap_hid_resp_status_return(uint8_t *rx_data);
 
-    uint32_t tmp_idcode;
+    dap_state_t dap_state;
 };
 
 #include "dap_usb_hid.h"

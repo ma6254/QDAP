@@ -32,10 +32,21 @@ MainWindow::MainWindow(QWidget *parent)
 
     QFont font_hexview("Courier New", 10, QFont::Bold, false);
 
+    ui->tabWidget->clear();
+    // ui->tabWidget->addTab("芯片回读");
+    // ui->tabWidget->addTab("文件");
+
     hexview = new QHexView();
     hexview->setFont(font_hexview);
-    ui->centralwidget->layout()->addWidget(hexview);
+    ui->tabWidget->addTab(hexview, "芯片回读");
     hexview_doc = NULL;
+
+    file_hexview = new QHexView();
+    file_hexview->setFont(font_hexview);
+    ui->tabWidget->addTab(file_hexview, "烧录固件");
+    file_hexview_doc = NULL;
+
+    ui->tabWidget->addTab(new QWidget(), "RTT Viewer");
 
     // QByteArray data = QByteArray();
     // hexview_doc = QHexDocument::fromMemory<QMemoryRefBuffer>(data);
@@ -285,6 +296,16 @@ MainWindow::MainWindow(QWidget *parent)
         config->to_file();
     }
 
+    qDebug("[main] load_flash_algo flm: %s", qPrintable(QString("chips") + QDir::separator() + dialog_chip_selecter->chip_info().algo));
+
+    int32_t err = load_flash_algo(QString("chips") + QDir::separator() + dialog_chip_selecter->chip_info().algo);
+    if (err < 0)
+    {
+        qDebug("[main] load_flash_algo fail");
+        exit(1);
+        return;
+    }
+
     qDebug("[main] set_dock_chip_info start");
     set_dock_chip_info();
     qDebug("[main] set_dock_chip_info end");
@@ -505,18 +526,18 @@ int MainWindow::open_firmware_file(QString file_name)
         QString current_date = current_date_time.toString("yyyy-MM-dd hh:mm::ss");
         ui->label_latest_load_time->setText(current_date);
 
-        if (hexview_doc == NULL)
+        if (file_hexview_doc == NULL)
         {
-            hexview_doc = QHexDocument::fromMemory<QMemoryRefBuffer>(firmware_buf);
-            hexview->setDocument(hexview_doc);
+            file_hexview_doc = QHexDocument::fromMemory<QMemoryRefBuffer>(firmware_buf);
+            file_hexview->setDocument(file_hexview_doc);
         }
         else
         {
-            QHexDocument *new_hexview_doc = QHexDocument::fromMemory<QMemoryRefBuffer>(firmware_buf);
-            hexview->setDocument(new_hexview_doc);
+            QHexDocument *new_file_hexview_doc = QHexDocument::fromMemory<QMemoryRefBuffer>(firmware_buf);
+            file_hexview->setDocument(new_file_hexview_doc);
 
             delete hexview_doc;
-            hexview_doc = new_hexview_doc;
+            file_hexview_doc = new_file_hexview_doc;
         }
     }
     else if (file_name.toLower().endsWith(".hex"))
@@ -524,7 +545,33 @@ int MainWindow::open_firmware_file(QString file_name)
         return -1;
     }
 
-    return -1;
+    return 0;
+}
+
+Devices *MainWindow::current_device()
+{
+    int32_t err;
+    Devices *tmp_dev;
+
+    if (device_list.count() == 0)
+    {
+        log_info("no devices");
+        return NULL;
+    }
+
+    // qDebug("[main] cb_action_connect current_device: inedx:%d len:%d", current_device_index, device_list.count());
+
+    if (current_device_index < 0)
+        tmp_dev = device_list[0];
+    else if (current_device_index >= device_list.count())
+    {
+        qDebug("[main] current_device inedx:%d len:%d", current_device_index, device_list.count());
+        tmp_dev = device_list[0];
+    }
+    else
+        tmp_dev = device_list[current_device_index];
+
+    return tmp_dev;
 }
 
 int32_t MainWindow::load_flash_algo(QString file_path)
@@ -1046,32 +1093,13 @@ void MainWindow::cb_action_load_flm(void)
 
 void MainWindow::cb_action_connect(void)
 {
-    int32_t err;
-    Devices *tmp_dev;
+    int err;
 
-    if (device_list.count() == 0)
-    {
-        log_info("no devices");
-        return;
-    }
-
-    qDebug("[main] cb_action_connect current_device: inedx:%d len:%d", current_device_index, device_list.count());
-
-    if (current_device_index < 0)
-        tmp_dev = device_list[0];
-    else
-        tmp_dev = device_list[current_device_index];
-
-    err = tmp_dev->connect();
+    err = device_connect();
     if (err < 0)
     {
-        qDebug("[main] connect fail");
         return;
     }
-
-    qDebug("[main] connect ok");
-
-    // ui->label_info_idcode->setText(QString("%1").arg(tmp_dev->idcode(), 8, 16, QChar('0')).toUpper());
 
     // FlashDevice tmp_flash_info = flash_algo.get_flash_device_info();
     // QByteArray tmp_flash_code = flash_algo.get_flash_code();
@@ -1121,34 +1149,26 @@ void MainWindow::cb_action_read_chip(void)
 {
     int err;
     // uint8_t read_buf[32 * 1024];
+    Devices *tmp_dev;
 
-    DAP_HID *tmp_dev;
-
-    if (dap_hid_device_list.count() == 0)
+    err = device_connect();
+    if (err < 0)
+    {
         return;
+    }
 
-    // if (current_device_index == 0)
-    // {
-    //     tmp_dev = dap_hid_device_list.at(0);
-    // }
-    // else
-    // {
-    //     tmp_dev = dap_hid_device_list.at(current_device - 1);
-    // }
+    tmp_dev = current_device();
+    if (tmp_dev == NULL)
+    {
+        return;
+    }
 
-    // err = tmp_dev->connect();
-    // if (err < 0)
-    // {
-    //     log_error("初始化失败");
-    //     qDebug("[main] connect fail");
-    // }
-
-    // QString idcode_str = QString("%1").arg(tmp_dev->idcode(), 8, 16, QChar('0')).toUpper();
-    // ui->label_info_idcode->setText(idcode_str);
-    // log_info(QString("IDCODE: 0x%1").arg(idcode_str));
-
-    // FlashDevice tmp_flash_info = flash_algo.get_flash_device_info();
+    FlashDevice tmp_flash_info = flash_algo.get_flash_device_info();
     // QByteArray tmp_flash_code = flash_algo.get_flash_code();
+    uint32_t flash_size = tmp_flash_info.szDev;
+    uint32_t flash_addr = tmp_flash_info.DevAdr;
+
+    qDebug("[main] cb_action_read_chip %s 0x%08X 0x%08X", tmp_flash_info.DevName, flash_addr, flash_size);
 
     // FlashDevice flash_info = flash_algo.get_flash_device_info();
     // uint32_t flash_size = flash_info.szDev;
@@ -1176,20 +1196,19 @@ void MainWindow::cb_action_read_chip(void)
     //     return;
     // }
 
-    // program_worker = new ProgramWorker(tmp_dev, &flash_algo);
+    program_worker = new ProgramWorker(tmp_dev, &flash_algo);
+    connect(this, &MainWindow::program_worker_read_chip, program_worker, &ProgramWorker::read_chip);
+    connect(program_worker, &ProgramWorker::finished, this, &MainWindow::cb_read_chip_finish);
+    connect(program_worker, &ProgramWorker::process, this, &MainWindow::cb_read_chip_process);
 
-    // connect(this, &MainWindow::program_worker_read_chip, program_worker, &ProgramWorker::read_chip);
-    // connect(program_worker, &ProgramWorker::finished, this, &MainWindow::cb_read_chip_finish);
-    // connect(program_worker, &ProgramWorker::process, this, &MainWindow::cb_read_chip_process);
+    take_timer.restart();
+    emit program_worker_read_chip(&read_back_buf);
 
-    // take_timer.restart();
-    // emit program_worker_read_chip(&read_back_buf);
+    ui->progressBar->setValue(0);
+    ui->progressBar->setMaximum(flash_size);
+    ui->progressBar->setVisible(true);
 
-    // ui->progressBar->setValue(0);
-    // ui->progressBar->setMaximum(flash_size);
-    // ui->progressBar->setVisible(true);
-
-    // log_info("ReadChip starting...");
+    log_info("ReadChip starting...");
 
     // err = tmp_dev->dap_read_memory(0x8000000, (uint8_t *)firmware_buf.data(), firmware_buf.count());
     // if (err < 0)
@@ -1453,10 +1472,22 @@ void MainWindow::cb_action_verify(void)
 void MainWindow::cb_action_reset_run(void)
 {
     int32_t err;
-    DAP_HID *tmp_dev;
+    Devices *tmp_dev;
 
     if (dap_hid_device_list.count() == 0)
         return;
+
+    err = device_connect();
+    if (err < 0)
+    {
+        return;
+    }
+
+    tmp_dev = current_device();
+    if (tmp_dev == NULL)
+    {
+        return;
+    }
 
     // if (current_device == 0)
     // {
@@ -1477,12 +1508,12 @@ void MainWindow::cb_action_reset_run(void)
     //     return;
     // }
 
-    // err = tmp_dev->run();
-    // if (err < 0)
-    // {
-    //     qDebug("[main] run fail");
-    //     return;
-    // }
+    err = tmp_dev->run();
+    if (err < 0)
+    {
+        qDebug("[main] run fail");
+        return;
+    }
 
     // log_info("Chip is reset and runnig");
 }
@@ -1521,6 +1552,27 @@ void MainWindow::cb_read_chip_finish(ProgramWorker::ChipOp op, bool ok)
         QDateTime current_date_time = QDateTime::currentDateTime();
         QString current_date = current_date_time.toString("yyyy-MM-dd hh:mm::ss");
         ui->label_latest_load_time->setText(current_date);
+
+        if (hexview_doc == NULL)
+        {
+            hexview_doc = QHexDocument::fromMemory<QMemoryRefBuffer>(read_back_buf);
+            hexview->setDocument(hexview_doc);
+        }
+        else
+        {
+            QHexDocument *new_hexview_doc = QHexDocument::fromMemory<QMemoryRefBuffer>(read_back_buf);
+            hexview->setDocument(new_hexview_doc);
+
+            delete hexview_doc;
+            hexview_doc = new_hexview_doc;
+        }
+
+        hexview->setBaseAddress(flash_algo.get_flash_start());
+        hexview->setAddressWidth(8);
+
+        // set_hexview_group_bytes(config->hexview_group_bytes);
+        // set_hexview_line_bytes(config->hexview_line_bytes);
+        // hexview->setReadOnly(true);
     }
     else
     {
@@ -1588,4 +1640,35 @@ void MainWindow::cb_usb_device_changed()
 
     // cb_tick_enum_device();
     device_change_delay_enum_timer->start();
+}
+
+int MainWindow::device_connect()
+{
+    int32_t err;
+    Devices *tmp_dev;
+
+    tmp_dev = current_device();
+    if (tmp_dev == NULL)
+    {
+        return -1;
+    }
+
+    err = tmp_dev->connect();
+    if (err < 0)
+    {
+        qDebug("[main] connect fail");
+        log_info("connect fail");
+        ui->label_info_idcode->setText("N/A");
+        return -1;
+    }
+
+    qDebug("[main] connect ok");
+    log_info("connect ok");
+
+    QString idcode_hex_str = QString("%1").arg(tmp_dev->get_idcode(), 8, 16, QChar('0')).toUpper();
+
+    ui->label_info_idcode->setText(idcode_hex_str);
+    log_info(QString("id_code: 0x%1").arg(idcode_hex_str));
+
+    return 0;
 }

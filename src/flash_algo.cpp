@@ -29,8 +29,11 @@ int32_t FlashAlgo::load(QString file_path, uint32_t ram_start)
     this->ram_start = ram_start;
 
     QFile elf_file(file_path);
-    if (!elf_file.open(QIODevice::ReadOnly))
+    if (elf_file.open(QIODevice::ReadOnly) == false)
+    {
+        qDebug("[FlashAlgo] cannot open algo file");
         return -1;
+    }
 
     file_buf = elf_file.readAll();
     elf_file.close();

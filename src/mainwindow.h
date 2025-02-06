@@ -54,6 +54,8 @@ public:
     void set_hexview_group_bytes(int bytes);
     int open_firmware_file(QString file_path);
 
+    Devices *current_device();
+
 private slots:
     void cb_action_open_firmware_file(void);
     void cb_action_save_firmware_file(void);
@@ -137,6 +139,9 @@ private:
     // HexViewer *hex_viewer;
     QHexView *hexview;
     QHexDocument *hexview_doc;
+    
+    QHexView *file_hexview;
+    QHexDocument *file_hexview_doc;
 
     ProgramWorker *program_worker;
 
@@ -145,5 +150,7 @@ private:
 
     // bool dap_hid_device_list_compare(QList<DAP_HID *> *now_list, QList<DAP_HID *> *prev_list);
     int32_t load_flash_algo(QString file_path);
+
+    int device_connect();
 };
 #endif // MAINWINDOW_H

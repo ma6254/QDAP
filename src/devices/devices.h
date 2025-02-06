@@ -29,6 +29,23 @@ public:
     };
     Q_ENUM(DeviceType)
 
+    enum Error
+    {
+        DEVICE_ERR_UNKNOW = -1,
+        DEVICE_ERR_DAP_REQUEST_FAIL = -2,
+        DEVICE_ERR_DAP_REQUEST_TIMEOUT = -3,
+        DEVICE_ERR_DAP_TRANSFER_ERROR = -4,
+    };
+    Q_ENUM(Error)
+
+    enum Clock
+    {
+        DEVICE_CLOCK_1HZ = 1,
+        DEVICE_CLOCK_1KHZ = DEVICE_CLOCK_1HZ * 1000,
+        DEVICE_CLOCK_1MHZ = DEVICE_CLOCK_1KHZ * 1000,
+    };
+    Q_ENUM(Clock)
+
     enum ClockUnit
     {
         Hz,
@@ -43,6 +60,10 @@ public:
     ~Devices();
 
     virtual int32_t connect() = 0;
+    virtual int32_t run() = 0;
+    virtual int chip_read_memory(uint32_t addr, uint8_t *data, uint32_t size) = 0;
+
+    uint32_t get_idcode() { return tmp_idcode; }
 
     static QString device_type_to_string(DeviceType t);
     static DeviceType string_to_device_type(QString str);
@@ -87,6 +108,8 @@ public:
 
     // virtual QString get_manufacturer_string() = 0;
     // virtual QString get_product_string() = 0;
+protected:
+    uint32_t tmp_idcode;
 };
 
 #include "device_list.h"

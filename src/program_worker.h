@@ -18,7 +18,7 @@ class ProgramWorker : public QObject
     Q_OBJECT
 
 public:
-    ProgramWorker(DAP_HID *device, FlashAlgo *algo);
+    ProgramWorker(Devices *device, FlashAlgo *algo);
     ~ProgramWorker();
 
     typedef enum
@@ -31,7 +31,7 @@ public:
     } ChipOp;
 
 private:
-    DAP_HID *dev;
+    Devices *dev;
     FlashAlgo *algo;
     QThread *thread;
 
@@ -40,11 +40,11 @@ signals:
     void process(uint32_t val, uint32_t max);
 
 public slots:
-    void erase_chip(void);
+    // void erase_chip(void);
     int32_t read(uint32_t addr, uint32_t size, QByteArray *data, uint32_t page_size = 1024);
     void read_chip(QByteArray *data);
-    void write(uint32_t addr, QByteArray *data);
-    void verify(uint32_t addr, QByteArray *data);
+    // void write(uint32_t addr, QByteArray *data);
+    // void verify(uint32_t addr, QByteArray *data);
 };
 
 #endif // PROGRAM_WORK_H
