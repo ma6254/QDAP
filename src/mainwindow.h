@@ -46,6 +46,7 @@ public:
     // void config_save(void);
     // int config_load(void);
 
+    void set_dock_device_info();
     void set_dock_chip_info();
 
     bool detect_git();
@@ -55,6 +56,7 @@ public:
     int open_firmware_file(QString file_path);
 
     Devices *current_device();
+    
 
 private slots:
     void cb_action_open_firmware_file(void);

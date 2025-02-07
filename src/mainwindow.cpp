@@ -100,14 +100,17 @@ MainWindow::MainWindow(QWidget *parent)
                     log_layout->addWidget(label_log_ending);
                     n = log_layout->count();
                     log_layout->setStretch(n - 1, 1);
-                }else  if (log_ver_scroll_max >= 20){
+                }
+                else if (log_ver_scroll_max >= 20)
+                {
                     log_layout->removeWidget(label_log_ending);
                     // n = log_layout->count();
                     // log_layout->setStretch(n - 1, 0);
                 }
-                
+
                 // qDebug("log_ver_scroll max:%d", log_ver_scroll->maximum());
-                log_ver_scroll->setValue(log_ver_scroll->maximum()); });
+                log_ver_scroll->setValue(log_ver_scroll->maximum());
+            });
 
     device_change_delay_enum_timer = new QTimer();
     connect(device_change_delay_enum_timer, SIGNAL(timeout()), this, SLOT(cb_tick_enum_device()));
@@ -404,6 +407,50 @@ void MainWindow::log_warn(QString str)
 void MainWindow::log_error(QString str)
 {
     log_append(QString("<font color=\"red\">%1 [ERROR] %2</font>").arg(now_time()).arg(str));
+}
+
+void MainWindow::set_dock_device_info()
+{
+    Devices *tmp_dev;
+
+    if (device_list.count() == 0)
+    {
+        ui->label_info_dev_name->setText("N/A");
+        ui->label_device_type->setText("N/A");
+        return;
+    }
+
+    if (device_list.count() == 1)
+    {
+        tmp_dev = device_list.at(0);
+    }
+    else
+    {
+        if (current_device_index == -1)
+        {
+            tmp_dev = device_list.at(0);
+        }
+        else if (current_device_index >= device_list.count())
+        {
+            tmp_dev = device_list.at(device_list.count() - 1);
+        }
+        else
+        {
+            tmp_dev = device_list.at(current_device_index);
+        }
+    }
+
+    QString dev_name = QString("[%1] %2").arg(tmp_dev->get_manufacturer_string()).arg(tmp_dev->get_product_string());
+    QString dev_type = QVariant::fromValue(tmp_dev->type()).toString();
+
+    ui->label_info_dev_name->setText(dev_name);
+    ui->label_device_type->setText(dev_type);
+
+    log_info(QString("current device %1 [%2] [%3] %4")
+                 .arg(current_device_index)
+                 .arg(dev_type)
+                 .arg(tmp_dev->get_manufacturer_string())
+                 .arg(tmp_dev->get_product_string()));
 }
 
 void MainWindow::set_dock_chip_info()
@@ -843,6 +890,7 @@ void MainWindow::cb_action_enum_device_list(void)
 
     current_device_index = dialog_enum_devices->currentIndex();
 
+    set_dock_device_info();
     // qDebug("[main] enum_device_list %d", current_device);
 
     // DAP_HID *tmp_dev = dap_hid_device_list.at(current_device - 1);
@@ -960,6 +1008,8 @@ void MainWindow::cb_tick_enum_device()
         // qDebug("device_list is changed len:%d", device_list.count());
         log_info(QString::asprintf("device_list is changed len:%d", device_list.count()));
     }
+
+    set_dock_device_info();
 
     emit device_changed(device_list, is_changed);
 }

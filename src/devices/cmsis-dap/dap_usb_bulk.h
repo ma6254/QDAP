@@ -28,7 +28,7 @@ public:
 
     DeviceType type() const override { return DAP_USB_Bulk; }
     QString get_manufacturer_string() override { return manufacturer_str; }
-    QString get_product_string() override { return product_str; }
+    QString get_product_string() override { return interface_str; }
     QString get_serial_string() override { return serial_number_str; }
     QString get_version_string() override { return version_str; }
     QString get_interface_string() { return interface_str; }

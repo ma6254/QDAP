@@ -141,7 +141,8 @@
         "qfile": "cpp",
         "qlabel": "c",
         "qhboxlayout": "c",
-        "qsharedpointer": "c"
+        "qsharedpointer": "c",
+        "qlist": "c"
     },
     "git.ignoreLimitWarning": true
 }
