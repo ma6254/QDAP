@@ -309,9 +309,9 @@ MainWindow::MainWindow(QWidget *parent)
         return;
     }
 
-    qDebug("[main] set_dock_chip_info start");
+    // qDebug("[main] set_dock_chip_info start");
     set_dock_chip_info();
-    qDebug("[main] set_dock_chip_info end");
+    // qDebug("[main] set_dock_chip_info end");
 
     dialog_enum_devices = new enum_writer_list(this);
     connect(this, SIGNAL(device_changed(DeviceList, bool)),
@@ -455,7 +455,7 @@ void MainWindow::set_dock_device_info()
 
 void MainWindow::set_dock_chip_info()
 {
-    qDebug("[main] set_dock_chip_info chip_vendor_name");
+    // qDebug("[main] set_dock_chip_info chip_vendor_name");
 
     if (dialog_chip_selecter->vendor_homepage().isEmpty() == false)
     {
@@ -468,7 +468,7 @@ void MainWindow::set_dock_chip_info()
         ui->label_info_chip_vendor->setText(config->chip_vendor_name);
     }
 
-    qDebug("[main] set_dock_chip_info chip_series_name");
+    // qDebug("[main] set_dock_chip_info chip_series_name");
 
     if (dialog_chip_selecter->series_homepage().isEmpty() == false)
     {
@@ -481,7 +481,7 @@ void MainWindow::set_dock_chip_info()
         ui->label_info_chip_series->setText(config->chip_series_name);
     }
 
-    qDebug("[main] set_dock_chip_info chip_name");
+    // qDebug("[main] set_dock_chip_info chip_name");
 
     ui->label_info_chip_name->setText(config->chip_name);
 
@@ -490,7 +490,7 @@ void MainWindow::set_dock_chip_info()
                                qUtf8Printable(config->chip_series_name),
                                qUtf8Printable(config->chip_name)));
 
-    qDebug("[main] set_dock_chip_info chip_info");
+    // qDebug("[main] set_dock_chip_info chip_info");
 
     ChipInfo chip_info = dialog_chip_selecter->chip_info();
     ui->label_info_chip_flash_size->setText(chip_info.flash_size_str);
@@ -1121,6 +1121,8 @@ void MainWindow::cb_action_chip_select(void)
     ChipInfo chip_info = dialog_chip_selecter->chip_info();
     // ui->label_info_chip_flash_size->setText(chip_info.flash_size_str);
     // ui->label_info_core_type->setText(chip_info.core);
+
+    load_flash_algo(QString("chips") + QDir::separator() + chip_info.algo);
 
     set_dock_chip_info();
     config->to_file();

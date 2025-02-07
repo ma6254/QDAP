@@ -197,13 +197,13 @@ void ChipSelecter::switch_series(uint32_t index)
     set_dd_chip_connect();
     if (current_series()->homepage.isEmpty() == false)
     {
-        log_vendor += QString("系列: [%1](%2)\r\n\r\n").arg(current_series()->name, current_series()->homepage);
-        // log_vendor += QString(R""(系列: <a href="%1">%2</a>)"").arg(current_series()->homepage, current_series()->name);
-        log_vendor += QString("\r\n\r\n");
+        log_series += QString("系列: [%1](%2)\r\n\r\n").arg(current_series()->name, current_series()->homepage);
+        // log_series += QString(R""(系列: <a href="%1">%2</a>)"").arg(current_series()->homepage, current_series()->name);
+        log_series += QString("\r\n\r\n");
     }
     else
     {
-        log_vendor += QString("系列: %1\r\n\r\n").arg(current_series()->name);
+        log_series += QString("系列: %1\r\n\r\n").arg(current_series()->name);
     }
 
     log_output();
