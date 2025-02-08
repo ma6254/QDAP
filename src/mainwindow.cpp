@@ -1280,78 +1280,67 @@ void MainWindow::cb_action_read_chip(void)
 void MainWindow::cb_action_erase_chip(void)
 {
     int err;
-    DAP_HID *tmp_dev;
+    Devices *tmp_dev;
 
-    if (dap_hid_device_list.count() == 0)
+    log_info("start chip erase");
+
+    err = device_connect();
+    if (err < 0)
+    {
         return;
+    }
 
-    // if (current_device == 0)
-    // {
-    //     tmp_dev = dap_hid_device_list.at(0);
-    // }
-    // else
-    // {
-    //     tmp_dev = dap_hid_device_list.at(current_device - 1);
-    // }
+    tmp_dev = current_device();
+    if (tmp_dev == NULL)
+    {
+        return;
+    }
 
-    // err = tmp_dev->connect();
-    // if (err < 0)
-    // {
-    //     log_error("Chip connection failed");
-    //     qDebug("[main] connect fail");
-    //     return;
-    // }
+    log_info("chip connect ok");
 
-    // log_info("chip connect ok");
+    FlashDevice tmp_flash_info = flash_algo.get_flash_device_info();
+    QByteArray tmp_flash_code = flash_algo.get_flash_code();
 
-    // QString idcode_str = QString("%1").arg(tmp_dev->idcode(), 8, 16, QChar('0')).toUpper();
-    // ui->label_info_idcode->setText(idcode_str);
-    // log_info(QString("IDCODE: 0x%1").arg(idcode_str));
+    hexdump((uint8_t *)tmp_flash_code.data(), tmp_flash_code.size());
 
-    // FlashDevice tmp_flash_info = flash_algo.get_flash_device_info();
-    // QByteArray tmp_flash_code = flash_algo.get_flash_code();
+    // Download flash programming algorithm to target and initialise.
+    err = tmp_dev->chip_write_memory(ram_start,
+                                     (uint8_t *)tmp_flash_code.data(),
+                                     tmp_flash_code.length());
+    if (err < 0)
+    {
+        qDebug("[main] dap_write_memory fail");
+        log_error("load flash algo fail");
+        return;
+    }
 
-    // // hexdump((uint8_t *)tmp_flash_code.data(), tmp_flash_code.size());
+    log_info("load flash algo code ok");
 
-    // // Download flash programming algorithm to target and initialise.
-    // err = tmp_dev->dap_write_memory(ram_start,
-    //                                 (uint8_t *)tmp_flash_code.data(),
-    //                                 tmp_flash_code.length());
-    // if (err < 0)
-    // {
-    //     qDebug("[main] dap_write_memory fail");
-    //     log_error("load flash algo fail");
-    //     return;
-    // }
+    uint32_t entry = flash_algo.get_flash_func_offset(FLASH_FUNC_Init);
+    uint32_t arg1 = flash_algo.get_flash_start();
+    program_syscall_t sys_call_s = flash_algo.get_sys_call_s();
+    err = tmp_dev->chip_syscall_exec(&sys_call_s, entry, arg1, 0, 1, 0);
+    if (err < 0)
+    {
+        qDebug("[main] exec_flash_func Init fail");
+        log_error("exec FlashFunc[Init] fail");
+        return;
+    }
 
-    // log_info("load flash algo code ok");
+    log_info("exec FlashFunc[Init] ok");
 
-    // uint32_t entry = flash_algo.get_flash_func_offset(FLASH_FUNC_Init);
-    // uint32_t arg1 = flash_algo.get_flash_start();
-    // program_syscall_t sys_call_s = flash_algo.get_sys_call_s();
-    // err = tmp_dev->swd_flash_syscall_exec(&sys_call_s, entry, arg1, 0, 1, 0);
-    // if (err < 0)
-    // {
-    //     qDebug("[main] exec_flash_func Init fail");
-    //     log_error("exec FlashFunc[Init] fail");
-    //     return;
-    // }
+    program_worker = new ProgramWorker(tmp_dev, &flash_algo);
+    connect(this, &MainWindow::program_worker_erase_chip, program_worker, &ProgramWorker::erase_chip);
+    connect(program_worker, &ProgramWorker::finished, this, &MainWindow::cb_erase_chip_finish);
 
-    // log_info("exec FlashFunc[Init] ok");
+    take_timer.restart();
+    emit program_worker_erase_chip();
 
-    // program_worker = new ProgramWorker(tmp_dev, &flash_algo);
+    ui->progressBar->setValue(0);
+    ui->progressBar->setMaximum(0);
+    ui->progressBar->setVisible(true);
 
-    // connect(this, &MainWindow::program_worker_erase_chip, program_worker, &ProgramWorker::erase_chip);
-    // connect(program_worker, &ProgramWorker::finished, this, &MainWindow::cb_erase_chip_finish);
-
-    // take_timer.restart();
-    // emit program_worker_erase_chip();
-
-    // ui->progressBar->setValue(0);
-    // ui->progressBar->setMaximum(0);
-    // ui->progressBar->setVisible(true);
-
-    // log_info("EraseChip starting...");
+    log_info("EraseChip starting...");
 
     // QList<uint64_t> process_bar;
     // process_bar.append(0);

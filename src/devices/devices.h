@@ -4,6 +4,7 @@
 #include <QList>
 #include <QThread>
 #include <QDebug>
+#include "flash_algo.h"
 
 class Devices;
 class DeviceList;
@@ -62,6 +63,8 @@ public:
     virtual int32_t connect() = 0;
     virtual int32_t run() = 0;
     virtual int chip_read_memory(uint32_t addr, uint8_t *data, uint32_t size) = 0;
+    virtual int chip_write_memory(uint32_t addr, uint8_t *data, uint32_t size) = 0;
+    virtual int32_t chip_syscall_exec(const program_syscall_t *sysCallParam, uint32_t entry, uint32_t arg1, uint32_t arg2, uint32_t arg3, uint32_t arg4) = 0;
 
     uint32_t get_idcode() { return tmp_idcode; }
 

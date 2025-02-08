@@ -312,6 +312,105 @@ int CMSIS_DAP_Base::chip_read_memory(uint32_t addr, uint8_t *data, uint32_t size
     return 0;
 }
 
+int CMSIS_DAP_Base::chip_write_memory(uint32_t addr, uint8_t *data, uint32_t size)
+{
+    int32_t err;
+    uint32_t n = 0;
+
+    // Write bytes until word aligned
+    while ((size > 0) && (addr & 0x3))
+    {
+        err = dap_write_byte(addr, *data);
+        if (err < 0)
+            return err;
+
+        addr++;
+        data++;
+        size--;
+    }
+
+    // Write word aligned blocks
+    while (size > 3)
+    {
+        // Limit to auto increment page size
+        n = Flash_Page_Size - (addr & (Flash_Page_Size - 1));
+
+        if (size < n)
+        {
+            n = size & 0xFFFFFFFC; // Only count complete words remaining
+        }
+
+        err = dap_write_block(addr, data, n);
+        if (err < 0)
+            return err;
+
+        addr += n;
+        data += n;
+        size -= n;
+    }
+
+    // Write remaining bytes
+    while (size > 0)
+    {
+        err = dap_write_byte(addr, *data);
+        if (err < 0)
+            return err;
+
+        addr++;
+        data++;
+        size--;
+    }
+
+    return 0;
+}
+
+int32_t CMSIS_DAP_Base::chip_syscall_exec(const program_syscall_t *sysCallParam, uint32_t entry, uint32_t arg1, uint32_t arg2, uint32_t arg3, uint32_t arg4)
+{
+    int32_t err;
+    debug_state_t state = {{0}, 0};
+
+    // Call flash algorithm function on target and wait for result.
+    state.r[0] = arg1;                         // R0: Argument 1
+    state.r[1] = arg2;                         // R1: Argument 2
+    state.r[2] = arg3;                         // R2: Argument 3
+    state.r[3] = arg4;                         // R3: Argument 4
+    state.r[9] = sysCallParam->static_base;    // SB: Static Base
+    state.r[13] = sysCallParam->stack_pointer; // SP: Stack Pointer
+    state.r[14] = sysCallParam->breakpoint;    // LR: Exit Point
+    state.r[15] = entry;                       // PC: Entry Point
+    state.xpsr = 0x01000000;                   // xPSR: T = 1, ISR = 0
+
+    err = swd_write_debug_state(&state);
+    if (err < 0)
+    {
+        qDebug("[DA_PHID] swd_write_debug_state fail");
+        return err;
+    }
+
+    err = swd_wait_until_halted();
+    if (err < 0)
+    {
+        qDebug("[DA_PHID] wait_until_halted fail");
+        return err;
+    }
+
+    err = swd_read_core_register(0, &state.r[0]);
+    if (err < 0)
+    {
+        qDebug("[DA_PHID] swd_read_core_register fail");
+        return err;
+    }
+
+    // Flash functions return 0 if successful.
+    if (state.r[0] != 0)
+    {
+        qDebug("[DAP_HID] flash_func return:0x%X", state.r[0]);
+        return -1;
+    }
+
+    return 0;
+}
+
 int CMSIS_DAP_Base::parse_port_str(QString str, Port *port)
 {
     str = str.toUpper();
@@ -1555,6 +1654,137 @@ int32_t CMSIS_DAP_Base::swd_init_debug()
         return err;
 
     return 0;
+}
+
+int32_t CMSIS_DAP_Base::swd_write_debug_state(debug_state_t *state)
+{
+    int32_t err;
+    uint32_t i, status;
+
+    err = dap_swd_write_dp(DP_SELECT, 0);
+    if (err < 0)
+        return err;
+
+    // R0, R1, R2, R3
+    for (i = 0; i < 4; i++)
+    {
+        err = swd_write_core_register(i, state->r[i]);
+        if (err < 0)
+            return err;
+    }
+
+    // R9
+    err = swd_write_core_register(9, state->r[9]);
+    if (err < 0)
+        return err;
+
+    // R13, R14, R15
+    for (i = 13; i < 16; i++)
+    {
+        err = swd_write_core_register(i, state->r[i]);
+        if (err < 0)
+            return err;
+    }
+
+    // xPSR
+    err = swd_write_core_register(16, state->xpsr);
+    if (err < 0)
+        return err;
+
+    err = dap_write_word(DBG_HCSR, DBGKEY | C_DEBUGEN);
+    if (err < 0)
+        return err;
+
+    // check status
+    err = dap_swd_read_dp(DP_CTRL_STAT, &status);
+    if (err < 0)
+        return err;
+
+    if (status & (STICKYERR | WDATAERR))
+        return -1;
+
+    return 0;
+}
+
+int32_t CMSIS_DAP_Base::swd_wait_until_halted(void)
+{
+    // Wait for target to stop
+    int32_t err;
+    uint32_t val, i, timeout = 1500;
+
+    // TODO: 需要根据实际的情况设置超时值
+    for (i = 0; i < timeout; i++)
+    {
+        err = dap_read_word(DBG_HCSR, &val);
+        if (err < 0)
+            return -1;
+
+        if (val & S_HALT)
+            return 0;
+    }
+
+    return -1;
+}
+
+int32_t CMSIS_DAP_Base::swd_read_core_register(uint32_t n, uint32_t *val)
+{
+    int32_t err;
+    int i = 0, timeout = 100;
+
+    err = dap_write_word(DCRSR, n);
+    if (err < 0)
+        return err;
+
+    // wait for S_REGRDY
+    for (i = 0; i < timeout; i++)
+    {
+        err = dap_read_word(DHCSR, val);
+        if (err < 0)
+            return err;
+
+        if (*val & S_REGRDY)
+        {
+            break;
+        }
+    }
+
+    if (i == timeout)
+        return -1;
+
+    err = dap_read_word(DCRDR, val);
+    if (err < 0)
+        return err;
+
+    return 0;
+}
+
+int32_t CMSIS_DAP_Base::swd_write_core_register(uint32_t n, uint32_t val)
+{
+    int32_t err;
+    int i = 0, timeout = 100;
+
+    err = dap_write_word(DCRDR, val);
+    if (err < 0)
+        return err;
+
+    err = dap_write_word(DCRSR, n | REGWnR);
+    if (err < 0)
+        return err;
+
+    // wait for S_REGRDY
+    for (i = 0; i < timeout; i++)
+    {
+        err = dap_read_word(DHCSR, &val);
+        if (err < 0)
+            return err;
+
+        if (val & S_REGRDY)
+        {
+            return 0;
+        }
+    }
+
+    return -1;
 }
 
 int32_t CMSIS_DAP_Base::dap_hid_resp_status_return(uint8_t *rx_data)

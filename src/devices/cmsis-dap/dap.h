@@ -133,6 +133,8 @@ public:
     int32_t connect() override;
     int32_t run() override;
     int chip_read_memory(uint32_t addr, uint8_t *data, uint32_t size) override;
+    int chip_write_memory(uint32_t addr, uint8_t *data, uint32_t size) override;
+    int32_t chip_syscall_exec(const program_syscall_t *sysCallParam, uint32_t entry, uint32_t arg1, uint32_t arg2, uint32_t arg3, uint32_t arg4) override;
 
     static int parse_port_str(QString str, Port *port);
 
@@ -186,6 +188,11 @@ public:
     int32_t dap_swd_read_idcode(uint32_t *idcode);
     int32_t dap_jtag_2_swd();
     int32_t swd_init_debug();
+
+    int32_t swd_write_debug_state(debug_state_t *state);
+    int32_t swd_wait_until_halted(void);
+    int32_t swd_read_core_register(uint32_t n, uint32_t *val);
+    int32_t swd_write_core_register(uint32_t n, uint32_t val);
 
 private:
     int32_t dap_hid_resp_status_return(uint8_t *rx_data);

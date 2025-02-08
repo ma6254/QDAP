@@ -21,31 +21,31 @@ ProgramWorker::~ProgramWorker()
 {
 }
 
-// void ProgramWorker::erase_chip(void)
-// {
-//     int32_t err;
-//     program_syscall_t sys_call_s = algo->get_sys_call_s();
+void ProgramWorker::erase_chip(void)
+{
+    int32_t err;
+    program_syscall_t sys_call_s = algo->get_sys_call_s();
 
-//     uint32_t entry = algo->get_flash_func_offset(FLASH_FUNC_EraseChip);
-//     if (entry == UINT32_MAX)
-//     {
-//         qDebug("[ProgramWorker] exec_flash_func unsuport func");
-//         emit finished(ProgramWorker::EraseChip, false);
-//         return;
-//     }
+    uint32_t entry = algo->get_flash_func_offset(FLASH_FUNC_EraseChip);
+    if (entry == UINT32_MAX)
+    {
+        qDebug("[ProgramWorker] exec_flash_func unsuport func");
+        emit finished(ProgramWorker::EraseChip, false);
+        return;
+    }
 
-//     qDebug("[ProgramWorker] entry: 0x%08X", entry);
+    qDebug("[ProgramWorker] entry: 0x%08X", entry);
 
-//     err = dev->swd_flash_syscall_exec(&sys_call_s, entry, 0, 0, 0, 0);
-//     if (err < 0)
-//     {
-//         qDebug("[ProgramWorker] exec_flash_func EraseChip fail");
-//         emit finished(ProgramWorker::EraseChip, false);
-//         return;
-//     }
+    err = dev->chip_syscall_exec(&sys_call_s, entry, 0, 0, 0, 0);
+    if (err < 0)
+    {
+        qDebug("[ProgramWorker] exec_flash_func EraseChip fail");
+        emit finished(ProgramWorker::EraseChip, false);
+        return;
+    }
 
-//     emit finished(ProgramWorker::EraseChip, true);
-// }
+    emit finished(ProgramWorker::EraseChip, true);
+}
 
 void ProgramWorker::read_chip(QByteArray *data)
 {

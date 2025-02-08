@@ -34,7 +34,7 @@ void hexdump(const uint8_t *buf, uint32_t len)
     for (i = 0; i < len; i += 0x10)
     {
         res.append(QString("[hexdump]"));
-        res.append(QString(" %1").arg((int)(i / 16), 4, 16, QChar('0')).toUpper());
+        res.append(QString(" %1").arg((int)(i / 16 * 16), 4, 16, QChar('0')).toUpper());
 
         for (line_i = 0; line_i < 0x10; line_i++)
         {
