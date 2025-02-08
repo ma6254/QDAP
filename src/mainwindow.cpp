@@ -1301,7 +1301,7 @@ void MainWindow::cb_action_erase_chip(void)
     FlashDevice tmp_flash_info = flash_algo.get_flash_device_info();
     QByteArray tmp_flash_code = flash_algo.get_flash_code();
 
-    hexdump((uint8_t *)tmp_flash_code.data(), tmp_flash_code.size());
+    // hexdump((uint8_t *)tmp_flash_code.data(), tmp_flash_code.size());
 
     // Download flash programming algorithm to target and initialise.
     err = tmp_dev->chip_write_memory(ram_start,
@@ -1375,7 +1375,7 @@ void MainWindow::cb_action_check_blank(void)
 void MainWindow::cb_action_write(void)
 {
     int err;
-    DAP_HID *tmp_dev;
+    Devices *tmp_dev;
 
     if (firmware_buf.length() == 0)
     {
@@ -1386,128 +1386,107 @@ void MainWindow::cb_action_write(void)
         return;
     }
 
-    if (dap_hid_device_list.count() == 0)
+    err = device_connect();
+    if (err < 0)
+    {
         return;
+    }
 
-    // if (current_device == 0)
-    // {
-    //     tmp_dev = dap_hid_device_list.at(0);
-    // }
-    // else
-    // {
-    //     tmp_dev = dap_hid_device_list.at(current_device - 1);
-    // }
+    tmp_dev = current_device();
+    if (tmp_dev == NULL)
+    {
+        return;
+    }
 
-    // err = tmp_dev->connect();
-    // if (err < 0)
-    // {
-    //     log_error("Chip connection failed");
-    //     qDebug("[main] connect fail");
-    //     return;
-    // }
+    log_info("chip connect ok");
 
-    // log_info("chip connect ok");
-
-    // QString idcode_str = QString("%1").arg(tmp_dev->idcode(), 8, 16, QChar('0')).toUpper();
-    // ui->label_info_idcode->setText(idcode_str);
-    // log_info(QString("IDCODE: 0x%1").arg(idcode_str));
-
-    // FlashDevice tmp_flash_info = flash_algo.get_flash_device_info();
-    // QByteArray tmp_flash_code = flash_algo.get_flash_code();
-
-    // FlashDevice flash_info = flash_algo.get_flash_device_info();
-    // uint32_t flash_size = flash_info.szDev;
-    // uint32_t flash_addr = flash_info.DevAdr;
-
-    // // hexdump((uint8_t *)tmp_flash_code.data(), tmp_flash_code.size());
-
-    // // Download flash programming algorithm to target and initialise.
-    // err = tmp_dev->dap_write_memory(ram_start,
-    //                                 (uint8_t *)tmp_flash_code.data(),
-    //                                 tmp_flash_code.length());
-    // if (err < 0)
-    // {
-    //     qDebug("[main] dap_write_memory fail");
-    //     log_error("load flash algo fail");
-    //     return;
-    // }
-
-    // log_info("load flash algo code ok");
-
-    // uint32_t entry = flash_algo.get_flash_func_offset(FLASH_FUNC_Init);
-    // uint32_t arg1 = flash_algo.get_flash_start();
-    // program_syscall_t sys_call_s = flash_algo.get_sys_call_s();
-    // err = tmp_dev->swd_flash_syscall_exec(&sys_call_s, entry, arg1, 0, 1, 0);
-    // if (err < 0)
-    // {
-    //     qDebug("[main] exec_flash_func Init fail");
-    //     log_error("exec FlashFunc[Init] fail");
-    //     return;
-    // }
-
-    // log_info("exec FlashFunc[Init] ok");
-
-    // program_worker = new ProgramWorker(tmp_dev, &flash_algo);
-
-    // connect(this, &MainWindow::program_worker_write, program_worker, &ProgramWorker::write);
-    // connect(program_worker, &ProgramWorker::finished, this, &MainWindow::cb_write_finish);
-    // connect(program_worker, &ProgramWorker::process, this, &MainWindow::cb_write_chip_process);
-
-    // take_timer.restart();
-    // emit program_worker_write(flash_addr, &firmware_buf);
-
-    // ui->progressBar->setValue(0);
-    // ui->progressBar->setMaximum(firmware_buf.length());
-    // ui->progressBar->setVisible(true);
-
-    // log_info("Write starting...");
-}
-
-void MainWindow::cb_action_verify(void)
-{
-    int32_t err;
-    DAP_HID *tmp_dev;
+    FlashDevice tmp_flash_info = flash_algo.get_flash_device_info();
+    QByteArray tmp_flash_code = flash_algo.get_flash_code();
 
     FlashDevice flash_info = flash_algo.get_flash_device_info();
     uint32_t flash_size = flash_info.szDev;
     uint32_t flash_addr = flash_info.DevAdr;
 
-    if (dap_hid_device_list.count() == 0)
+    // hexdump((uint8_t *)tmp_flash_code.data(), tmp_flash_code.size());
+
+    // Download flash programming algorithm to target and initialise.
+    err = tmp_dev->chip_write_memory(ram_start,
+                                     (uint8_t *)tmp_flash_code.data(),
+                                     tmp_flash_code.length());
+    if (err < 0)
+    {
+        qDebug("[main] dap_write_memory fail");
+        log_error("load flash algo fail");
         return;
+    }
 
-    // if (current_device == 0)
-    // {
-    //     tmp_dev = dap_hid_device_list.at(0);
-    // }
-    // else
-    // {
-    //     tmp_dev = dap_hid_device_list.at(current_device - 1);
-    // }
+    // log_info("load flash algo code ok");
 
-    // err = tmp_dev->connect();
-    // if (err < 0)
-    // {
-    //     log_error("Chip connection failed");
-    //     qDebug("[main] connect fail");
-    //     return;
-    // }
+    uint32_t entry = flash_algo.get_flash_func_offset(FLASH_FUNC_Init);
+    uint32_t arg1 = flash_algo.get_flash_start();
+    program_syscall_t sys_call_s = flash_algo.get_sys_call_s();
+    err = tmp_dev->chip_syscall_exec(&sys_call_s, entry, arg1, 0, 1, 0);
+    if (err < 0)
+    {
+        qDebug("[main] exec_flash_func Init fail");
+        log_error("exec FlashFunc[Init] fail");
+        return;
+    }
 
-    // log_info("chip connect ok");
+    log_info("exec FlashFunc[Init] ok");
 
-    // program_worker = new ProgramWorker(tmp_dev, &flash_algo);
+    program_worker = new ProgramWorker(tmp_dev, &flash_algo);
 
-    // connect(this, &MainWindow::program_worker_verify, program_worker, &ProgramWorker::verify);
-    // connect(program_worker, &ProgramWorker::finished, this, &MainWindow::cb_verify_finish);
-    // connect(program_worker, &ProgramWorker::process, this, &MainWindow::cb_verify_chip_process);
+    connect(this, &MainWindow::program_worker_write, program_worker, &ProgramWorker::write);
+    connect(program_worker, &ProgramWorker::finished, this, &MainWindow::cb_write_finish);
+    connect(program_worker, &ProgramWorker::process, this, &MainWindow::cb_write_chip_process);
 
-    // take_timer.restart();
-    // emit program_worker_verify(flash_addr, &firmware_buf);
+    take_timer.restart();
+    emit program_worker_write(flash_addr, &firmware_buf);
 
-    // ui->progressBar->setValue(0);
-    // ui->progressBar->setMaximum(firmware_buf.length());
-    // ui->progressBar->setVisible(true);
+    ui->progressBar->setValue(0);
+    ui->progressBar->setMaximum(firmware_buf.length());
+    ui->progressBar->setVisible(true);
 
-    // log_info("Verify starting...");
+    log_info("write starting...");
+}
+
+void MainWindow::cb_action_verify(void)
+{
+    int32_t err;
+    Devices *tmp_dev;
+
+    err = device_connect();
+    if (err < 0)
+    {
+        return;
+    }
+
+    tmp_dev = current_device();
+    if (tmp_dev == NULL)
+    {
+        return;
+    }
+
+    log_info("chip connect ok");
+
+    FlashDevice flash_info = flash_algo.get_flash_device_info();
+    uint32_t flash_size = flash_info.szDev;
+    uint32_t flash_addr = flash_info.DevAdr;
+
+    program_worker = new ProgramWorker(tmp_dev, &flash_algo);
+    connect(this, &MainWindow::program_worker_verify, program_worker, &ProgramWorker::verify);
+    connect(program_worker, &ProgramWorker::finished, this, &MainWindow::cb_verify_finish);
+    connect(program_worker, &ProgramWorker::process, this, &MainWindow::cb_verify_chip_process);
+
+    take_timer.restart();
+    emit program_worker_verify(flash_addr, &firmware_buf);
+
+    ui->progressBar->setValue(0);
+    ui->progressBar->setMaximum(firmware_buf.length());
+    ui->progressBar->setVisible(true);
+
+    log_info("Verify starting...");
 }
 
 void MainWindow::cb_action_reset_run(void)

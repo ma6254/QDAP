@@ -383,28 +383,28 @@ int32_t CMSIS_DAP_Base::chip_syscall_exec(const program_syscall_t *sysCallParam,
     err = swd_write_debug_state(&state);
     if (err < 0)
     {
-        qDebug("[DA_PHID] swd_write_debug_state fail");
+        qDebug("[CMSIS_DAP_Base] swd_write_debug_state fail");
         return err;
     }
 
     err = swd_wait_until_halted();
     if (err < 0)
     {
-        qDebug("[DA_PHID] wait_until_halted fail");
+        qDebug("[CMSIS_DAP_Base] wait_until_halted fail");
         return err;
     }
 
     err = swd_read_core_register(0, &state.r[0]);
     if (err < 0)
     {
-        qDebug("[DA_PHID] swd_read_core_register fail");
+        qDebug("[CMSIS_DAP_Base] swd_read_core_register fail");
         return err;
     }
 
     // Flash functions return 0 if successful.
     if (state.r[0] != 0)
     {
-        qDebug("[DAP_HID] flash_func return:0x%X", state.r[0]);
+        qDebug("[CMSIS_DAP_Base] flash_func return:0x%X", state.r[0]);
         return -1;
     }
 
