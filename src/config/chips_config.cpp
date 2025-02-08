@@ -17,10 +17,10 @@ ChipsConfig *ChipsConfig::get_default()
 {
     ChipsConfig *config = new ChipsConfig();
 
-    // url = "https://github.com/ma6254/qdap_chips/archive/refs/heads/main.zip";
-    config->url = "https://github.com/ma6254/qdap_chips/archive/refs/tags/v0.1.zip";
-    // url = "http://127.0.0.1:8000/main.zipConnectionRefusedError";
-    // url = "https://git.s2.ma6254.com/qdap/qdap_chips/archive/main.zip";
+    config->url = "https://github.com/ma6254/qdap_chips/archive/refs/heads/main.zip";
+    // config->url = "https://github.com/ma6254/qdap_chips/archive/refs/tags/v0.1.zip";
+    // config->url = "http://127.0.0.1:8000/main.zipConnectionRefusedError";
+    // config->url = "https://git.s2.ma6254.com/qdap/qdap_chips/archive/main.zip";
 
     return config;
 }
