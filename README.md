@@ -11,6 +11,8 @@
 
 [![QQ群](https://img.shields.io/badge/QQ%E7%BE%A4-495477288-orange.svg)](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=DkzYlCZ9VSQEq6CqUtqGiqYBZh1V5CKK&authKey=btu30mBqaqx6GSVS3futp%2BhYitMfhtAltmp%2B84Kob9xS%2F6J5yQkd0dSeozzxbclT&noverify=0&group_code=495477288)
 
+[![Packaging status](https://repology.org/badge/vertical-allrepos/qdap.svg)](https://repology.org/project/qdap/versions)
+
 [DAP-Link](https://github.com/ARM-software/CMSIS-DAP) upper by [Qt](http://qt.io)
  
 chip device libray: <https://github.com/ma6254/qdap_chips>

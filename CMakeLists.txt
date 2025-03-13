@@ -133,7 +133,6 @@ file(
   add_subdirectory("vendor/QHexView")
   set(QHexView_LIBRARIES QHexView)
 
-
   include_directories(
     ${Qt5Core_INCLUDE_DIRS}
     ${Qt5Widgets_INCLUDE_DIRS}
@@ -170,16 +169,33 @@ elseif(UNIX AND NOT APPLE)
   pkg_check_modules(LIBUSB REQUIRED libusb-1.0)
   pkg_check_modules(LIBHIDAPI REQUIRED hidapi-hidraw)
 
+  # QHexView
+  add_subdirectory("vendor/QHexView")
+  set(QHexView_LIBRARIES QHexView)
+
   include_directories(
+    ${Qt5Core_INCLUDE_DIRS}
+    ${Qt5Widgets_INCLUDE_DIRS}
+    ${Qt5Gui_PRIVATE_INCLUDE_DIRS}
     ${LIBUSB_INCLUDE_DIRS}
     ${YAML_CPP_INCLUDE_DIRS}
     ${LIBHIDAPI_LIBRARIES}
+    vendor/QHexView/include
   )
 
   add_executable(QDAP ${SRC_FILES} ${UI_FILES} ${QM_FILES})
   target_link_libraries(
-    QDAP PRIVATE Qt5::Widgets ${LIBUSB_LIBRARIES} ${YAML_CPP_LIBRARIES}
-    ${LIBHIDAPI_LIBRARIES})
+    QDAP
+    PRIVATE
+    Qt5::Core
+    Qt5::Gui
+    Qt5::Widgets
+    Qt5::Network
+    ${LIBUSB_LIBRARIES}
+    ${YAML_CPP_LIBRARIES}
+    ${LIBHIDAPI_LIBRARIES}
+    QHexView
+  )
 
   target_include_directories(QDAP PRIVATE ${QT_INCLUDE_DIRS})
 
