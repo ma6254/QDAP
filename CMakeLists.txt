@@ -21,7 +21,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # ${CMAKE_CURRENT_SOURCE_DIR}/path/to/libssl.so) endif() endif()
 find_package(
   Qt5
-  COMPONENTS Gui Widgets Network LinguistTools
+  COMPONENTS
+  Gui
+  Widgets
+  Network
+  LinguistTools
   REQUIRED)
 
 include_directories(${QT_INCLUDE_DIRS})
@@ -70,7 +74,8 @@ include_directories(
   src/views/device_selector/cmsis-dap
   src/views/device_selector
   src/views/input_box_dialog
-  src/views/chips_config_dialog)
+  src/views/chips_config_dialog
+)
 
 file(
   GLOB
@@ -84,7 +89,8 @@ file(
   src/views/device_selector/*.cpp
   src/views/device_selector/cmsis-dap/*.cpp
   src/views/input_box_dialog/*.cpp
-  src/views/chips_config_dialog/*.cpp)
+  src/views/chips_config_dialog/*.cpp
+)
 
 file(
   GLOB
@@ -94,7 +100,8 @@ file(
   src/views/device_selector/*.ui
   src/views/device_selector/cmsis-dap/*.ui
   src/views/input_box_dialog/*.ui
-  src/views/chips_config_dialog/*.ui)
+  src/views/chips_config_dialog/*.ui
+)
 
 if(ANDROID)
   # ############################################################################
@@ -108,9 +115,15 @@ elseif(WIN32)
   # ############################################################################
   message(STATUS "Building for Windows")
 
-  include_directories(src/win_hotplug_notify)
+include_directories(
+  src/win_hotplug_notify
+)
 
-  file(GLOB WIN_SRC_FILES src/win_hotplug_notify/*.cpp)
+file(
+  GLOB
+  WIN_SRC_FILES
+  src/win_hotplug_notify/*.cpp
+)
 
   # yaml-cpp
   add_subdirectory("vendor/yaml-cpp")
@@ -127,22 +140,25 @@ elseif(WIN32)
     vendor/libusb_hid_api/include
     vendor/libusb/include
     vendor/yaml-cpp/include
-    vendor/QHexView/include)
+    vendor/QHexView/include
+  )
 
   include_directories(ch341_ch347_lib/CH341PAR/LIB/CH347)
 
   add_executable(QDAP ${SRC_FILES} ${WIN_SRC_FILES} ${UI_FILES} ${QM_FILES})
   target_link_libraries(
     QDAP
-    PRIVATE Qt5::Core
-            Qt5::Gui
-            Qt5::Widgets
-            Qt5::Network
-            # OpenSSL::SSL OpenSSL::Crypto
-            ${CMAKE_SOURCE_DIR}/vendor/libusb_hid_api/x64/hidapi.lib
-            ${CMAKE_SOURCE_DIR}/vendor/libusb/MinGW64/static/libusb-1.0.a
-            yaml-cpp
-            QHexView)
+    PRIVATE
+    Qt5::Core
+    Qt5::Gui
+    Qt5::Widgets
+    Qt5::Network
+    # OpenSSL::SSL OpenSSL::Crypto
+    ${CMAKE_SOURCE_DIR}/vendor/libusb_hid_api/x64/hidapi.lib
+    ${CMAKE_SOURCE_DIR}/vendor/libusb/MinGW64/static/libusb-1.0.a
+    yaml-cpp
+    QHexView
+)
 elseif(UNIX AND NOT APPLE)
   # ############################################################################
   # UNIX
@@ -169,14 +185,15 @@ elseif(UNIX AND NOT APPLE)
   add_executable(QDAP ${SRC_FILES} ${UI_FILES} ${QM_FILES})
   target_link_libraries(
     QDAP
-    PRIVATE Qt5::Core
-            Qt5::Gui
-            Qt5::Widgets
-            Qt5::Network
-            ${LIBUSB_LIBRARIES}
-            ${YAML_CPP_LIBRARIES}
-            ${LIBHIDAPI_LIBRARIES}
-            QHexView)
+    PRIVATE
+    Qt5::Core
+    Qt5::Gui
+    Qt5::Widgets
+    Qt5::Network
+    ${LIBUSB_LIBRARIES}
+    ${YAML_CPP_LIBRARIES}
+    ${LIBHIDAPI_LIBRARIES}
+    QHexView)
 
   target_include_directories(QDAP PRIVATE ${QT_INCLUDE_DIRS})
 
@@ -184,10 +201,10 @@ elseif(UNIX AND NOT APPLE)
   install(TARGETS QDAP DESTINATION bin)
   install(DIRECTORY resources/ DESTINATION share/applications)
 
-  # install(FILES qdap.desktop DESTINATION share/applications) install(FILES
-  # qdap.png DESTINATION share/icons) install(FILES qdap.service DESTINATION
-  # etc/systemd/system) install(DIRECTORY contrib/icons/ DESTINATION
-  # share/icons/hicolor)
+# install(FILES qdap.desktop DESTINATION share/applications) install(FILES
+# qdap.png DESTINATION share/icons) install(FILES qdap.service DESTINATION
+# etc/systemd/system) install(DIRECTORY contrib/icons/ DESTINATION
+# share/icons/hicolor)
 else()
   # ############################################################################
   # Unsupported
