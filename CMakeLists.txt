@@ -57,9 +57,9 @@ if(WIN32 AND GIT_EXECUTABLE)
     message(FATAL_ERROR "Failed to initialize and update submodules.")
   endif()
 
-  # add_custom_target(update_submodules) add_custom_command( TARGET
-  # update_submodules POSTBUILD COMMAND "${GIT_EXECUTABLE}" submodule update
-  # --recursive WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} )
+# add_custom_target(update_submodules) add_custom_command( TARGET
+# update_submodules POSTBUILD COMMAND "${GIT_EXECUTABLE}" submodule update
+# --recursive WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} )
 else()
   message(STATUS "Skipping submodule initialization and update.")
 endif()
@@ -158,7 +158,7 @@ file(
     ${CMAKE_SOURCE_DIR}/vendor/libusb/MinGW64/static/libusb-1.0.a
     yaml-cpp
     QHexView
-)
+  )
 elseif(UNIX AND NOT APPLE)
   # ############################################################################
   # UNIX
@@ -180,7 +180,8 @@ elseif(UNIX AND NOT APPLE)
     ${LIBUSB_INCLUDE_DIRS}
     ${YAML_CPP_INCLUDE_DIRS}
     ${LIBHIDAPI_LIBRARIES}
-    vendor/QHexView/include)
+    vendor/QHexView/include
+  )
 
   add_executable(QDAP ${SRC_FILES} ${UI_FILES} ${QM_FILES})
   target_link_libraries(
@@ -193,7 +194,8 @@ elseif(UNIX AND NOT APPLE)
     ${LIBUSB_LIBRARIES}
     ${YAML_CPP_LIBRARIES}
     ${LIBHIDAPI_LIBRARIES}
-    QHexView)
+    QHexView
+  )
 
   target_include_directories(QDAP PRIVATE ${QT_INCLUDE_DIRS})
 
