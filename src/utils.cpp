@@ -1,5 +1,4 @@
 #include "utils.h"
-#include <QString>
 
 void dump_flash_code(const uint32_t *buf, uint32_t len)
 {
@@ -53,4 +52,29 @@ void hexdump(const uint8_t *buf, uint32_t len)
     res.append("[hexdump] ====================================================\r\n");
 
     qDebug("%s", qPrintable(res));
+}
+
+QString convert_bytes_speed_unit(uint64_t bytes)
+{
+    if (bytes < 1024)
+    {
+        return QString("%1 B/s").arg(bytes);
+    }
+
+    if (bytes < 1024 * 1024)
+    {
+        return QString("%1 KB/s").arg((float)bytes / 1024, 0, 'f', 2);
+    }
+
+    if (bytes < 1024 * 1024)
+    {
+        return QString("%1 KB/s").arg((float)bytes / 1024, 0, 'f', 2);
+    }
+
+    if (bytes < 1024 * 1024 * 1024)
+    {
+        return QString("%1 MB/s").arg((float)bytes / 1024 / 1024, 0, 'f', 2);
+    }
+
+    return QString("%1 GB/s").arg((float)bytes / 1024 / 1024 / 1024, 0, 'f', 2);
 }

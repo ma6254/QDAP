@@ -109,8 +109,7 @@ MainWindow::MainWindow(QWidget *parent)
                 }
 
                 // qDebug("log_ver_scroll max:%d", log_ver_scroll->maximum());
-                log_ver_scroll->setValue(log_ver_scroll->maximum());
-            });
+                log_ver_scroll->setValue(log_ver_scroll->maximum()); });
 
     device_change_delay_enum_timer = new QTimer();
     connect(device_change_delay_enum_timer, SIGNAL(timeout()), this, SLOT(cb_tick_enum_device()));
@@ -678,7 +677,7 @@ void MainWindow::cb_action_open_firmware_file(void)
 void MainWindow::cb_action_save_firmware_file(void)
 {
     QString file_name = QFileDialog::getSaveFileName(
-        this, tr("请选择烧录文件保存路径"),
+        this, tr("请回读数据保存文件路径"),
         NULL,
         tr("Binary file (*.bin);;Intel HEX file (*.hex)"));
 
@@ -696,7 +695,7 @@ void MainWindow::cb_action_save_firmware_file(void)
         if (!file.open(QIODevice::WriteOnly))
             return;
 
-        qint64 n = file.write(firmware_buf);
+        qint64 n = file.write(read_back_buf);
         file.close();
 
         QLocale locale = this->locale();
@@ -1309,7 +1308,7 @@ void MainWindow::cb_action_erase_chip(void)
                                      tmp_flash_code.length());
     if (err < 0)
     {
-        qDebug("[main] dap_write_memory fail");
+        qDebug("[main] cb_action_erase_chip load_flash_algo_code fail");
         log_error("load flash algo fail");
         return;
     }
@@ -1561,12 +1560,18 @@ void MainWindow::cb_read_chip_finish(ProgramWorker::ChipOp op, bool ok)
 {
     qDebug("[main] ReadChip ok %d %d", op, ok);
 
+    FlashDevice tmp_flash_info = flash_algo.get_flash_device_info();
+    // QByteArray tmp_flash_code = flash_algo.get_flash_code();
+    uint32_t flash_size = tmp_flash_info.szDev;
+
     float take_sec = (float)(take_timer.elapsed()) / 1000;
     ui->progressBar->setHidden(true);
 
+    QString bytes_speed_str = convert_bytes_speed_unit((float)(flash_size) / take_sec);
+
     if (ok)
     {
-        log_info(QString("ReadChip done, take time: %1 second").arg(take_sec, 0, 'f', 2));
+        log_info(QString("ReadChip done, take time: %1 second %2").arg(take_sec, 0, 'f', 2).arg(bytes_speed_str));
 
         // 更新固件时间
         QDateTime current_date_time = QDateTime::currentDateTime();
@@ -1607,9 +1612,15 @@ void MainWindow::cb_write_finish(ProgramWorker::ChipOp op, bool ok)
     float take_sec = (float)(take_timer.elapsed()) / 1000;
     ui->progressBar->setHidden(true);
 
+    FlashDevice flash_info = flash_algo.get_flash_device_info();
+    uint32_t flash_size = flash_info.szDev;
+    uint32_t w_size = (flash_size > firmware_buf.length()) ? firmware_buf.length() : flash_size;
+
+    QString bytes_speed_str = convert_bytes_speed_unit((float)(w_size) / take_sec);
+
     if (ok)
     {
-        log_info(QString("Write done, take time: %1 second").arg(take_sec, 0, 'f', 2));
+        log_info(QString("Write done, take time: %1 s %2").arg(take_sec, 0, 'f', 2).arg(bytes_speed_str));
     }
     else
     {
@@ -1645,6 +1656,7 @@ void MainWindow::cb_read_chip_process(uint32_t val, uint32_t max)
 void MainWindow::cb_write_chip_process(uint32_t val, uint32_t max)
 {
     ui->progressBar->setValue(val);
+    ui->progressBar->setMaximum(max);
     // qDebug("%d/%d", val, max);
 }
 

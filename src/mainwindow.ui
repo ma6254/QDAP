@@ -78,7 +78,7 @@
      <x>0</x>
      <y>0</y>
      <width>1100</width>
-     <height>21</height>
+     <height>18</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu">
@@ -201,10 +201,10 @@
     <bool>false</bool>
    </property>
    <property name="features">
-    <set>QDockWidget::DockWidgetFeature::DockWidgetMovable</set>
+    <set>QDockWidget::DockWidgetMovable</set>
    </property>
    <property name="allowedAreas">
-    <set>Qt::DockWidgetArea::AllDockWidgetAreas</set>
+    <set>Qt::AllDockWidgetAreas</set>
    </property>
    <property name="windowTitle">
     <string>信息视图</string>
@@ -253,10 +253,10 @@
         </sizepolicy>
        </property>
        <property name="verticalScrollBarPolicy">
-        <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOn</enum>
+        <enum>Qt::ScrollBarAlwaysOn</enum>
        </property>
        <property name="horizontalScrollBarPolicy">
-        <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+        <enum>Qt::ScrollBarAlwaysOff</enum>
        </property>
        <property name="widgetResizable">
         <bool>true</bool>
@@ -267,7 +267,7 @@
           <x>0</x>
           <y>0</y>
           <width>209</width>
-          <height>610</height>
+          <height>618</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,0,1">
@@ -323,7 +323,7 @@
                <string>烧录器</string>
               </property>
               <property name="alignment">
-               <set>Qt::AlignmentFlag::AlignCenter</set>
+               <set>Qt::AlignCenter</set>
               </property>
               <property name="margin">
                <number>5</number>
@@ -345,7 +345,7 @@
                  <string>名称:</string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                 </property>
                </widget>
               </item>
@@ -362,17 +362,17 @@
                  <string>类型:</string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                 </property>
                </widget>
               </item>
               <item row="1" column="1">
                <widget class="QLabel" name="label_info_dev_name">
                 <property name="frameShape">
-                 <enum>QFrame::Shape::Box</enum>
+                 <enum>QFrame::Box</enum>
                 </property>
                 <property name="frameShadow">
-                 <enum>QFrame::Shadow::Plain</enum>
+                 <enum>QFrame::Plain</enum>
                 </property>
                 <property name="text">
                  <string>N/A</string>
@@ -384,17 +384,17 @@
                  <number>2</number>
                 </property>
                 <property name="textInteractionFlags">
-                 <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+                 <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
                 </property>
                </widget>
               </item>
               <item row="0" column="1">
                <widget class="QLabel" name="label_device_type">
                 <property name="frameShape">
-                 <enum>QFrame::Shape::Box</enum>
+                 <enum>QFrame::Box</enum>
                 </property>
                 <property name="frameShadow">
-                 <enum>QFrame::Shadow::Plain</enum>
+                 <enum>QFrame::Plain</enum>
                 </property>
                 <property name="text">
                  <string>USB_HID</string>
@@ -403,7 +403,7 @@
                  <number>2</number>
                 </property>
                 <property name="textInteractionFlags">
-                 <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+                 <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
                 </property>
                </widget>
               </item>
@@ -455,7 +455,7 @@
                <string>目标芯片</string>
               </property>
               <property name="alignment">
-               <set>Qt::AlignmentFlag::AlignCenter</set>
+               <set>Qt::AlignCenter</set>
               </property>
               <property name="margin">
                <number>5</number>
@@ -477,17 +477,17 @@
                  <string>ROM容量:</string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                 </property>
                </widget>
               </item>
               <item row="3" column="1">
                <widget class="QLabel" name="label_info_chip_flash_size">
                 <property name="frameShape">
-                 <enum>QFrame::Shape::Box</enum>
+                 <enum>QFrame::Box</enum>
                 </property>
                 <property name="frameShadow">
-                 <enum>QFrame::Shadow::Plain</enum>
+                 <enum>QFrame::Plain</enum>
                 </property>
                 <property name="text">
                  <string>N/A</string>
@@ -496,7 +496,7 @@
                  <number>2</number>
                 </property>
                 <property name="textInteractionFlags">
-                 <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+                 <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
                 </property>
                </widget>
               </item>
@@ -513,7 +513,7 @@
                  <string>制造商:</string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                 </property>
                </widget>
               </item>
@@ -530,7 +530,7 @@
                  <string>内核:</string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                 </property>
                </widget>
               </item>
@@ -547,23 +547,23 @@
                  <string>系列:</string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                 </property>
                </widget>
               </item>
               <item row="1" column="1">
                <widget class="QLabel" name="label_info_chip_series">
                 <property name="frameShape">
-                 <enum>QFrame::Shape::Box</enum>
+                 <enum>QFrame::Box</enum>
                 </property>
                 <property name="frameShadow">
-                 <enum>QFrame::Shadow::Plain</enum>
+                 <enum>QFrame::Plain</enum>
                 </property>
                 <property name="text">
                  <string>N/A</string>
                 </property>
                 <property name="textFormat">
-                 <enum>Qt::TextFormat::MarkdownText</enum>
+                 <enum>Qt::MarkdownText</enum>
                 </property>
                 <property name="margin">
                  <number>2</number>
@@ -572,23 +572,23 @@
                  <bool>true</bool>
                 </property>
                 <property name="textInteractionFlags">
-                 <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+                 <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
                 </property>
                </widget>
               </item>
               <item row="4" column="1">
                <widget class="QLabel" name="label_info_core_type">
                 <property name="frameShape">
-                 <enum>QFrame::Shape::Box</enum>
+                 <enum>QFrame::Box</enum>
                 </property>
                 <property name="frameShadow">
-                 <enum>QFrame::Shadow::Plain</enum>
+                 <enum>QFrame::Plain</enum>
                 </property>
                 <property name="text">
                  <string>N/A</string>
                 </property>
                 <property name="textFormat">
-                 <enum>Qt::TextFormat::MarkdownText</enum>
+                 <enum>Qt::MarkdownText</enum>
                 </property>
                 <property name="margin">
                  <number>2</number>
@@ -597,17 +597,17 @@
                  <bool>true</bool>
                 </property>
                 <property name="textInteractionFlags">
-                 <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+                 <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
                 </property>
                </widget>
               </item>
               <item row="2" column="1">
                <widget class="QLabel" name="label_info_chip_name">
                 <property name="frameShape">
-                 <enum>QFrame::Shape::Box</enum>
+                 <enum>QFrame::Box</enum>
                 </property>
                 <property name="frameShadow">
-                 <enum>QFrame::Shadow::Plain</enum>
+                 <enum>QFrame::Plain</enum>
                 </property>
                 <property name="text">
                  <string>N/A</string>
@@ -616,17 +616,17 @@
                  <number>2</number>
                 </property>
                 <property name="textInteractionFlags">
-                 <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+                 <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
                 </property>
                </widget>
               </item>
               <item row="5" column="1">
                <widget class="QLabel" name="label_info_idcode">
                 <property name="frameShape">
-                 <enum>QFrame::Shape::Box</enum>
+                 <enum>QFrame::Box</enum>
                 </property>
                 <property name="frameShadow">
-                 <enum>QFrame::Shadow::Plain</enum>
+                 <enum>QFrame::Plain</enum>
                 </property>
                 <property name="text">
                  <string>N/A</string>
@@ -635,23 +635,23 @@
                  <number>2</number>
                 </property>
                 <property name="textInteractionFlags">
-                 <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+                 <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
                 </property>
                </widget>
               </item>
               <item row="0" column="1">
                <widget class="QLabel" name="label_info_chip_vendor">
                 <property name="frameShape">
-                 <enum>QFrame::Shape::Box</enum>
+                 <enum>QFrame::Box</enum>
                 </property>
                 <property name="frameShadow">
-                 <enum>QFrame::Shadow::Plain</enum>
+                 <enum>QFrame::Plain</enum>
                 </property>
                 <property name="text">
                  <string>N/A</string>
                 </property>
                 <property name="textFormat">
-                 <enum>Qt::TextFormat::MarkdownText</enum>
+                 <enum>Qt::MarkdownText</enum>
                 </property>
                 <property name="margin">
                  <number>2</number>
@@ -660,7 +660,7 @@
                  <bool>true</bool>
                 </property>
                 <property name="textInteractionFlags">
-                 <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+                 <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
                 </property>
                </widget>
               </item>
@@ -677,7 +677,7 @@
                  <string>IDCODE:</string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                 </property>
                </widget>
               </item>
@@ -694,7 +694,7 @@
                  <string>型号:</string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                 </property>
                </widget>
               </item>
@@ -746,7 +746,7 @@
                <string>固件</string>
               </property>
               <property name="alignment">
-               <set>Qt::AlignmentFlag::AlignCenter</set>
+               <set>Qt::AlignCenter</set>
               </property>
               <property name="margin">
                <number>5</number>
@@ -758,10 +758,10 @@
               <item row="1" column="1">
                <widget class="QLabel" name="label_info_data_size">
                 <property name="frameShape">
-                 <enum>QFrame::Shape::Box</enum>
+                 <enum>QFrame::Box</enum>
                 </property>
                 <property name="frameShadow">
-                 <enum>QFrame::Shadow::Plain</enum>
+                 <enum>QFrame::Plain</enum>
                 </property>
                 <property name="text">
                  <string>N/A</string>
@@ -770,17 +770,17 @@
                  <number>2</number>
                 </property>
                 <property name="textInteractionFlags">
-                 <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+                 <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
                 </property>
                </widget>
               </item>
               <item row="2" column="1">
                <widget class="QLabel" name="label_11">
                 <property name="frameShape">
-                 <enum>QFrame::Shape::Box</enum>
+                 <enum>QFrame::Box</enum>
                 </property>
                 <property name="frameShadow">
-                 <enum>QFrame::Shadow::Plain</enum>
+                 <enum>QFrame::Plain</enum>
                 </property>
                 <property name="text">
                  <string>N/A</string>
@@ -789,7 +789,7 @@
                  <number>2</number>
                 </property>
                 <property name="textInteractionFlags">
-                 <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+                 <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
                 </property>
                </widget>
               </item>
@@ -806,7 +806,7 @@
                  <string>大小:</string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                 </property>
                </widget>
               </item>
@@ -823,7 +823,7 @@
                  <string>CRC16:</string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                 </property>
                </widget>
               </item>
@@ -840,17 +840,17 @@
                  <string>文件名:</string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                 </property>
                </widget>
               </item>
               <item row="3" column="1">
                <widget class="QLabel" name="label_latest_load_time">
                 <property name="frameShape">
-                 <enum>QFrame::Shape::Box</enum>
+                 <enum>QFrame::Box</enum>
                 </property>
                 <property name="frameShadow">
-                 <enum>QFrame::Shadow::Plain</enum>
+                 <enum>QFrame::Plain</enum>
                 </property>
                 <property name="text">
                  <string>N/A</string>
@@ -862,7 +862,7 @@
                  <number>2</number>
                 </property>
                 <property name="textInteractionFlags">
-                 <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+                 <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
                 </property>
                </widget>
               </item>
@@ -882,10 +882,10 @@
               <item row="0" column="1">
                <widget class="QLabel" name="label_info_file_name">
                 <property name="frameShape">
-                 <enum>QFrame::Shape::Box</enum>
+                 <enum>QFrame::Box</enum>
                 </property>
                 <property name="frameShadow">
-                 <enum>QFrame::Shadow::Plain</enum>
+                 <enum>QFrame::Plain</enum>
                 </property>
                 <property name="text">
                  <string>N/A</string>
@@ -900,7 +900,7 @@
                  <number>2</number>
                 </property>
                 <property name="textInteractionFlags">
-                 <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+                 <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
                 </property>
                </widget>
               </item>
@@ -912,7 +912,7 @@
          <item>
           <spacer name="verticalSpacer">
            <property name="orientation">
-            <enum>Qt::Orientation::Vertical</enum>
+            <enum>Qt::Vertical</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
@@ -946,10 +946,10 @@
     <bool>false</bool>
    </property>
    <property name="features">
-    <set>QDockWidget::DockWidgetFeature::DockWidgetMovable</set>
+    <set>QDockWidget::DockWidgetMovable</set>
    </property>
    <property name="allowedAreas">
-    <set>Qt::DockWidgetArea::AllDockWidgetAreas</set>
+    <set>Qt::AllDockWidgetAreas</set>
    </property>
    <property name="windowTitle">
     <string>日志视图</string>
@@ -980,7 +980,7 @@
         <number>24</number>
        </property>
        <property name="alignment">
-        <set>Qt::AlignmentFlag::AlignCenter</set>
+        <set>Qt::AlignCenter</set>
        </property>
       </widget>
      </item>
@@ -1001,7 +1001,7 @@
         </font>
        </property>
        <property name="verticalScrollBarPolicy">
-        <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOn</enum>
+        <enum>Qt::ScrollBarAlwaysOn</enum>
        </property>
        <property name="widgetResizable">
         <bool>true</bool>
@@ -1012,7 +1012,7 @@
           <x>0</x>
           <y>0</y>
           <width>1081</width>
-          <height>95</height>
+          <height>104</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -1115,7 +1115,7 @@
   </action>
   <action name="action_file_save">
    <property name="text">
-    <string>保存烧录文件</string>
+    <string>保存回读数据</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
