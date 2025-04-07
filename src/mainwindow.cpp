@@ -608,14 +608,20 @@ Devices *MainWindow::current_device()
     // qDebug("[main] cb_action_connect current_device: inedx:%d len:%d", current_device_index, device_list.count());
 
     if (current_device_index < 0)
+    {
+        qDebug("[main] current_device index:%d default", current_device_index);
         tmp_dev = device_list[0];
+    }
     else if (current_device_index >= device_list.count())
     {
         qDebug("[main] current_device inedx:%d len:%d", current_device_index, device_list.count());
         tmp_dev = device_list[0];
     }
     else
+    {
+        qDebug("[main] current_device index:%d", current_device_index);
         tmp_dev = device_list[current_device_index];
+    }
 
     return tmp_dev;
 }
@@ -1296,6 +1302,7 @@ void MainWindow::cb_action_erase_chip(void)
     }
 
     log_info("chip connect ok");
+    qDebug("[main] chip connect ok");
 
     FlashDevice tmp_flash_info = flash_algo.get_flash_device_info();
     QByteArray tmp_flash_code = flash_algo.get_flash_code();
@@ -1314,6 +1321,7 @@ void MainWindow::cb_action_erase_chip(void)
     }
 
     log_info("load flash algo code ok");
+    qDebug("[main] cb_action_erase_chip load_flash_algo_code ok");
 
     uint32_t entry = flash_algo.get_flash_func_offset(FLASH_FUNC_Init);
     uint32_t arg1 = flash_algo.get_flash_start();
@@ -1443,8 +1451,10 @@ void MainWindow::cb_action_write(void)
     take_timer.restart();
     emit program_worker_write(flash_addr, &firmware_buf);
 
+    uint32_t w_size = (flash_size > firmware_buf.length()) ? firmware_buf.length() : flash_size;
+
     ui->progressBar->setValue(0);
-    ui->progressBar->setMaximum(firmware_buf.length());
+    ui->progressBar->setMaximum(w_size);
     ui->progressBar->setVisible(true);
 
     log_info("write starting...");

@@ -351,7 +351,7 @@ int32_t DAP_HID::open_device()
 
 int32_t DAP_HID::close_device()
 {
-    // qDebug("[DAP_HID] close device %s", qPrintable(usb_path));
+    qDebug("[DAP_HID] close device %s", qPrintable(usb_path));
     hid_close(dev);
     dev = NULL;
     return 0;
@@ -382,20 +382,48 @@ int32_t DAP_HID::dap_request(uint8_t *tx_data, uint32_t tx_len, uint8_t *rx_data
         return err;
     }
 
-    err = hid_read_timeout(dev, rx_data, rx_buf_size, 500);
-    if (err < 0)
+    uint32_t retry_i = 20;
+
+    for (; retry_i > 0; retry_i--)
     {
-        QString err_info = QString::fromWCharArray(hid_error(dev));
-        qDebug("[DAP_HID] dap_hid_request fail: %s", qUtf8Printable(err_info));
-        return err;
+        err = hid_read_timeout(dev, rx_data, rx_buf_size, 100);
+        if (err < 0)
+        {
+            QString err_info = QString::fromWCharArray(hid_error(dev));
+            qDebug("[DAP_HID] dap_hid_request fail: %s", qUtf8Printable(err_info));
+            return err;
+        }
+
+        // 首字节一定与发送相等
+        // if (rx_data[0] == tx_data[0])
+        if (err > 0)
+        {
+            *rx_len = err;
+            break;
+        }
+
+        // QThread::msleep(10);
     }
+
+    if (retry_i == 0)
+    {
+        qDebug("[DAP_HID] dap_hid_request fail: timeout");
+        return DEVICE_ERR_DAP_REQUEST_TIMEOUT;
+    }
+
+    // err = hid_read_timeout(dev, rx_data, rx_buf_size, 100);
+    // if (err < 0)
+    // {
+    //     QString err_info = QString::fromWCharArray(hid_error(dev));
+    //     qDebug("[DAP_HID] dap_hid_request fail: %s", qUtf8Printable(err_info));
+    //     return err;
+    // }
 
     // 首字节一定与发送相等
     if (rx_data[0] != tx_data[0])
     {
-        qDebug("[DAP_HID] dap_hid_request fail cmd not requls tx:0x%02X rx:0x%02X", tx_data[0], rx_data[0]);
-        hexdump(rx_data, 64);
-        return -1;
+        qDebug("[DAP_HID] dap_hid_request fail: cmd not equal tx:0x%02X rx:0x%02X", tx_data[0], rx_data[0]);
+        return DEVICE_ERR_DAP_TRANSFER_ERROR;
     }
 
     *rx_len = err;

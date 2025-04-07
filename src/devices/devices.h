@@ -36,6 +36,7 @@ public:
         DEVICE_ERR_DAP_REQUEST_FAIL = -2,
         DEVICE_ERR_DAP_REQUEST_TIMEOUT = -3,
         DEVICE_ERR_DAP_TRANSFER_ERROR = -4,
+        DEVICE_ERR_DAP_RESPONSE_ERROR = -5,
     };
     Q_ENUM(Error)
 

@@ -138,8 +138,11 @@ void ProgramWorker::write(uint32_t addr, QByteArray *data)
     uint32_t flash_size = flash_info.szDev;
     uint32_t flash_addr = flash_info.DevAdr;
     // uint32_t page_size = flash_info.szPage;
-    uint32_t page_size = 64;
+    // uint32_t flash_size = 1024 * 16;
+    uint32_t page_size = 512;
     uint32_t program_buff = algo->program_mem_buffer();
+
+    qDebug("[ProgramWorker] write page_size: %d", page_size);
 
     uint32_t entry = algo->get_flash_func_offset(FLASH_FUNC_ProgramPage);
     if (entry == UINT32_MAX)
@@ -149,7 +152,8 @@ void ProgramWorker::write(uint32_t addr, QByteArray *data)
         return;
     }
 
-    uint32_t fw_size = data->length();
+    // uint32_t fw_size = data->length();
+    uint32_t fw_size = (flash_size > data->length()) ? data->length() : flash_size;
     uint32_t pw_size;
 
     for (uint32_t i = 0; i < fw_size; i += page_size)
@@ -162,6 +166,8 @@ void ProgramWorker::write(uint32_t addr, QByteArray *data)
         {
             pw_size = page_size;
         }
+
+        qDebug("[ProgramWorker] exec_flash_func ProgramPage page %d %d", i, pw_size);
 
         err = dev->chip_write_memory(program_buff, (uint8_t *)(data->data()) + i, pw_size);
         if (err < 0)

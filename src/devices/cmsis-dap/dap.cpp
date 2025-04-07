@@ -130,17 +130,17 @@ int32_t CMSIS_DAP_Base::connect()
     //     //     return err;
     // }
 
-    err = dap_transfer_config(0, 0, 0);
-    if (err < 0)
-    {
-        qDebug("[enum_device] dap_swd_config fail");
+    // err = dap_transfer_config(10, 10, 10);
+    // if (err < 0)
+    // {
+    //     qDebug("[enum_device] dap_swd_config fail");
 
-        // if (err == Devices::Error::DEVICE_ERR_DAP_REQUEST_TIMEOUT)
-        // {
-        // }
-        // else
-        //     return err;
-    }
+    //     // if (err == Devices::Error::DEVICE_ERR_DAP_REQUEST_TIMEOUT)
+    //     // {
+    //     // }
+    //     // else
+    //     //     return err;
+    // }
 
     err = dap_swd_reset();
     if (err < 0)
@@ -722,7 +722,7 @@ int32_t CMSIS_DAP_Base::dap_set_target_state_hw(dap_target_reset_state_t state)
             if (err < 0)
                 return err;
 
-            qDebug("[CMSIS_DAP_Base] DBG_HCSR: 0x%08X", val);
+            // qDebug("[CMSIS_DAP_Base] DBG_HCSR: 0x%08X", val);
 
             if (retry)
                 retry--;
@@ -987,6 +987,8 @@ int32_t CMSIS_DAP_Base::dap_swd_transfer(uint8_t req, uint32_t tx_data, uint8_t 
             memcpy(rx_data, rx_buf + 3, 4);
     }
 
+    // qDebug("[CMSIS_DAP_Base] dap_swd_transfer done resp: 0x%08X", *rx_data);
+
     // if (rx_data)
     //     memcpy(rx_data, rx_buf + 3, 4);
 
@@ -1024,9 +1026,9 @@ int32_t CMSIS_DAP_Base::dap_swd_transfer_retry(uint8_t req, uint32_t tx_data, ui
         // QThread::msleep(100);
     }
 
-    if (*resp != DAP_TRANSFER_OK)
-        // if ((*resp & DAP_TRANSFER_OK) == 0)
-        return Devices::Error::DEVICE_ERR_DAP_TRANSFER_ERROR;
+    // if (*resp != DAP_TRANSFER_OK)
+    //     // if ((*resp & DAP_TRANSFER_OK) == 0)
+    //     return Devices::Error::DEVICE_ERR_DAP_RESPONSE_ERROR;
 
     return 0;
 }
@@ -1091,10 +1093,10 @@ int32_t CMSIS_DAP_Base::dap_swd_read_dp(uint8_t addr, uint32_t *val)
     uint8_t req = DAP_TRANS_DP | DAP_TRANS_READ_REG | DAP_TRANS_REG_ADDR(addr);
     err = dap_swd_transfer_retry(req, 0, &resp, val);
     if (err < 0)
-        return Devices::Error::DEVICE_ERR_DAP_TRANSFER_ERROR;
+        return err;
 
     if (resp != DAP_TRANSFER_OK)
-        return Devices::Error::DEVICE_ERR_DAP_TRANSFER_ERROR;
+        return Devices::Error::DEVICE_ERR_DAP_RESPONSE_ERROR;
 
     return 0;
 }
@@ -1558,7 +1560,18 @@ int32_t CMSIS_DAP_Base::dap_swd_read_idcode(uint32_t *idcode)
     if (err < 0)
         return err;
 
-    return dap_swd_read_dp(DP_IDCODE, idcode);
+    err = dap_swd_read_dp(DP_IDCODE, idcode);
+
+    qDebug("[CMSIS_DAP_Base] dap_swd_read_idcode idcode:0x%08X", *idcode);
+
+    if ((*idcode == 0xFFFFFFFF) || (*idcode == 0x00000000))
+    {
+        qDebug("[CMSIS_DAP_Base] dap_swd_read_idcode fail idcode:0x%08X", *idcode);
+        return -1;
+    }
+
+    return 0;
+    // return dap_swd_read_dp(DP_IDCODE, idcode);
 }
 
 int32_t CMSIS_DAP_Base::dap_jtag_2_swd()
@@ -1710,19 +1723,26 @@ int32_t CMSIS_DAP_Base::swd_wait_until_halted(void)
 {
     // Wait for target to stop
     int32_t err;
-    uint32_t val, i, timeout = 1500;
+    uint32_t val, i;
+    uint32_t timeout = 1500;
 
     // TODO: 需要根据实际的情况设置超时值
     for (i = 0; i < timeout; i++)
     {
         err = dap_read_word(DBG_HCSR, &val);
         if (err < 0)
+        {
+            qDebug("[CMSIS_DAP_Base] swd_wait_until_halted read DBG_HCSR fail");
             return -1;
+        }
 
         if (val & S_HALT)
             return 0;
+
+        // QThread::msleep(20);
     }
 
+    qDebug("[CMSIS_DAP_Base] swd_wait_until_halted timeout");
     return -1;
 }
 
